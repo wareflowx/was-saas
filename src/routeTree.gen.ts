@@ -9,38 +9,101 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding/welcome'
+import { Route as OnboardingWarehouseRouteImport } from './routes/onboarding/warehouse'
+import { Route as OnboardingImportRouteImport } from './routes/onboarding/import'
 
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingWelcomeRoute = OnboardingWelcomeRouteImport.update({
+  id: '/onboarding/welcome',
+  path: '/onboarding/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingWarehouseRoute = OnboardingWarehouseRouteImport.update({
+  id: '/onboarding/warehouse',
+  path: '/onboarding/warehouse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingImportRoute = OnboardingImportRouteImport.update({
+  id: '/onboarding/import',
+  path: '/onboarding/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/onboarding/import': typeof OnboardingImportRoute
+  '/onboarding/warehouse': typeof OnboardingWarehouseRoute
+  '/onboarding/welcome': typeof OnboardingWelcomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/onboarding/import': typeof OnboardingImportRoute
+  '/onboarding/warehouse': typeof OnboardingWarehouseRoute
+  '/onboarding/welcome': typeof OnboardingWelcomeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/onboarding/import': typeof OnboardingImportRoute
+  '/onboarding/warehouse': typeof OnboardingWarehouseRoute
+  '/onboarding/welcome': typeof OnboardingWelcomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/onboarding/import'
+    | '/onboarding/warehouse'
+    | '/onboarding/welcome'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/onboarding/import'
+    | '/onboarding/warehouse'
+    | '/onboarding/welcome'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/onboarding/import'
+    | '/onboarding/warehouse'
+    | '/onboarding/welcome'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  OnboardingImportRoute: typeof OnboardingImportRoute
+  OnboardingWarehouseRoute: typeof OnboardingWarehouseRoute
+  OnboardingWelcomeRoute: typeof OnboardingWelcomeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +111,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding/welcome': {
+      id: '/onboarding/welcome'
+      path: '/onboarding/welcome'
+      fullPath: '/onboarding/welcome'
+      preLoaderRoute: typeof OnboardingWelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding/warehouse': {
+      id: '/onboarding/warehouse'
+      path: '/onboarding/warehouse'
+      fullPath: '/onboarding/warehouse'
+      preLoaderRoute: typeof OnboardingWarehouseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding/import': {
+      id: '/onboarding/import'
+      path: '/onboarding/import'
+      fullPath: '/onboarding/import'
+      preLoaderRoute: typeof OnboardingImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  OnboardingImportRoute: OnboardingImportRoute,
+  OnboardingWarehouseRoute: OnboardingWarehouseRoute,
+  OnboardingWelcomeRoute: OnboardingWelcomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
