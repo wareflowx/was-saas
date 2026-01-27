@@ -20,7 +20,7 @@ export default defineConfig({
     electron([
       {
         // Main process
-        entry: 'electron/main.cjs',
+        entry: 'electron/main.mjs',
         onstart(options) {
           options.reload()
         },
@@ -32,7 +32,7 @@ export default defineConfig({
       },
       {
         // Preload script
-        entry: 'electron/preload.cjs',
+        entry: 'electron/preload.mjs',
         onstart(options) {
           options.reload()
         },
