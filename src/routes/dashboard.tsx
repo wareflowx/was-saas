@@ -38,11 +38,11 @@ function Dashboard() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar collapsible="icon">
-          <SidebarHeader className="h-14 border-b">
+        <Sidebar collapsible="icon" className="bg-background border-r">
+          <SidebarHeader className="h-14 border-b bg-background">
             <SidebarMenuButton size="lg" asChild>
               <Link to="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Building2 className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
@@ -52,13 +52,13 @@ function Dashboard() {
             </SidebarMenuButton>
           </SidebarHeader>
 
-          <SidebarContent>
+          <SidebarContent className="bg-background">
             <SidebarGroup>
               <SidebarGroupLabel>Overview</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive>
+                    <SidebarMenuButton asChild isActive className="text-foreground">
                       <Link to="/dashboard">
                         <Home />
                         <span>Dashboard</span>
@@ -74,7 +74,7 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="text-muted-foreground">
                       <Link to="/dashboard">
                         <Warehouse />
                         <span>Locations</span>
@@ -82,7 +82,7 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="text-muted-foreground">
                       <Link to="/dashboard">
                         <Package />
                         <span>Products</span>
@@ -98,7 +98,7 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="text-muted-foreground">
                       <Link to="/dashboard">
                         <ArrowRight />
                         <span>Movements</span>
@@ -106,7 +106,7 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="text-muted-foreground">
                       <Link to="/dashboard">
                         <ShoppingCart />
                         <span>Orders</span>
@@ -114,7 +114,7 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="text-muted-foreground">
                       <Link to="/dashboard">
                         <ClipboardList />
                         <span>Inventory</span>
@@ -130,7 +130,7 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="text-muted-foreground">
                       <Link to="/dashboard">
                         <TrendingUp />
                         <span>Reports</span>
@@ -138,7 +138,7 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="text-muted-foreground">
                       <Link to="/dashboard">
                         <FileSpreadsheet />
                         <span>Imports</span>
@@ -150,10 +150,10 @@ function Dashboard() {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter>
+          <SidebarFooter className="bg-background">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild className="text-muted-foreground">
                   <Link to="/settings">
                     <Settings />
                     <span>Settings</span>
