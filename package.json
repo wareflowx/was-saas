@@ -49,6 +49,7 @@
   "build": {
     "appId": "com.app.app",
     "productName": "App",
+    "publish": null,
     "directories": {
       "output": "release"
     },
