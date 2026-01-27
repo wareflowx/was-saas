@@ -1,5 +1,8 @@
 {
   "name": "app",
+  "version": "1.0.0",
+  "description": "Desktop application built with TanStack Router, Tailwind CSS and Electron",
+  "author": "wareflowx",
   "private": true,
   "type": "module",
   "main": "dist-electron/main.js",
