@@ -32,8 +32,8 @@ function createWindow() {
 
   // En dev : charge le serveur Vite
   if (process.env.NODE_ENV === 'development') {
-    console.log('Loading dev server at http://localhost:3000')
-    win.loadURL('http://localhost:3000')
+    console.log('Loading dev server at http://127.0.0.1:3000')
+    win.loadURL('http://127.0.0.1:3000')
     win.webContents.openDevTools()
   } else {
     // En prod : charge les fichiers build

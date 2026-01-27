@@ -7,7 +7,7 @@
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite --host 127.0.0.1 --port 3000",
     "build": "vite build && tsc && electron-builder",
     "build:dir": "vite build && tsc && electron-builder --dir",
     "preview": "vite preview",
