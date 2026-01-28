@@ -1,21 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import {
-  Home,
-  Package,
-  ArrowRight,
-  ShoppingCart,
-  Building2,
-  FileSpreadsheet,
-  Settings,
-  Warehouse,
-  Truck,
-  ClipboardList,
-  TrendingUp,
-  Users,
-  AlertTriangle,
-  ChevronRight,
-  BarChart3,
-} from "lucide-react"
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -38,136 +21,122 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/collapsible"
-import { DashboardHome } from "@/components/dashboard"
+} from "@/components/ui/collapsible";
+import {
+  Home,
+  Package,
+  Warehouse,
+  ClipboardList,
+  FileSpreadsheet,
+  Settings,
+  Building2,
+  ArrowRight,
+  ShoppingCart,
+  TrendingUp,
+  AlertTriangle,
+  ChevronRight,
+  BarChart3,
+} from "lucide-react";
+import { MisplacedItemsPage } from "@/components/misplaced-items";
 
-export const Route = createFileRoute("/dashboard")({
-  component: Dashboard,
-})
+export const Route = createFileRoute("/misplaced-items")({
+  component: MisplacedItems,
+});
 
-function Dashboard() {
+function MisplacedItems() {
   // Demo data - replace with actual data from your backend
-  const dashboardData = {
-    kpis: {
-      totalProducts: 1248,
-      totalLocations: 156,
-      lowStockItems: 23,
-      activeOrders: 45,
-      movementsThisWeek: 312,
-    },
-    stockEvolution: [
-      { date: "Jan 22", stock: 11500 },
-      { date: "Jan 23", stock: 11800 },
-      { date: "Jan 24", stock: 11650 },
-      { date: "Jan 25", stock: 12100 },
-      { date: "Jan 26", stock: 12300 },
-      { date: "Jan 27", stock: 12200 },
-      { date: "Jan 28", stock: 12480 },
-    ],
-    movementsByType: [
-      { movementType: "Inbound", movements: 145, fill: "hsl(var(--chart))" },
-      { movementType: "Outbound", movements: 128, fill: "hsl(142, 76%, 36%)" },
-      { movementType: "Transfer", movements: 39, fill: "hsl(25, 95%, 53%)" },
-    ],
-    topProducts: [
-      { product: "Product A", movements: 48 },
-      { product: "Product B", movements: 42 },
-      { product: "Product C", movements: 35 },
-      { product: "Product D", movements: 28 },
-      { product: "Product E", movements: 21 },
-    ],
-    lowStockAlerts: [
+  const misplacedItemsData = {
+    items: [
       {
         id: "1",
-        product: "Widget XL",
-        currentStock: 5,
-        minStock: 20,
-        location: "Zone A-12",
-        severity: "critical" as const,
+        sku: "ELEC-001",
+        name: "Wireless Mouse",
+        category: "Electronics",
+        popularity: 5,
+        currentLocation: "D-01-05",
+        zone: "D",
+        movementsPerMonth: 156,
+        inefficiencyScore: 780,
+        suggestedLocation: "A-01-01",
+        suggestedZone: "A",
+        reason: "High-demand item in far zone",
       },
       {
         id: "2",
-        product: "Gadget Pro",
-        currentStock: 15,
-        minStock: 25,
-        location: "Zone B-05",
-        severity: "warning" as const,
+        sku: "CLOTH-001",
+        name: "Cotton T-Shirt",
+        category: "Clothing",
+        popularity: 5,
+        currentLocation: "C-02-10",
+        zone: "C",
+        movementsPerMonth: 128,
+        inefficiencyScore: 640,
+        suggestedLocation: "B-01-01",
+        suggestedZone: "B",
+        reason: "Popular item in mid-far zone",
       },
       {
         id: "3",
-        product: "Component Z",
-        currentStock: 8,
-        minStock: 15,
-        location: "Zone C-08",
-        severity: "critical" as const,
+        sku: "FOOD-001",
+        name: "Organic Coffee",
+        category: "Food",
+        popularity: 5,
+        currentLocation: "D-03-02",
+        zone: "D",
+        movementsPerMonth: 115,
+        inefficiencyScore: 575,
+        suggestedLocation: "C-01-01",
+        suggestedZone: "C",
+        reason: "Frequent item in farthest zone",
+      },
+      {
+        id: "4",
+        sku: "ELEC-002",
+        name: "USB-C Cable",
+        category: "Electronics",
+        popularity: 4,
+        currentLocation: "C-01-05",
+        zone: "C",
+        movementsPerMonth: 142,
+        inefficiencyScore: 426,
+        suggestedLocation: "A-01-02",
+        suggestedZone: "A",
+        reason: "High-movement item not in prime location",
+      },
+      {
+        id: "5",
+        sku: "TOOL-001",
+        name: "Hammer",
+        category: "Tools",
+        popularity: 4,
+        currentLocation: "D-02-08",
+        zone: "D",
+        movementsPerMonth: 98,
+        inefficiencyScore: 392,
+        suggestedLocation: "B-02-01",
+        suggestedZone: "B",
+        reason: "Popular tool in far zone",
       },
     ],
-    recentMovements: [
-      {
-        id: "MOV-001",
-        date: "2024-01-28",
-        product: "Widget XL",
-        type: "in" as const,
-        quantity: 50,
-        to: "Zone A-12",
-      },
-      {
-        id: "MOV-002",
-        date: "2024-01-28",
-        product: "Gadget Pro",
-        type: "out" as const,
-        quantity: 25,
-        from: "Zone B-05",
-      },
-      {
-        id: "MOV-003",
-        date: "2024-01-27",
-        product: "Component Z",
-        type: "transfer" as const,
-        quantity: 30,
-        from: "Zone A-01",
-        to: "Zone C-08",
-      },
-      {
-        id: "MOV-004",
-        date: "2024-01-27",
-        product: "Product A",
-        type: "in" as const,
-        quantity: 100,
-        to: "Zone A-01",
-      },
+    kpis: {
+      totalMisplacedItems: 5,
+      highPriorityCount: 3,
+      mediumPriorityCount: 2,
+      avgInefficiencyScore: 563,
+    },
+    byZone: [
+      { zone: "Zone A", count: 0, fill: "hsl(var(--chart-1))" },
+      { zone: "Zone B", count: 0, fill: "hsl(var(--chart-2))" },
+      { zone: "Zone C", count: 2, fill: "hsl(var(--chart-3))" },
+      { zone: "Zone D", count: 3, fill: "hsl(var(--chart-4))" },
     ],
-    recentOrders: [
-      {
-        id: "ORD-001",
-        date: "2024-01-28",
-        customer: "Acme Corp",
-        status: "processing" as const,
-        items: 12,
-      },
-      {
-        id: "ORD-002",
-        date: "2024-01-28",
-        customer: "Tech Solutions",
-        status: "pending" as const,
-        items: 8,
-      },
-      {
-        id: "ORD-003",
-        date: "2024-01-27",
-        customer: "Global Industries",
-        status: "completed" as const,
-        items: 25,
-      },
-      {
-        id: "ORD-004",
-        date: "2024-01-26",
-        customer: "StartUp Inc",
-        status: "completed" as const,
-        items: 5,
-      },
+    inefficiencyByPopularity: [
+      { popularity: "5 Stars", score: 1995, fill: "hsl(var(--chart-1))" },
+      { popularity: "4 Stars", score: 818, fill: "hsl(var(--chart-2))" },
+      { popularity: "3 Stars", score: 0, fill: "hsl(var(--chart-3))" },
+      { popularity: "2 Stars", score: 0, fill: "hsl(var(--chart-4))" },
     ],
-  }
+  };
 
   return (
     <SidebarProvider>
@@ -192,7 +161,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive className="text-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <Home />
                         <span>Dashboard</span>
@@ -208,7 +180,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/locations">
                         <Warehouse />
                         <span>Locations</span>
@@ -271,7 +246,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/picking">
                         <ClipboardList />
                         <span>Picking</span>
@@ -279,7 +257,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ArrowRight />
                         <span>Movements</span>
@@ -287,7 +268,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ShoppingCart />
                         <span>Orders</span>
@@ -295,7 +279,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ClipboardList />
                         <span>Inventory</span>
@@ -311,7 +298,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <TrendingUp />
                         <span>Reports</span>
@@ -319,7 +309,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <FileSpreadsheet />
                         <span>Imports</span>
@@ -352,10 +345,10 @@ function Dashboard() {
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <DashboardHome data={dashboardData} />
+            <MisplacedItemsPage data={misplacedItemsData} />
           </div>
         </main>
       </div>
     </SidebarProvider>
-  )
+  );
 }

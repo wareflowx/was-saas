@@ -1,21 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import {
-  Home,
-  Package,
-  ArrowRight,
-  ShoppingCart,
-  Building2,
-  FileSpreadsheet,
-  Settings,
-  Warehouse,
-  Truck,
-  ClipboardList,
-  TrendingUp,
-  Users,
-  AlertTriangle,
-  ChevronRight,
-  BarChart3,
-} from "lucide-react"
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -38,136 +21,116 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/collapsible"
-import { DashboardHome } from "@/components/dashboard"
+} from "@/components/ui/collapsible";
+import {
+  Home,
+  Package,
+  Warehouse,
+  ClipboardList,
+  FileSpreadsheet,
+  Settings,
+  Building2,
+  ArrowRight,
+  ShoppingCart,
+  TrendingUp,
+  AlertTriangle,
+  ChevronRight,
+  BarChart3,
+} from "lucide-react";
+import { DeadStockPage } from "@/components/dead-stock";
 
-export const Route = createFileRoute("/dashboard")({
-  component: Dashboard,
-})
+export const Route = createFileRoute("/dead-stock")({
+  component: DeadStock,
+});
 
-function Dashboard() {
+function DeadStock() {
   // Demo data - replace with actual data from your backend
-  const dashboardData = {
-    kpis: {
-      totalProducts: 1248,
-      totalLocations: 156,
-      lowStockItems: 23,
-      activeOrders: 45,
-      movementsThisWeek: 312,
-    },
-    stockEvolution: [
-      { date: "Jan 22", stock: 11500 },
-      { date: "Jan 23", stock: 11800 },
-      { date: "Jan 24", stock: 11650 },
-      { date: "Jan 25", stock: 12100 },
-      { date: "Jan 26", stock: 12300 },
-      { date: "Jan 27", stock: 12200 },
-      { date: "Jan 28", stock: 12480 },
-    ],
-    movementsByType: [
-      { movementType: "Inbound", movements: 145, fill: "hsl(var(--chart))" },
-      { movementType: "Outbound", movements: 128, fill: "hsl(142, 76%, 36%)" },
-      { movementType: "Transfer", movements: 39, fill: "hsl(25, 95%, 53%)" },
-    ],
-    topProducts: [
-      { product: "Product A", movements: 48 },
-      { product: "Product B", movements: 42 },
-      { product: "Product C", movements: 35 },
-      { product: "Product D", movements: 28 },
-      { product: "Product E", movements: 21 },
-    ],
-    lowStockAlerts: [
+  const deadStockData = {
+    items: [
       {
         id: "1",
-        product: "Widget XL",
-        currentStock: 5,
-        minStock: 20,
-        location: "Zone A-12",
-        severity: "critical" as const,
+        sku: "ELEC-007",
+        name: "Old MP3 Player",
+        category: "Electronics",
+        quantity: 45,
+        location: "C-03-12",
+        lastMoved: "2023-08-15",
+        daysWithoutMovement: 166,
+        valuePerUnit: 25.00,
+        totalValue: 1125.00,
+        severity: "high" as const,
       },
       {
         id: "2",
-        product: "Gadget Pro",
-        currentStock: 15,
-        minStock: 25,
-        location: "Zone B-05",
-        severity: "warning" as const,
+        sku: "CLOTH-008",
+        name: "Vintage Jacket",
+        category: "Clothing",
+        quantity: 12,
+        location: "B-04-08",
+        lastMoved: "2023-10-20",
+        daysWithoutMovement: 100,
+        valuePerUnit: 85.00,
+        totalValue: 1020.00,
+        severity: "high" as const,
       },
       {
         id: "3",
-        product: "Component Z",
-        currentStock: 8,
-        minStock: 15,
-        location: "Zone C-08",
-        severity: "critical" as const,
-      },
-    ],
-    recentMovements: [
-      {
-        id: "MOV-001",
-        date: "2024-01-28",
-        product: "Widget XL",
-        type: "in" as const,
-        quantity: 50,
-        to: "Zone A-12",
-      },
-      {
-        id: "MOV-002",
-        date: "2024-01-28",
-        product: "Gadget Pro",
-        type: "out" as const,
-        quantity: 25,
-        from: "Zone B-05",
-      },
-      {
-        id: "MOV-003",
-        date: "2024-01-27",
-        product: "Component Z",
-        type: "transfer" as const,
+        sku: "TOOL-005",
+        name: "Manual Saw",
+        category: "Tools",
         quantity: 30,
-        from: "Zone A-01",
-        to: "Zone C-08",
+        location: "D-02-05",
+        lastMoved: "2023-11-01",
+        daysWithoutMovement: 88,
+        valuePerUnit: 35.00,
+        totalValue: 1050.00,
+        severity: "medium" as const,
       },
       {
-        id: "MOV-004",
-        date: "2024-01-27",
-        product: "Product A",
-        type: "in" as const,
+        id: "4",
+        sku: "FOOD-006",
+        name: "Canned Soup",
+        category: "Food",
         quantity: 100,
-        to: "Zone A-01",
+        location: "C-05-10",
+        lastMoved: "2023-11-15",
+        daysWithoutMovement: 74,
+        valuePerUnit: 3.50,
+        totalValue: 350.00,
+        severity: "medium" as const,
+      },
+      {
+        id: "5",
+        sku: "ELEC-008",
+        name: "Wired Headphones",
+        category: "Electronics",
+        quantity: 60,
+        location: "A-04-02",
+        lastMoved: "2023-12-01",
+        daysWithoutMovement: 58,
+        valuePerUnit: 15.00,
+        totalValue: 900.00,
+        severity: "low" as const,
       },
     ],
-    recentOrders: [
-      {
-        id: "ORD-001",
-        date: "2024-01-28",
-        customer: "Acme Corp",
-        status: "processing" as const,
-        items: 12,
-      },
-      {
-        id: "ORD-002",
-        date: "2024-01-28",
-        customer: "Tech Solutions",
-        status: "pending" as const,
-        items: 8,
-      },
-      {
-        id: "ORD-003",
-        date: "2024-01-27",
-        customer: "Global Industries",
-        status: "completed" as const,
-        items: 25,
-      },
-      {
-        id: "ORD-004",
-        date: "2024-01-26",
-        customer: "StartUp Inc",
-        status: "completed" as const,
-        items: 5,
-      },
+    kpis: {
+      totalDeadStock: 5,
+      totalDeadStockValue: 4445.00,
+      highSeverityCount: 2,
+      mediumSeverityCount: 2,
+    },
+    valueByCategory: [
+      { category: "Electronics", value: 2025, fill: "hsl(var(--chart-1))" },
+      { category: "Clothing", value: 1020, fill: "hsl(var(--chart-2))" },
+      { category: "Tools", value: 1050, fill: "hsl(var(--chart-3))" },
+      { category: "Food", value: 350, fill: "hsl(var(--chart-4))" },
     ],
-  }
+    bySeverity: [
+      { severity: "High", count: 2, fill: "hsl(var(--chart-1))" },
+      { severity: "Medium", count: 2, fill: "hsl(var(--chart-2))" },
+      { severity: "Low", count: 1, fill: "hsl(var(--chart-3))" },
+    ],
+  };
 
   return (
     <SidebarProvider>
@@ -192,7 +155,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive className="text-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <Home />
                         <span>Dashboard</span>
@@ -208,7 +174,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/locations">
                         <Warehouse />
                         <span>Locations</span>
@@ -271,7 +240,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/picking">
                         <ClipboardList />
                         <span>Picking</span>
@@ -279,7 +251,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ArrowRight />
                         <span>Movements</span>
@@ -287,7 +262,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ShoppingCart />
                         <span>Orders</span>
@@ -295,7 +273,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ClipboardList />
                         <span>Inventory</span>
@@ -311,7 +292,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <TrendingUp />
                         <span>Reports</span>
@@ -319,7 +303,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <FileSpreadsheet />
                         <span>Imports</span>
@@ -352,10 +339,10 @@ function Dashboard() {
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <DashboardHome data={dashboardData} />
+            <DeadStockPage data={deadStockData} />
           </div>
         </main>
       </div>
     </SidebarProvider>
-  )
+  );
 }

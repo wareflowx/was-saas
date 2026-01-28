@@ -11,7 +11,6 @@ import {
   Truck,
   ClipboardList,
   TrendingUp,
-  Users,
   AlertTriangle,
   ChevronRight,
   BarChart3,
@@ -39,134 +38,200 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible"
-import { DashboardHome } from "@/components/dashboard"
+import { LocationsPage } from "@/components/locations"
+import type { Location } from "@/components/locations"
 
-export const Route = createFileRoute("/dashboard")({
-  component: Dashboard,
+export const Route = createFileRoute("/locations")({
+  component: Locations,
 })
 
-function Dashboard() {
+function Locations() {
   // Demo data - replace with actual data from your backend
-  const dashboardData = {
+  const locationsData = {
     kpis: {
-      totalProducts: 1248,
       totalLocations: 156,
-      lowStockItems: 23,
-      activeOrders: 45,
-      movementsThisWeek: 312,
+      occupancyRate: 72,
+      availableLocations: 43,
+      fullLocations: 18,
+      activeZones: 4,
     },
-    stockEvolution: [
-      { date: "Jan 22", stock: 11500 },
-      { date: "Jan 23", stock: 11800 },
-      { date: "Jan 24", stock: 11650 },
-      { date: "Jan 25", stock: 12100 },
-      { date: "Jan 26", stock: 12300 },
-      { date: "Jan 27", stock: 12200 },
-      { date: "Jan 28", stock: 12480 },
+    occupancyByZone: [
+      { zone: "Zone A", occupancy: 85, fill: "hsl(var(--chart-1))" },
+      { zone: "Zone B", occupancy: 65, fill: "hsl(var(--chart-2))" },
+      { zone: "Zone C", occupancy: 72, fill: "hsl(var(--chart-3))" },
+      { zone: "Zone D", occupancy: 48, fill: "hsl(var(--chart-4))" },
     ],
-    movementsByType: [
-      { movementType: "Inbound", movements: 145, fill: "hsl(var(--chart))" },
-      { movementType: "Outbound", movements: 128, fill: "hsl(142, 76%, 36%)" },
-      { movementType: "Transfer", movements: 39, fill: "hsl(25, 95%, 53%)" },
+    locationTypeDistribution: [
+      { type: "Rack", count: 68, fill: "hsl(var(--chart-1))" },
+      { type: "Shelf", count: 45, fill: "hsl(var(--chart-2))" },
+      { type: "Floor", count: 28, fill: "hsl(var(--chart-3))" },
+      { type: "Bin", count: 15, fill: "hsl(var(--chart-4))" },
     ],
-    topProducts: [
-      { product: "Product A", movements: 48 },
-      { product: "Product B", movements: 42 },
-      { product: "Product C", movements: 35 },
-      { product: "Product D", movements: 28 },
-      { product: "Product E", movements: 21 },
+    occupancyTrends: [
+      { date: "Jan 22", occupancy: 68 },
+      { date: "Jan 23", occupancy: 69 },
+      { date: "Jan 24", occupancy: 70 },
+      { date: "Jan 25", occupancy: 71 },
+      { date: "Jan 26", occupancy: 71 },
+      { date: "Jan 27", occupancy: 72 },
+      { date: "Jan 28", occupancy: 72 },
     ],
-    lowStockAlerts: [
+    locations: [
       {
         id: "1",
-        product: "Widget XL",
-        currentStock: 5,
-        minStock: 20,
-        location: "Zone A-12",
-        severity: "critical" as const,
+        code: "A-01-01",
+        zone: "A",
+        warehouse: "Warehouse 1",
+        type: "rack",
+        capacity: 100,
+        used: 90,
+        productsCount: 3,
+        status: "full",
+        products: [
+          { id: "p1", name: "Widget XL", sku: "WID-XL-001", quantity: 50 },
+          { id: "p2", name: "Gadget Pro", sku: "GAD-PRO-002", quantity: 30 },
+          { id: "p3", name: "Component Z", sku: "COM-Z-003", quantity: 10 },
+        ],
       },
       {
         id: "2",
-        product: "Gadget Pro",
-        currentStock: 15,
-        minStock: 25,
-        location: "Zone B-05",
-        severity: "warning" as const,
+        code: "A-01-02",
+        zone: "A",
+        warehouse: "Warehouse 1",
+        type: "rack",
+        capacity: 100,
+        used: 80,
+        productsCount: 2,
+        status: "medium",
+        products: [
+          { id: "p4", name: "Product A", sku: "PRO-A-001", quantity: 50 },
+          { id: "p5", name: "Product B", sku: "PRO-B-002", quantity: 30 },
+        ],
       },
       {
         id: "3",
-        product: "Component Z",
-        currentStock: 8,
-        minStock: 15,
-        location: "Zone C-08",
-        severity: "critical" as const,
-      },
-    ],
-    recentMovements: [
-      {
-        id: "MOV-001",
-        date: "2024-01-28",
-        product: "Widget XL",
-        type: "in" as const,
-        quantity: 50,
-        to: "Zone A-12",
+        code: "B-01-01",
+        zone: "B",
+        warehouse: "Warehouse 1",
+        type: "shelf",
+        capacity: 50,
+        used: 30,
+        productsCount: 2,
+        status: "medium",
+        products: [
+          { id: "p6", name: "Item X", sku: "ITM-X-001", quantity: 20 },
+          { id: "p7", name: "Item Y", sku: "ITM-Y-002", quantity: 10 },
+        ],
       },
       {
-        id: "MOV-002",
-        date: "2024-01-28",
-        product: "Gadget Pro",
-        type: "out" as const,
-        quantity: 25,
-        from: "Zone B-05",
+        id: "4",
+        code: "B-01-02",
+        zone: "B",
+        warehouse: "Warehouse 2",
+        type: "shelf",
+        capacity: 50,
+        used: 20,
+        productsCount: 1,
+        status: "available",
+        products: [
+          { id: "p8", name: "Single Item", sku: "SNG-001", quantity: 20 },
+        ],
       },
       {
-        id: "MOV-003",
-        date: "2024-01-27",
-        product: "Component Z",
-        type: "transfer" as const,
-        quantity: 30,
-        from: "Zone A-01",
-        to: "Zone C-08",
+        id: "5",
+        code: "C-01-01",
+        zone: "C",
+        warehouse: "Warehouse 2",
+        type: "floor",
+        capacity: 200,
+        used: 150,
+        productsCount: 4,
+        status: "medium",
+        products: [
+          { id: "p9", name: "Bulk Product 1", sku: "BLK-1-001", quantity: 50 },
+          { id: "p10", name: "Bulk Product 2", sku: "BLK-2-002", quantity: 40 },
+          { id: "p11", name: "Bulk Product 3", sku: "BLK-3-003", quantity: 35 },
+          { id: "p12", name: "Bulk Product 4", sku: "BLK-4-004", quantity: 25 },
+        ],
       },
       {
-        id: "MOV-004",
-        date: "2024-01-27",
-        product: "Product A",
-        type: "in" as const,
-        quantity: 100,
-        to: "Zone A-01",
-      },
-    ],
-    recentOrders: [
-      {
-        id: "ORD-001",
-        date: "2024-01-28",
-        customer: "Acme Corp",
-        status: "processing" as const,
-        items: 12,
-      },
-      {
-        id: "ORD-002",
-        date: "2024-01-28",
-        customer: "Tech Solutions",
-        status: "pending" as const,
-        items: 8,
+        id: "6",
+        code: "C-01-02",
+        zone: "C",
+        warehouse: "Warehouse 2",
+        type: "floor",
+        capacity: 200,
+        used: 138,
+        productsCount: 3,
+        status: "medium",
+        products: [
+          { id: "p13", name: "Large Item A", sku: "LRG-A-001", quantity: 60 },
+          { id: "p14", name: "Large Item B", sku: "LRG-B-002", quantity: 50 },
+          { id: "p15", name: "Large Item C", sku: "LRG-C-003", quantity: 28 },
+        ],
       },
       {
-        id: "ORD-003",
-        date: "2024-01-27",
-        customer: "Global Industries",
-        status: "completed" as const,
-        items: 25,
+        id: "7",
+        code: "D-01-01",
+        zone: "D",
+        warehouse: "Warehouse 3",
+        type: "bin",
+        capacity: 30,
+        used: 12,
+        productsCount: 2,
+        status: "available",
+        products: [
+          { id: "p16", name: "Small Part A", sku: "SML-A-001", quantity: 8 },
+          { id: "p17", name: "Small Part B", sku: "SML-B-002", quantity: 4 },
+        ],
       },
       {
-        id: "ORD-004",
-        date: "2024-01-26",
-        customer: "StartUp Inc",
-        status: "completed" as const,
-        items: 5,
+        id: "8",
+        code: "D-01-02",
+        zone: "D",
+        warehouse: "Warehouse 3",
+        type: "bin",
+        capacity: 30,
+        used: 15,
+        productsCount: 2,
+        status: "available",
+        products: [
+          { id: "p18", name: "Tiny Component X", sku: "TNY-X-001", quantity: 10 },
+          { id: "p19", name: "Tiny Component Y", sku: "TNY-Y-002", quantity: 5 },
+        ],
       },
-    ],
+      {
+        id: "9",
+        code: "A-02-01",
+        zone: "A",
+        warehouse: "Warehouse 1",
+        type: "rack",
+        capacity: 100,
+        used: 95,
+        productsCount: 3,
+        status: "full",
+        products: [
+          { id: "p20", name: "High Volume Prod 1", sku: "HVP-1-001", quantity: 40 },
+          { id: "p21", name: "High Volume Prod 2", sku: "HVP-2-002", quantity: 35 },
+          { id: "p22", name: "High Volume Prod 3", sku: "HVP-3-003", quantity: 20 },
+        ],
+      },
+      {
+        id: "10",
+        code: "B-02-01",
+        zone: "B",
+        warehouse: "Warehouse 1",
+        type: "shelf",
+        capacity: 50,
+        used: 35,
+        productsCount: 2,
+        status: "medium",
+        products: [
+          { id: "p23", name: "Medium Stock Item A", sku: "MED-A-001", quantity: 25 },
+          { id: "p24", name: "Medium Stock Item B", sku: "MED-B-002", quantity: 10 },
+        ],
+      },
+    ] as Location[],
   }
 
   return (
@@ -192,7 +257,7 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive className="text-foreground">
+                    <SidebarMenuButton asChild className="text-muted-foreground">
                       <Link to="/dashboard">
                         <Home />
                         <span>Dashboard</span>
@@ -208,7 +273,7 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton asChild isActive className="text-foreground">
                       <Link to="/locations">
                         <Warehouse />
                         <span>Locations</span>
@@ -352,7 +417,7 @@ function Dashboard() {
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <DashboardHome data={dashboardData} />
+            <LocationsPage data={locationsData} />
           </div>
         </main>
       </div>

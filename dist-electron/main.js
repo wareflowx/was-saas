@@ -1,67 +1,48 @@
-import { app, dialog, BrowserWindow } from "electron";
-import path from "path";
-import { fileURLToPath } from "url";
-const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
-function createWindow() {
-  console.log("Creating window...");
-  console.log("__dirname:", __dirname$1);
-  const win = new BrowserWindow({
+import { app as t, dialog as n, BrowserWindow as a } from "electron";
+import i from "path";
+import { fileURLToPath as p } from "url";
+const l = i.dirname(p(import.meta.url));
+function d() {
+  console.log("Creating window..."), console.log("__dirname:", l);
+  const o = new a({
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname$1, "preload.js"),
-      nodeIntegration: false,
-      contextIsolation: true
+      preload: i.join(l, "preload.js"),
+      nodeIntegration: !1,
+      contextIsolation: !0
     }
   });
-  win.webContents.on("did-fail-load", (event, errorCode, errorDescription, validatedURL) => {
-    console.error("Failed to load:", errorCode, errorDescription, validatedURL);
-    dialog.showErrorBox("Failed to load", `Failed to load: ${errorDescription}`);
-  });
-  win.webContents.on("render-process-gone", (event, details) => {
-    console.error("Render process gone:", details);
-    dialog.showErrorBox("Renderer process crashed", `Reason: ${details.reason}`);
-  });
-  if (process.env.NODE_ENV === "development") {
-    console.log("Loading dev server at http://127.0.0.1:3000");
-    win.loadURL("http://127.0.0.1:3000");
-    win.webContents.openDevTools();
-  } else {
-    const indexPath = path.join(__dirname$1, "../dist/index.html");
-    console.log("Loading production build:", indexPath);
-    win.loadFile(indexPath).catch((err) => {
-      console.error("Failed to load index.html:", err);
-      dialog.showErrorBox("Error", `Failed to load index.html: ${err.message}`);
-    });
-    win.webContents.openDevTools();
+  if (o.webContents.on("did-fail-load", (r, e, s, c) => {
+    console.error("Failed to load:", e, s, c), n.showErrorBox("Failed to load", `Failed to load: ${s}`);
+  }), o.webContents.on("render-process-gone", (r, e) => {
+    console.error("Render process gone:", e), n.showErrorBox("Renderer process crashed", `Reason: ${e.reason}`);
+  }), process.env.NODE_ENV === "development")
+    console.log("Loading dev server at http://127.0.0.1:3000"), o.loadURL("http://127.0.0.1:3000"), o.webContents.openDevTools();
+  else {
+    const r = i.join(l, "../dist/index.html");
+    console.log("Loading production build:", r), o.loadFile(r).catch((e) => {
+      console.error("Failed to load index.html:", e), n.showErrorBox("Error", `Failed to load index.html: ${e.message}`);
+    }), o.webContents.openDevTools();
   }
-  win.on("closed", () => {
+  o.on("closed", () => {
     console.log("Window closed");
   });
 }
-app.whenReady().then(() => {
-  console.log("App is ready, creating window...");
-  createWindow();
-}).catch((err) => {
-  console.error("Failed to initialize app:", err);
-  dialog.showErrorBox("Initialization Error", err.message);
+t.whenReady().then(() => {
+  console.log("App is ready, creating window..."), d();
+}).catch((o) => {
+  console.error("Failed to initialize app:", o), n.showErrorBox("Initialization Error", o.message);
 });
-app.on("window-all-closed", () => {
-  console.log("All windows closed");
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+t.on("window-all-closed", () => {
+  console.log("All windows closed"), process.platform !== "darwin" && t.quit();
 });
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    console.log("Activating app, creating window...");
-    createWindow();
-  }
+t.on("activate", () => {
+  a.getAllWindows().length === 0 && (console.log("Activating app, creating window..."), d());
 });
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught exception:", err);
-  dialog.showErrorBox("Uncaught Exception", err.message);
+process.on("uncaughtException", (o) => {
+  console.error("Uncaught exception:", o), n.showErrorBox("Uncaught Exception", o.message);
 });
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled rejection:", err);
+process.on("unhandledRejection", (o) => {
+  console.error("Unhandled rejection:", o);
 });

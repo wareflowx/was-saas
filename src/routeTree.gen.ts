@@ -9,15 +9,51 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PickingRouteImport } from './routes/picking'
+import { Route as MisplacedItemsRouteImport } from './routes/misplaced-items'
+import { Route as LocationsRouteImport } from './routes/locations'
+import { Route as DeadStockRouteImport } from './routes/dead-stock'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AbcAnalysisRouteImport } from './routes/abc-analysis'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding/welcome'
 import { Route as OnboardingWarehouseRouteImport } from './routes/onboarding/warehouse'
 import { Route as OnboardingImportRouteImport } from './routes/onboarding/import'
 
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PickingRoute = PickingRouteImport.update({
+  id: '/picking',
+  path: '/picking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MisplacedItemsRoute = MisplacedItemsRouteImport.update({
+  id: '/misplaced-items',
+  path: '/misplaced-items',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsRoute = LocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeadStockRoute = DeadStockRouteImport.update({
+  id: '/dead-stock',
+  path: '/dead-stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AbcAnalysisRoute = AbcAnalysisRouteImport.update({
+  id: '/abc-analysis',
+  path: '/abc-analysis',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,14 +79,26 @@ const OnboardingImportRoute = OnboardingImportRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/abc-analysis': typeof AbcAnalysisRoute
   '/dashboard': typeof DashboardRoute
+  '/dead-stock': typeof DeadStockRoute
+  '/locations': typeof LocationsRoute
+  '/misplaced-items': typeof MisplacedItemsRoute
+  '/picking': typeof PickingRoute
+  '/products': typeof ProductsRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/abc-analysis': typeof AbcAnalysisRoute
   '/dashboard': typeof DashboardRoute
+  '/dead-stock': typeof DeadStockRoute
+  '/locations': typeof LocationsRoute
+  '/misplaced-items': typeof MisplacedItemsRoute
+  '/picking': typeof PickingRoute
+  '/products': typeof ProductsRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
@@ -58,7 +106,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/abc-analysis': typeof AbcAnalysisRoute
   '/dashboard': typeof DashboardRoute
+  '/dead-stock': typeof DeadStockRoute
+  '/locations': typeof LocationsRoute
+  '/misplaced-items': typeof MisplacedItemsRoute
+  '/picking': typeof PickingRoute
+  '/products': typeof ProductsRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
@@ -67,21 +121,39 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/abc-analysis'
     | '/dashboard'
+    | '/dead-stock'
+    | '/locations'
+    | '/misplaced-items'
+    | '/picking'
+    | '/products'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/abc-analysis'
     | '/dashboard'
+    | '/dead-stock'
+    | '/locations'
+    | '/misplaced-items'
+    | '/picking'
+    | '/products'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
   id:
     | '__root__'
     | '/'
+    | '/abc-analysis'
     | '/dashboard'
+    | '/dead-stock'
+    | '/locations'
+    | '/misplaced-items'
+    | '/picking'
+    | '/products'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
@@ -89,7 +161,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AbcAnalysisRoute: typeof AbcAnalysisRoute
   DashboardRoute: typeof DashboardRoute
+  DeadStockRoute: typeof DeadStockRoute
+  LocationsRoute: typeof LocationsRoute
+  MisplacedItemsRoute: typeof MisplacedItemsRoute
+  PickingRoute: typeof PickingRoute
+  ProductsRoute: typeof ProductsRoute
   OnboardingImportRoute: typeof OnboardingImportRoute
   OnboardingWarehouseRoute: typeof OnboardingWarehouseRoute
   OnboardingWelcomeRoute: typeof OnboardingWelcomeRoute
@@ -97,11 +175,53 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/picking': {
+      id: '/picking'
+      path: '/picking'
+      fullPath: '/picking'
+      preLoaderRoute: typeof PickingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/misplaced-items': {
+      id: '/misplaced-items'
+      path: '/misplaced-items'
+      fullPath: '/misplaced-items'
+      preLoaderRoute: typeof MisplacedItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations': {
+      id: '/locations'
+      path: '/locations'
+      fullPath: '/locations'
+      preLoaderRoute: typeof LocationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dead-stock': {
+      id: '/dead-stock'
+      path: '/dead-stock'
+      fullPath: '/dead-stock'
+      preLoaderRoute: typeof DeadStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/abc-analysis': {
+      id: '/abc-analysis'
+      path: '/abc-analysis'
+      fullPath: '/abc-analysis'
+      preLoaderRoute: typeof AbcAnalysisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -137,7 +257,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AbcAnalysisRoute: AbcAnalysisRoute,
   DashboardRoute: DashboardRoute,
+  DeadStockRoute: DeadStockRoute,
+  LocationsRoute: LocationsRoute,
+  MisplacedItemsRoute: MisplacedItemsRoute,
+  PickingRoute: PickingRoute,
+  ProductsRoute: ProductsRoute,
   OnboardingImportRoute: OnboardingImportRoute,
   OnboardingWarehouseRoute: OnboardingWarehouseRoute,
   OnboardingWelcomeRoute: OnboardingWelcomeRoute,

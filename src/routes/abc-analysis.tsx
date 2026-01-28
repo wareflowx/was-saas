@@ -1,21 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import {
-  Home,
-  Package,
-  ArrowRight,
-  ShoppingCart,
-  Building2,
-  FileSpreadsheet,
-  Settings,
-  Warehouse,
-  Truck,
-  ClipboardList,
-  TrendingUp,
-  Users,
-  AlertTriangle,
-  ChevronRight,
-  BarChart3,
-} from "lucide-react"
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -38,136 +21,223 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/collapsible"
-import { DashboardHome } from "@/components/dashboard"
+} from "@/components/ui/collapsible";
+import {
+  Home,
+  Package,
+  Warehouse,
+  ClipboardList,
+  FileSpreadsheet,
+  Settings,
+  Building2,
+  ArrowRight,
+  ShoppingCart,
+  TrendingUp,
+  AlertTriangle,
+  ChevronRight,
+  BarChart3,
+} from "lucide-react";
+import { ABCAnalysisPage } from "@/components/abc-analysis";
 
-export const Route = createFileRoute("/dashboard")({
-  component: Dashboard,
-})
+export const Route = createFileRoute("/abc-analysis")({
+  component: ABCAnalysis,
+});
 
-function Dashboard() {
+function ABCAnalysis() {
   // Demo data - replace with actual data from your backend
-  const dashboardData = {
-    kpis: {
-      totalProducts: 1248,
-      totalLocations: 156,
-      lowStockItems: 23,
-      activeOrders: 45,
-      movementsThisWeek: 312,
-    },
-    stockEvolution: [
-      { date: "Jan 22", stock: 11500 },
-      { date: "Jan 23", stock: 11800 },
-      { date: "Jan 24", stock: 11650 },
-      { date: "Jan 25", stock: 12100 },
-      { date: "Jan 26", stock: 12300 },
-      { date: "Jan 27", stock: 12200 },
-      { date: "Jan 28", stock: 12480 },
-    ],
-    movementsByType: [
-      { movementType: "Inbound", movements: 145, fill: "hsl(var(--chart))" },
-      { movementType: "Outbound", movements: 128, fill: "hsl(142, 76%, 36%)" },
-      { movementType: "Transfer", movements: 39, fill: "hsl(25, 95%, 53%)" },
-    ],
-    topProducts: [
-      { product: "Product A", movements: 48 },
-      { product: "Product B", movements: 42 },
-      { product: "Product C", movements: 35 },
-      { product: "Product D", movements: 28 },
-      { product: "Product E", movements: 21 },
-    ],
-    lowStockAlerts: [
+  const abcAnalysisData = {
+    items: [
       {
         id: "1",
-        product: "Widget XL",
-        currentStock: 5,
-        minStock: 20,
-        location: "Zone A-12",
-        severity: "critical" as const,
+        sku: "ELEC-001",
+        name: "Wireless Mouse",
+        category: "Electronics",
+        abcClass: "A" as const,
+        stockValue: 45000,
+        movementsPerMonth: 156,
+        quantity: 500,
+        currentZone: "A",
       },
       {
         id: "2",
-        product: "Gadget Pro",
-        currentStock: 15,
-        minStock: 25,
-        location: "Zone B-05",
-        severity: "warning" as const,
+        sku: "CLOTH-001",
+        name: "Cotton T-Shirt",
+        category: "Clothing",
+        abcClass: "A" as const,
+        stockValue: 38000,
+        movementsPerMonth: 128,
+        quantity: 400,
+        currentZone: "A",
       },
       {
         id: "3",
-        product: "Component Z",
-        currentStock: 8,
-        minStock: 15,
-        location: "Zone C-08",
-        severity: "critical" as const,
-      },
-    ],
-    recentMovements: [
-      {
-        id: "MOV-001",
-        date: "2024-01-28",
-        product: "Widget XL",
-        type: "in" as const,
-        quantity: 50,
-        to: "Zone A-12",
+        sku: "FOOD-001",
+        name: "Organic Coffee",
+        category: "Food",
+        abcClass: "A" as const,
+        stockValue: 32000,
+        movementsPerMonth: 115,
+        quantity: 350,
+        currentZone: "A",
       },
       {
-        id: "MOV-002",
-        date: "2024-01-28",
-        product: "Gadget Pro",
-        type: "out" as const,
-        quantity: 25,
-        from: "Zone B-05",
+        id: "4",
+        sku: "ELEC-002",
+        name: "USB-C Cable",
+        category: "Electronics",
+        abcClass: "A" as const,
+        stockValue: 28000,
+        movementsPerMonth: 142,
+        quantity: 300,
+        currentZone: "A",
       },
       {
-        id: "MOV-003",
-        date: "2024-01-27",
-        product: "Component Z",
-        type: "transfer" as const,
-        quantity: 30,
-        from: "Zone A-01",
-        to: "Zone C-08",
+        id: "5",
+        sku: "ELEC-003",
+        name: "Bluetooth Keyboard",
+        category: "Electronics",
+        abcClass: "A" as const,
+        stockValue: 25000,
+        movementsPerMonth: 98,
+        quantity: 250,
+        currentZone: "B",
+        suggestedZone: "A",
       },
       {
-        id: "MOV-004",
-        date: "2024-01-27",
-        product: "Product A",
-        type: "in" as const,
+        id: "6",
+        sku: "TOOL-001",
+        name: "Hammer",
+        category: "Tools",
+        abcClass: "B" as const,
+        stockValue: 12000,
+        movementsPerMonth: 45,
+        quantity: 180,
+        currentZone: "B",
+      },
+      {
+        id: "7",
+        sku: "CLOTH-002",
+        name: "Denim Jeans",
+        category: "Clothing",
+        abcClass: "B" as const,
+        stockValue: 10500,
+        movementsPerMonth: 38,
+        quantity: 150,
+        currentZone: "B",
+      },
+      {
+        id: "8",
+        sku: "FOOD-002",
+        name: "Green Tea",
+        category: "Food",
+        abcClass: "B" as const,
+        stockValue: 9800,
+        movementsPerMonth: 52,
+        quantity: 200,
+        currentZone: "B",
+      },
+      {
+        id: "9",
+        sku: "TOOL-002",
+        name: "Screwdriver Set",
+        category: "Tools",
+        abcClass: "B" as const,
+        stockValue: 8500,
+        movementsPerMonth: 42,
+        quantity: 120,
+        currentZone: "C",
+      },
+      {
+        id: "10",
+        sku: "ELEC-004",
+        name: "Webcam HD",
+        category: "Electronics",
+        abcClass: "B" as const,
+        stockValue: 7200,
+        movementsPerMonth: 35,
         quantity: 100,
-        to: "Zone A-01",
+        currentZone: "C",
+      },
+      {
+        id: "11",
+        sku: "ELEC-007",
+        name: "Old MP3 Player",
+        category: "Electronics",
+        abcClass: "C" as const,
+        stockValue: 1500,
+        movementsPerMonth: 5,
+        quantity: 60,
+        currentZone: "D",
+      },
+      {
+        id: "12",
+        sku: "CLOTH-008",
+        name: "Vintage Jacket",
+        category: "Clothing",
+        abcClass: "C" as const,
+        stockValue: 1200,
+        movementsPerMonth: 3,
+        quantity: 15,
+        currentZone: "D",
+      },
+      {
+        id: "13",
+        sku: "TOOL-005",
+        name: "Manual Saw",
+        category: "Tools",
+        abcClass: "C" as const,
+        stockValue: 1800,
+        movementsPerMonth: 8,
+        quantity: 50,
+        currentZone: "D",
+      },
+      {
+        id: "14",
+        sku: "FOOD-006",
+        name: "Canned Soup",
+        category: "Food",
+        abcClass: "C" as const,
+        stockValue: 900,
+        movementsPerMonth: 4,
+        quantity: 35,
+        currentZone: "D",
+      },
+      {
+        id: "15",
+        sku: "ELEC-008",
+        name: "Wired Headphones",
+        category: "Electronics",
+        abcClass: "C" as const,
+        stockValue: 1100,
+        movementsPerMonth: 6,
+        quantity: 80,
+        currentZone: "C",
       },
     ],
-    recentOrders: [
-      {
-        id: "ORD-001",
-        date: "2024-01-28",
-        customer: "Acme Corp",
-        status: "processing" as const,
-        items: 12,
-      },
-      {
-        id: "ORD-002",
-        date: "2024-01-28",
-        customer: "Tech Solutions",
-        status: "pending" as const,
-        items: 8,
-      },
-      {
-        id: "ORD-003",
-        date: "2024-01-27",
-        customer: "Global Industries",
-        status: "completed" as const,
-        items: 25,
-      },
-      {
-        id: "ORD-004",
-        date: "2024-01-26",
-        customer: "StartUp Inc",
-        status: "completed" as const,
-        items: 5,
-      },
+    kpis: {
+      classACount: 5,
+      classBCount: 5,
+      classCCount: 5,
+      aInWrongZoneCount: 1,
+    },
+    paretoData: [
+      { product: "1", cumulativePercent: 22, value: 45000 },
+      { product: "2", cumulativePercent: 40, value: 38000 },
+      { product: "3", cumulativePercent: 55, value: 32000 },
+      { product: "4", cumulativePercent: 68, value: 28000 },
+      { product: "5", cumulativePercent: 78, value: 25000 },
+      { product: "6", cumulativePercent: 85, value: 12000 },
+      { product: "7", cumulativePercent: 90, value: 10500 },
+      { product: "8", cumulativePercent: 94, value: 9800 },
+      { product: "9", cumulativePercent: 97, value: 8500 },
+      { product: "10", cumulativePercent: 99, value: 7200 },
     ],
-  }
+    valueByABC: [
+      { abc: "A", value: 168000, fill: "hsl(var(--chart-1))" },
+      { abc: "B", value: 39000, fill: "hsl(var(--chart-2))" },
+      { abc: "C", value: 6500, fill: "hsl(var(--chart-3))" },
+    ],
+  };
 
   return (
     <SidebarProvider>
@@ -192,7 +262,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive className="text-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <Home />
                         <span>Dashboard</span>
@@ -208,7 +281,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/locations">
                         <Warehouse />
                         <span>Locations</span>
@@ -271,7 +347,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/picking">
                         <ClipboardList />
                         <span>Picking</span>
@@ -279,7 +358,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ArrowRight />
                         <span>Movements</span>
@@ -287,7 +369,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ShoppingCart />
                         <span>Orders</span>
@@ -295,7 +380,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <ClipboardList />
                         <span>Inventory</span>
@@ -311,7 +399,10 @@ function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <TrendingUp />
                         <span>Reports</span>
@@ -319,7 +410,10 @@ function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
+                    <SidebarMenuButton
+                      asChild
+                      className="text-muted-foreground"
+                    >
                       <Link to="/dashboard">
                         <FileSpreadsheet />
                         <span>Imports</span>
@@ -352,10 +446,10 @@ function Dashboard() {
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <DashboardHome data={dashboardData} />
+            <ABCAnalysisPage data={abcAnalysisData} />
           </div>
         </main>
       </div>
     </SidebarProvider>
-  )
+  );
 }
