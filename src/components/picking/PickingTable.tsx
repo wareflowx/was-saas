@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Search } from "lucide-react"
+import { useMemo, useState } from "react"
 import {
   Table,
   TableBody,
@@ -8,201 +8,183 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { PickingLine, PickingStatus, Priority } from "./types"
-
-type StatusFilter = "all" | PickingStatus
-type PriorityFilter = "all" | Priority
-type WarehouseFilter = "all" | "Warehouse 1" | "Warehouse 2" | "Warehouse 3"
-type ZoneFilter = "all" | "Zone A" | "Zone B" | "Zone C" | "Zone D"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Search } from "lucide-react"
+import type { Picking } from "@/types/entities"
 
 interface PickingTableProps {
-  pickingLines: PickingLine[]
-  search: string
-  onSearchChange: (search: string) => void
-  sortStatus: StatusFilter
-  onSortStatusChange: (status: StatusFilter) => void
-  sortPriority: PriorityFilter
-  onSortPriorityChange: (priority: PriorityFilter) => void
-  sortWarehouse: WarehouseFilter
-  onSortWarehouseChange: (warehouse: WarehouseFilter) => void
-  sortZone: ZoneFilter
-  onSortZoneChange: (zone: ZoneFilter) => void
-  currentPage: number
-  onPageChange: (page: number) => void
-  itemsPerPage: number
-  onViewDetails?: (line: PickingLine) => void
-  className?: string
+  pickings: Picking[]
 }
 
-export function PickingTable({
-  pickingLines,
-  search,
-  onSearchChange,
-  sortStatus,
-  onSortStatusChange,
-  sortPriority,
-  onSortPriorityChange,
-  sortWarehouse,
-  onSortWarehouseChange,
-  sortZone,
-  onSortZoneChange,
-  currentPage,
-  onPageChange,
-  itemsPerPage,
-  onViewDetails,
-  className,
-}: PickingTableProps) {
-  // Calculate pagination
-  const totalPages = Math.ceil(pickingLines.length / itemsPerPage)
-  const startIndex = currentPage * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedLines = pickingLines.slice(startIndex, endIndex)
+export function PickingTable({ pickings }: PickingTableProps) {
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [priorityFilter, setPriorityFilter] = useState<string>("all")
+
+  const uniqueStatuses = useMemo(() => {
+    const statuses = new Set(pickings.map((p) => p.status))
+    return Array.from(statuses)
+  }, [pickings])
+
+  const uniquePriorities = useMemo(() => {
+    const priorities = new Set(pickings.map((p) => p.priority))
+    return Array.from(priorities)
+  }, [pickings])
+
+  const filteredPickings = useMemo(() => {
+    return pickings.filter((picking) => {
+      const matchesSearch =
+        search === "" ||
+        picking.pickingNumber.toLowerCase().includes(search.toLowerCase()) ||
+        picking.orderNumber.toLowerCase().includes(search.toLowerCase())
+      const matchesStatus = statusFilter === "all" || picking.status === statusFilter
+      const matchesPriority = priorityFilter === "all" || picking.priority === priorityFilter
+      return matchesSearch && matchesStatus && matchesPriority
+    })
+  }, [pickings, search, statusFilter, priorityFilter])
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; className: string }> = {
+      pending: {
+        label: "Pending",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-500/10 border border-yellow-500/20 text-yellow-500",
+      },
+      in_progress: {
+        label: "In Progress",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-500/10 border border-blue-500/20 text-blue-500",
+      },
+      completed: {
+        label: "Completed",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-500/10 border border-green-500/20 text-green-500",
+      },
+      partial: {
+        label: "Partial",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-orange-500/10 border border-orange-500/20 text-orange-500",
+      },
+      cancelled: {
+        label: "Cancelled",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-500",
+      },
+    }
+
+    const config = statusConfig[status] || { label: status, className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-500/10 border border-gray-500/20 text-gray-500" }
+    return <span className={config.className}>{config.label}</span>
+  }
+
+  const getPriorityBadge = (priority: string) => {
+    const priorityConfig: Record<string, { label: string; className: string }> = {
+      urgent: {
+        label: "Urgent",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-500",
+      },
+      high: {
+        label: "High",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-orange-500/10 border border-orange-500/20 text-orange-500",
+      },
+      medium: {
+        label: "Medium",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-500/10 border border-yellow-500/20 text-yellow-500",
+      },
+      low: {
+        label: "Low",
+        className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-500/10 border border-blue-500/20 text-blue-500",
+      },
+    }
+
+    const config = priorityConfig[priority] || { label: priority, className: "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-500/10 border border-gray-500/20 text-gray-500" }
+    return <span className={config.className}>{config.label}</span>
+  }
 
   return (
-    <div className={className}>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+    <div className="space-y-3">
+      {/* Search and Filters */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search orders or products..."
+            placeholder="Search by number or order..."
             value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
           />
         </div>
-
-        <Select value={sortStatus} onValueChange={onSortStatusChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Status" />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="assigned">Assigned</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="partial">Partial</SelectItem>
-            <SelectItem value="error">Error</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {uniqueStatuses.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status === "pending" ? "Pending" : status === "in_progress" ? "In Progress" : status === "completed" ? "Completed" : status === "partial" ? "Partial" : "Cancelled"}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-
-        <Select value={sortPriority} onValueChange={onSortPriorityChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Priority" />
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="All Priorities" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={sortWarehouse} onValueChange={onSortWarehouseChange}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Warehouse" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Warehouses</SelectItem>
-            <SelectItem value="Warehouse 1">Warehouse 1</SelectItem>
-            <SelectItem value="Warehouse 2">Warehouse 2</SelectItem>
-            <SelectItem value="Warehouse 3">Warehouse 3</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={sortZone} onValueChange={onSortZoneChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Zone" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Zones</SelectItem>
-            <SelectItem value="Zone A">Zone A</SelectItem>
-            <SelectItem value="Zone B">Zone B</SelectItem>
-            <SelectItem value="Zone C">Zone C</SelectItem>
-            <SelectItem value="Zone D">Zone D</SelectItem>
+            {uniquePriorities.map((priority) => (
+              <SelectItem key={priority} value={priority}>
+                {priority === "low" ? "Low" : priority === "medium" ? "Medium" : priority === "high" ? "High" : "Urgent"}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      {/* Table */}
+      <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-muted-foreground">Order ID</TableHead>
-              <TableHead className="text-muted-foreground">Product</TableHead>
-              <TableHead className="text-muted-foreground">Location</TableHead>
-              <TableHead className="text-muted-foreground">Status</TableHead>
-              <TableHead className="text-muted-foreground">Operator</TableHead>
+              <TableHead>Picking #</TableHead>
+              <TableHead>Order #</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Warehouse</TableHead>
+              <TableHead className="text-right">Lines</TableHead>
+              <TableHead className="text-right">Qty</TableHead>
+              <TableHead className="text-right">Picked</TableHead>
+              <TableHead className="text-right">Remaining</TableHead>
+              <TableHead>Priority</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pickingLines.length === 0 ? (
+            {filteredPickings.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center text-muted-foreground"
-                >
-                  No picking lines found
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                  No pickings found
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedLines.map((line) => (
-                <TableRow key={line.id}>
-                  <TableCell>
-                    <button
-                      onClick={() => onViewDetails && onViewDetails(line)}
-                      className="font-medium text-left text-muted-foreground hover:text-primary transition-colors hover:underline"
-                    >
-                      {line.commande.orderId}
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    <div className="space-y-0.5">
-                      <div className="truncate">{line.article.productName}</div>
-                      {line.article.sku && (
-                        <div className="text-xs">#{line.lineNumber} • {line.article.sku}</div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{line.emplacement.zone}</TableCell>
-                  <TableCell className="text-muted-foreground capitalize">{line.picking.status.replace(/_/g, " ")}</TableCell>
-                  <TableCell className="text-muted-foreground">{line.picking.assignedTo || "Unassigned"}</TableCell>
+              filteredPickings.map((picking) => (
+                <TableRow key={picking.id}>
+                  <TableCell className="font-medium">{picking.pickingNumber}</TableCell>
+                  <TableCell>{picking.orderNumber}</TableCell>
+                  <TableCell>{picking.customerName}</TableCell>
+                  <TableCell className="text-muted-foreground">{picking.warehouseName}</TableCell>
+                  <TableCell className="text-right">{picking.lines.length}</TableCell>
+                  <TableCell className="text-right">{picking.totalQuantity.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{picking.pickedQuantity.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{picking.remainingQuantity.toLocaleString()}</TableCell>
+                  <TableCell>{getPriorityBadge(picking.priority)}</TableCell>
+                  <TableCell>{getStatusBadge(picking.status)}</TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {currentPage + 1} / {totalPages}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => currentPage > 0 && onPageChange(currentPage - 1)}
-              disabled={currentPage === 0}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => currentPage < totalPages - 1 && onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages - 1}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

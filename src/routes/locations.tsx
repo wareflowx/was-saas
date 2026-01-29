@@ -1,423 +1,278 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import {
-  Home,
-  Package,
-  ArrowRight,
-  ShoppingCart,
-  Building2,
-  FileSpreadsheet,
-  Settings,
-  Warehouse,
-  Truck,
-  ClipboardList,
-  TrendingUp,
-  AlertTriangle,
-  ChevronRight,
-  BarChart3,
-} from "lucide-react"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarRail,
-} from "@/components/ui/sidebar"
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible"
-import { LocationsPage } from "@/components/locations"
-import type { Location } from "@/components/locations"
+import { createFileRoute } from "@tanstack/react-router"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/AppSidebar"
+import { LocationsPage } from "@/components/locations/LocationsPage"
+import type { LocationsData } from "@/types/entities"
 
 export const Route = createFileRoute("/locations")({
-  component: Locations,
+  component: LocationsRoute,
 })
 
-function Locations() {
-  // Demo data - replace with actual data from your backend
-  const locationsData = {
-    kpis: {
-      totalLocations: 156,
-      occupancyRate: 72,
-      availableLocations: 43,
-      fullLocations: 18,
-      activeZones: 4,
+// Demo data
+const demoData: LocationsData = {
+  kpis: {
+    totalLocations: 500,
+    availableLocations: 125,
+    occupiedLocations: 320,
+    blockedLocations: 15,
+    reservedLocations: 40,
+    totalCapacity: 25000,
+    usedCapacity: 18750,
+    averageOccupancy: 75,
+  },
+  locations: [
+    {
+      id: "loc-1",
+      code: "A-01-01-01",
+      sectorId: "sec-1",
+      sectorName: "Sector A1",
+      zoneId: "zone-1",
+      zoneName: "Storage Zone A",
+      warehouseId: "wh-1",
+      warehouseName: "Paris North Warehouse",
+      type: "rack",
+      capacity: 100,
+      usedCapacity: 90,
+      productCount: 3,
+      pickerCount: 1,
+      aisle: "A",
+      level: 1,
+      position: "01",
+      barcode: "7500012345678",
+      products: [
+        { id: "p1", sku: "WID-XL-001", name: "Widget XL", quantity: 50 },
+        { id: "p2", sku: "GAD-PRO-002", name: "Gadget Pro", quantity: 30 },
+        { id: "p3", sku: "COM-Z-003", name: "Component Z", quantity: 10 },
+      ],
+      status: "occupied",
+      lastUpdated: "2025-01-28T10:30:00Z",
     },
-    occupancyByZone: [
-      { zone: "Zone A", occupancy: 85, fill: "hsl(var(--chart-1))" },
-      { zone: "Zone B", occupancy: 65, fill: "hsl(var(--chart-2))" },
-      { zone: "Zone C", occupancy: 72, fill: "hsl(var(--chart-3))" },
-      { zone: "Zone D", occupancy: 48, fill: "hsl(var(--chart-4))" },
-    ],
-    locationTypeDistribution: [
-      { type: "Rack", count: 68, fill: "hsl(var(--chart-1))" },
-      { type: "Shelf", count: 45, fill: "hsl(var(--chart-2))" },
-      { type: "Floor", count: 28, fill: "hsl(var(--chart-3))" },
-      { type: "Bin", count: 15, fill: "hsl(var(--chart-4))" },
-    ],
-    occupancyTrends: [
-      { date: "Jan 22", occupancy: 68 },
-      { date: "Jan 23", occupancy: 69 },
-      { date: "Jan 24", occupancy: 70 },
-      { date: "Jan 25", occupancy: 71 },
-      { date: "Jan 26", occupancy: 71 },
-      { date: "Jan 27", occupancy: 72 },
-      { date: "Jan 28", occupancy: 72 },
-    ],
-    locations: [
-      {
-        id: "1",
-        code: "A-01-01",
-        zone: "A",
-        warehouse: "Warehouse 1",
-        type: "rack",
-        capacity: 100,
-        used: 90,
-        productsCount: 3,
-        status: "full",
-        products: [
-          { id: "p1", name: "Widget XL", sku: "WID-XL-001", quantity: 50 },
-          { id: "p2", name: "Gadget Pro", sku: "GAD-PRO-002", quantity: 30 },
-          { id: "p3", name: "Component Z", sku: "COM-Z-003", quantity: 10 },
-        ],
-      },
-      {
-        id: "2",
-        code: "A-01-02",
-        zone: "A",
-        warehouse: "Warehouse 1",
-        type: "rack",
-        capacity: 100,
-        used: 80,
-        productsCount: 2,
-        status: "medium",
-        products: [
-          { id: "p4", name: "Product A", sku: "PRO-A-001", quantity: 50 },
-          { id: "p5", name: "Product B", sku: "PRO-B-002", quantity: 30 },
-        ],
-      },
-      {
-        id: "3",
-        code: "B-01-01",
-        zone: "B",
-        warehouse: "Warehouse 1",
-        type: "shelf",
-        capacity: 50,
-        used: 30,
-        productsCount: 2,
-        status: "medium",
-        products: [
-          { id: "p6", name: "Item X", sku: "ITM-X-001", quantity: 20 },
-          { id: "p7", name: "Item Y", sku: "ITM-Y-002", quantity: 10 },
-        ],
-      },
-      {
-        id: "4",
-        code: "B-01-02",
-        zone: "B",
-        warehouse: "Warehouse 2",
-        type: "shelf",
-        capacity: 50,
-        used: 20,
-        productsCount: 1,
-        status: "available",
-        products: [
-          { id: "p8", name: "Single Item", sku: "SNG-001", quantity: 20 },
-        ],
-      },
-      {
-        id: "5",
-        code: "C-01-01",
-        zone: "C",
-        warehouse: "Warehouse 2",
-        type: "floor",
-        capacity: 200,
-        used: 150,
-        productsCount: 4,
-        status: "medium",
-        products: [
-          { id: "p9", name: "Bulk Product 1", sku: "BLK-1-001", quantity: 50 },
-          { id: "p10", name: "Bulk Product 2", sku: "BLK-2-002", quantity: 40 },
-          { id: "p11", name: "Bulk Product 3", sku: "BLK-3-003", quantity: 35 },
-          { id: "p12", name: "Bulk Product 4", sku: "BLK-4-004", quantity: 25 },
-        ],
-      },
-      {
-        id: "6",
-        code: "C-01-02",
-        zone: "C",
-        warehouse: "Warehouse 2",
-        type: "floor",
-        capacity: 200,
-        used: 138,
-        productsCount: 3,
-        status: "medium",
-        products: [
-          { id: "p13", name: "Large Item A", sku: "LRG-A-001", quantity: 60 },
-          { id: "p14", name: "Large Item B", sku: "LRG-B-002", quantity: 50 },
-          { id: "p15", name: "Large Item C", sku: "LRG-C-003", quantity: 28 },
-        ],
-      },
-      {
-        id: "7",
-        code: "D-01-01",
-        zone: "D",
-        warehouse: "Warehouse 3",
-        type: "bin",
-        capacity: 30,
-        used: 12,
-        productsCount: 2,
-        status: "available",
-        products: [
-          { id: "p16", name: "Small Part A", sku: "SML-A-001", quantity: 8 },
-          { id: "p17", name: "Small Part B", sku: "SML-B-002", quantity: 4 },
-        ],
-      },
-      {
-        id: "8",
-        code: "D-01-02",
-        zone: "D",
-        warehouse: "Warehouse 3",
-        type: "bin",
-        capacity: 30,
-        used: 15,
-        productsCount: 2,
-        status: "available",
-        products: [
-          { id: "p18", name: "Tiny Component X", sku: "TNY-X-001", quantity: 10 },
-          { id: "p19", name: "Tiny Component Y", sku: "TNY-Y-002", quantity: 5 },
-        ],
-      },
-      {
-        id: "9",
-        code: "A-02-01",
-        zone: "A",
-        warehouse: "Warehouse 1",
-        type: "rack",
-        capacity: 100,
-        used: 95,
-        productsCount: 3,
-        status: "full",
-        products: [
-          { id: "p20", name: "High Volume Prod 1", sku: "HVP-1-001", quantity: 40 },
-          { id: "p21", name: "High Volume Prod 2", sku: "HVP-2-002", quantity: 35 },
-          { id: "p22", name: "High Volume Prod 3", sku: "HVP-3-003", quantity: 20 },
-        ],
-      },
-      {
-        id: "10",
-        code: "B-02-01",
-        zone: "B",
-        warehouse: "Warehouse 1",
-        type: "shelf",
-        capacity: 50,
-        used: 35,
-        productsCount: 2,
-        status: "medium",
-        products: [
-          { id: "p23", name: "Medium Stock Item A", sku: "MED-A-001", quantity: 25 },
-          { id: "p24", name: "Medium Stock Item B", sku: "MED-B-002", quantity: 10 },
-        ],
-      },
-    ] as Location[],
-  }
+    {
+      id: "loc-2",
+      code: "A-01-01-02",
+      sectorId: "sec-1",
+      sectorName: "Sector A1",
+      zoneId: "zone-1",
+      zoneName: "Storage Zone A",
+      warehouseId: "wh-1",
+      warehouseName: "Paris North Warehouse",
+      type: "rack",
+      capacity: 100,
+      usedCapacity: 80,
+      productCount: 2,
+      pickerCount: 0,
+      aisle: "A",
+      level: 1,
+      position: "02",
+      products: [
+        { id: "p4", sku: "PRO-A-001", name: "Product A", quantity: 50 },
+        { id: "p5", sku: "PRO-B-002", name: "Product B", quantity: 30 },
+      ],
+      status: "occupied",
+      lastUpdated: "2025-01-28T10:25:00Z",
+    },
+    {
+      id: "loc-3",
+      code: "A-01-02-01",
+      sectorId: "sec-1",
+      sectorName: "Sector A1",
+      zoneId: "zone-1",
+      zoneName: "Storage Zone A",
+      warehouseId: "wh-1",
+      warehouseName: "Paris North Warehouse",
+      type: "rack",
+      capacity: 100,
+      usedCapacity: 0,
+      productCount: 0,
+      pickerCount: 0,
+      aisle: "A",
+      level: 1,
+      position: "03",
+      products: [],
+      status: "available",
+      lastUpdated: "2025-01-28T09:00:00Z",
+    },
+    {
+      id: "loc-4",
+      code: "B-01-01-01",
+      sectorId: "sec-3",
+      sectorName: "Sector B1",
+      zoneId: "zone-2",
+      zoneName: "Receiving Zone",
+      warehouseId: "wh-1",
+      warehouseName: "Paris North Warehouse",
+      type: "floor",
+      capacity: 200,
+      usedCapacity: 105,
+      productCount: 2,
+      pickerCount: 1,
+      aisle: "B",
+      level: 1,
+      position: "01",
+      products: [
+        { id: "p6", sku: "ITM-X-001", name: "Item X", quantity: 70 },
+        { id: "p7", sku: "ITM-Y-002", name: "Item Y", quantity: 35 },
+      ],
+      status: "occupied",
+      lastUpdated: "2025-01-28T11:00:00Z",
+    },
+    {
+      id: "loc-5",
+      code: "D-01-01-01",
+      sectorId: "sec-5",
+      sectorName: "Sector D1",
+      zoneId: "zone-4",
+      zoneName: "Picking Zone",
+      warehouseId: "wh-1",
+      warehouseName: "Paris North Warehouse",
+      type: "shelf",
+      capacity: 50,
+      usedCapacity: 34,
+      productCount: 2,
+      pickerCount: 0,
+      aisle: "D",
+      level: 1,
+      position: "01",
+      products: [
+        { id: "p8", sku: "SML-A-001", name: "Small Part A", quantity: 20 },
+        { id: "p9", sku: "SML-B-002", name: "Small Part B", quantity: 14 },
+      ],
+      status: "occupied",
+      lastUpdated: "2025-01-28T10:45:00Z",
+    },
+    {
+      id: "loc-6",
+      code: "E-01-01-01",
+      sectorId: "sec-6",
+      sectorName: "Sector E1",
+      zoneId: "zone-7",
+      zoneName: "Storage Zone B",
+      warehouseId: "wh-2",
+      warehouseName: "Lyon Warehouse",
+      type: "rack",
+      capacity: 100,
+      usedCapacity: 80,
+      productCount: 2,
+      pickerCount: 1,
+      aisle: "E",
+      level: 1,
+      position: "01",
+      products: [
+        { id: "p10", sku: "MED-A-001", name: "Medium Item A", quantity: 50 },
+        { id: "p11", sku: "MED-B-002", name: "Medium Item B", quantity: 30 },
+      ],
+      status: "occupied",
+      lastUpdated: "2025-01-28T09:30:00Z",
+    },
+    {
+      id: "loc-7",
+      code: "F-01-01-01",
+      sectorId: "sec-7",
+      sectorName: "Sector F1",
+      zoneId: "zone-8",
+      zoneName: "Receiving Zone",
+      warehouseId: "wh-2",
+      warehouseName: "Lyon Warehouse",
+      type: "floor",
+      capacity: 150,
+      usedCapacity: 0,
+      productCount: 0,
+      pickerCount: 0,
+      aisle: "F",
+      level: 1,
+      position: "01",
+      products: [],
+      status: "available",
+      lastUpdated: "2025-01-28T08:00:00Z",
+    },
+    {
+      id: "loc-8",
+      code: "G-01-01-01",
+      sectorId: "sec-8",
+      sectorName: "Sector G1",
+      zoneId: "zone-11",
+      zoneName: "Storage Zone C",
+      warehouseId: "wh-3",
+      warehouseName: "Marseille Warehouse",
+      type: "rack",
+      capacity: 100,
+      usedCapacity: 100,
+      productCount: 4,
+      pickerCount: 1,
+      aisle: "G",
+      level: 1,
+      position: "01",
+      products: [
+        { id: "p12", sku: "BLK-1-001", name: "Bulk Product 1", quantity: 30 },
+        { id: "p13", sku: "BLK-2-002", name: "Bulk Product 2", quantity: 25 },
+        { id: "p14", sku: "BLK-3-003", name: "Bulk Product 3", quantity: 25 },
+        { id: "p15", sku: "BLK-4-004", name: "Bulk Product 4", quantity: 20 },
+      ],
+      status: "full",
+      lastUpdated: "2025-01-28T11:00:00Z",
+    },
+    {
+      id: "loc-9",
+      code: "I-01-01-01",
+      sectorId: "sec-10",
+      sectorName: "Sector I1",
+      zoneId: "zone-15",
+      zoneName: "Picking Zone",
+      warehouseId: "wh-4",
+      warehouseName: "Bordeaux Warehouse",
+      type: "bin",
+      capacity: 30,
+      usedCapacity: 14,
+      productCount: 2,
+      pickerCount: 0,
+      aisle: "I",
+      level: 1,
+      position: "01",
+      products: [
+        { id: "p16", sku: "TNY-X-001", name: "Tiny Component X", quantity: 10 },
+        { id: "p17", sku: "TNY-Y-002", name: "Tiny Component Y", quantity: 4 },
+      ],
+      status: "occupied",
+      lastUpdated: "2025-01-28T10:30:00Z",
+    },
+    {
+      id: "loc-10",
+      code: "J-01-01-01",
+      sectorId: "sec-11",
+      sectorName: "Sector J1",
+      zoneId: "zone-16",
+      zoneName: "Storage Zone E",
+      warehouseId: "wh-5",
+      warehouseName: "Lille Warehouse",
+      type: "rack",
+      capacity: 100,
+      usedCapacity: 49,
+      productCount: 1,
+      pickerCount: 0,
+      aisle: "J",
+      level: 1,
+      position: "01",
+      products: [
+        { id: "p18", sku: "LRG-A-001", name: "Large Item A", quantity: 49 },
+      ],
+      status: "occupied",
+      lastUpdated: "2025-01-28T09:45:00Z",
+    },
+  ],
+}
 
+function LocationsRoute() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar collapsible="icon" className="bg-background border-r">
-          <SidebarHeader className="h-14 border-b bg-background">
-            <SidebarMenuButton size="lg" asChild>
-              <Link to="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Building2 className="size-4" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Wareflow</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarHeader>
-
-          <SidebarContent className="bg-background">
-            <SidebarGroup>
-              <SidebarGroupLabel>Overview</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
-                      <Link to="/dashboard">
-                        <Home />
-                        <span>Dashboard</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>Warehouse</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive className="text-foreground">
-                      <Link to="/locations">
-                        <Warehouse />
-                        <span>Locations</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <Collapsible defaultOpen className="group/collapsible">
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton className="text-muted-foreground">
-                          <Package />
-                          <span>Products</span>
-                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <Link to="/products">
-                                <Package className="text-muted-foreground" />
-                                <span className="text-muted-foreground">All Products</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <Link to="/dead-stock">
-                                <AlertTriangle className="text-muted-foreground" />
-                                <span className="text-muted-foreground">Dead Stock</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <Link to="/misplaced-items">
-                                <TrendingUp className="text-muted-foreground" />
-                                <span className="text-muted-foreground">Misplaced Items</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <Link to="/abc-analysis">
-                                <BarChart3 className="text-muted-foreground" />
-                                <span className="text-muted-foreground">ABC Analysis</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>Operations</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
-                      <Link to="/picking">
-                        <ClipboardList />
-                        <span>Picking</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
-                      <Link to="/dashboard">
-                        <ArrowRight />
-                        <span>Movements</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
-                      <Link to="/dashboard">
-                        <ShoppingCart />
-                        <span>Orders</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
-                      <Link to="/dashboard">
-                        <ClipboardList />
-                        <span>Inventory</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>Analytics</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
-                      <Link to="/dashboard">
-                        <TrendingUp />
-                        <span>Reports</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="text-muted-foreground">
-                      <Link to="/dashboard">
-                        <FileSpreadsheet />
-                        <span>Imports</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-
-          <SidebarFooter className="bg-background">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className="text-muted-foreground">
-                  <Link to="/settings">
-                    <Settings />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
-          <SidebarRail />
-        </Sidebar>
-
+        <AppSidebar />
         <main className="flex-1">
           <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-2">
             <SidebarTrigger />
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <LocationsPage data={locationsData} />
+            <LocationsPage data={demoData} />
           </div>
         </main>
       </div>

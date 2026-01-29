@@ -8,114 +8,82 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { LocationsKPICards } from "./LocationsKPICards"
-import { OccupancyByZoneChart } from "./OccupancyByZoneChart"
-import { OccupancyTrendsChart } from "./OccupancyTrendsChart"
-import { LocationsTable, type Location } from "./LocationsTable"
-import { LocationDetailSheet } from "./LocationDetailSheet"
-import type { LocationType, LocationStatus } from "./LocationsTable"
-
-type Zone = "all" | "A" | "B" | "C" | "D"
-type FilterType = "all" | "rack" | "shelf" | "floor" | "bin"
-type FilterStatus = "all" | "available" | "medium" | "full"
-
-interface LocationsData {
-  kpis: {
-    totalLocations: number
-    occupancyRate: number
-    availableLocations: number
-    fullLocations: number
-    activeZones: number
-  }
-  occupancyByZone: Array<{
-    zone: string
-    occupancy: number
-    fill: string
-  }>
-  locationTypeDistribution: Array<{
-    type: string
-    count: number
-    fill: string
-  }>
-  occupancyTrends: Array<{
-    date: string
-    occupancy: number
-  }>
-  locations: Location[]
-}
+import { LocationsTable } from "./LocationsTable"
+import { CapacityUtilizationChart } from "./CapacityUtilizationChart"
+import { OccupancyByTypeChart } from "./OccupancyByTypeChart"
+import type { LocationsData } from "@/types/entities"
 
 interface LocationsPageProps {
   data: LocationsData
 }
 
 export function LocationsPage({ data }: LocationsPageProps) {
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
 
-  // Filter states for table
-  const [tableSearch, setTableSearch] = useState("")
-  const [sortZone, setSortZone] = useState("all")
-  const [sortWarehouse, setSortWarehouse] = useState("all")
-  const [sortType, setSortType] = useState("all")
+  // Calculate capacity utilization by zone
+  const capacityByZone = useMemo(() => {
+    const zoneMap = new Map<string, { total: number; used: number }>()
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(0)
-  const itemsPerPage = 5
+    data.locations.forEach((location) => {
+      const existing = zoneMap.get(location.zoneName) || { total: 0, used: 0 }
+      zoneMap.set(location.zoneName, {
+        total: existing.total + location.capacity,
+        used: existing.used + location.usedCapacity,
+      })
+    })
+
+    const zonesWithOccupancy = Array.from(zoneMap.entries()).map(([zone, stats]) => ({
+      zone: zone.length > 20 ? zone.substring(0, 20) + "..." : zone,
+      occupancy: stats.total > 0 ? (stats.used / stats.total) * 100 : 0,
+    }))
+
+    // Sort by occupancy and take top 3 highest and bottom 2 lowest
+    zonesWithOccupancy.sort((a, b) => b.occupancy - a.occupancy)
+    return [
+      ...zonesWithOccupancy.slice(0, 3),
+      ...zonesWithOccupancy.slice(-2).reverse(),
+    ]
+  }, [data.locations])
+
+  // Calculate occupancy by type
+  const occupancyByType = useMemo(() => {
+    const typeMap = new Map<string, number>()
+
+    data.locations.forEach((location) => {
+      typeMap.set(location.type, (typeMap.get(location.type) || 0) + 1)
+    })
+
+    const colors = [
+      "hsl(221, 83%, 53%)",
+      "hsl(280, 65%, 60%)",
+      "hsl(160, 60%, 45%)",
+      "hsl(30, 80%, 55%)",
+      "hsl(340, 75%, 55%)",
+    ]
+
+    return Array.from(typeMap.entries())
+      .map(([type, count], index) => ({
+        type: type.charAt(0).toUpperCase() + type.slice(1),
+        count,
+        fill: colors[index % colors.length],
+      }))
+      .sort((a, b) => b.count - a.count)
+  }, [data.locations])
 
   // Filter locations
   const filteredLocations = useMemo(() => {
     return data.locations.filter((location) => {
-      if (sortZone !== "all" && location.zone !== sortZone) return false
-      if (sortWarehouse !== "all" && location.warehouse !== sortWarehouse) return false
-      if (sortType !== "all" && location.type !== sortType) return false
-      if (tableSearch && !location.code.toLowerCase().includes(tableSearch.toLowerCase())) return false
+      if (statusFilter !== "all" && location.status !== statusFilter) return false
+      if (
+        search &&
+        !location.code.toLowerCase().includes(search.toLowerCase())
+      )
+        return false
       return true
     })
-  }, [data.locations, sortZone, sortWarehouse, sortType, tableSearch])
-
-  // Demo data for modal
-  const demoProducts = selectedLocation
-    ? [
-        {
-          id: "1",
-          name: "Widget XL",
-          sku: "WID-XL-001",
-          quantity: 50,
-          dateAdded: "2024-01-15",
-        },
-        {
-          id: "2",
-          name: "Gadget Pro",
-          sku: "GAD-PRO-002",
-          quantity: 30,
-          dateAdded: "2024-01-18",
-        },
-      ]
-    : []
-
-  const demoMovements = selectedLocation
-    ? [
-        {
-          id: "MOV-001",
-          date: "2024-01-28",
-          product: "Widget XL",
-          type: "in" as const,
-          quantity: 20,
-        },
-        {
-          id: "MOV-002",
-          date: "2024-01-27",
-          product: "Gadget Pro",
-          type: "out" as const,
-          quantity: 10,
-        },
-      ]
-    : []
-
-  const handleViewDetails = (location: Location) => {
-    setSelectedLocation(location)
-    setIsModalOpen(true)
-  }
+  }, [data.locations, search, statusFilter])
 
   return (
     <div className="max-w-6xl mx-auto space-y-4">
@@ -124,7 +92,7 @@ export function LocationsPage({ data }: LocationsPageProps) {
         <div className="flex items-center gap-3">
           <Sparkles className="h-4 w-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Monitor warehouse occupancy</span> and track location utilization across all zones in real-time.
+            <span className="font-medium">Manage locations</span> and monitor storage capacity across your warehouse.
           </p>
         </div>
         <button
@@ -135,133 +103,79 @@ export function LocationsPage({ data }: LocationsPageProps) {
         </button>
       </div>
 
-      {/* KPIs */}
-      <LocationsKPICards
-        totalLocations={data.kpis.totalLocations}
-        occupancyRate={data.kpis.occupancyRate}
-        availableLocations={data.kpis.availableLocations}
-        fullLocations={data.kpis.fullLocations}
-      />
+      {/* KPI Cards */}
+      <LocationsKPICards kpis={data.kpis} />
 
       {/* Charts Row */}
-      <div className="grid gap-2 md:grid-cols-2">
-        <OccupancyByZoneChart data={data.occupancyByZone} />
-        <OccupancyTrendsChart data={data.occupancyTrends} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <CapacityUtilizationChart data={capacityByZone} />
+        <OccupancyByTypeChart data={occupancyByType} />
       </div>
 
       {/* Locations Table */}
       <LocationsTable
         locations={filteredLocations}
-        search={tableSearch}
-        onSearchChange={setTableSearch}
-        sortZone={sortZone}
-        onSortZoneChange={setSortZone}
-        sortWarehouse={sortWarehouse}
-        onSortWarehouseChange={setSortWarehouse}
-        sortType={sortType}
-        onSortTypeChange={setSortType}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-        itemsPerPage={itemsPerPage}
-        onViewDetails={handleViewDetails}
-      />
-
-      {/* Detail Sheet */}
-      <LocationDetailSheet
-        location={selectedLocation}
-        products={demoProducts}
-        movements={demoMovements}
-        open={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setSelectedLocation(null)
-        }}
+        search={search}
+        onSearchChange={setSearch}
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
       />
 
       {/* Info Dialog */}
       <Dialog open={isInfoDialogOpen} onOpenChange={setIsInfoDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Locations Overview</DialogTitle>
+            <DialogTitle>Locations Management</DialogTitle>
             <DialogDescription>
-              Comprehensive view of warehouse locations and their occupancy status
+              Monitor and manage all warehouse storage locations
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {/* Top Row - 2 Cards */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Key Metrics Section */}
-              <div className="rounded-lg border bg-muted/50 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <h4 className="font-semibold text-sm">KPIs</h4>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Total Locations</p>
-                      <p className="text-muted-foreground">Complete count of all storage locations</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Occupancy Rate</p>
-                      <p className="text-muted-foreground">Percentage of total warehouse capacity used</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Available & Full</p>
-                      <p className="text-muted-foreground">Track location availability and capacity</p>
-                    </div>
-                  </div>
-                </div>
+            <div className="rounded-lg border bg-muted/50 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+                <h4 className="font-semibold text-sm">KPIs</h4>
               </div>
-
-              {/* Charts Section */}
-              <div className="rounded-lg border bg-muted/50 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <h4 className="font-semibold text-sm">Charts</h4>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Occupancy by Zone</p>
-                      <p className="text-muted-foreground">Visual breakdown per warehouse zone</p>
-                    </div>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-start gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">Total Locations</p>
+                    <p className="text-muted-foreground">All storage locations in warehouse</p>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Occupancy Trends</p>
-                      <p className="text-muted-foreground">Historical capacity tracking</p>
-                    </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">Occupancy Rate</p>
+                    <p className="text-muted-foreground">Percentage of used capacity</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">Available Locations</p>
+                    <p className="text-muted-foreground">Ready for new stock</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Row - 1 Card */}
             <div className="rounded-lg border bg-muted/50 p-4">
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-2 w-2 rounded-full bg-primary" />
-                <h4 className="font-semibold text-sm">Location Table</h4>
+                <h4 className="font-semibold text-sm">Locations Table</h4>
               </div>
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div className="space-y-2">
                   <p className="text-muted-foreground">
-                    Browse and search all warehouse locations with powerful filtering options by zone, warehouse, and type.
+                    View all locations with real-time status, capacity, and product information.
                   </p>
                   <div className="flex items-start gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-foreground">Click Location Code</p>
-                      <p className="text-muted-foreground">View details, products, and movements</p>
+                      <p className="font-medium text-foreground">Search</p>
+                      <p className="text-muted-foreground">Find by location code</p>
                     </div>
                   </div>
                 </div>
@@ -269,15 +183,15 @@ export function LocationsPage({ data }: LocationsPageProps) {
                   <div className="flex items-start gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-foreground">Search</p>
-                      <p className="text-muted-foreground">Find locations by code</p>
+                      <p className="font-medium text-foreground">Filter by Status</p>
+                      <p className="text-muted-foreground">Available, occupied, full</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-foreground">Filters</p>
-                      <p className="text-muted-foreground">Zone, warehouse, and type</p>
+                      <p className="font-medium text-foreground">View Details</p>
+                      <p className="text-muted-foreground">Products and capacity</p>
                     </div>
                   </div>
                 </div>

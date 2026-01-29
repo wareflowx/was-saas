@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { Sparkles, Info } from "lucide-react"
 import {
   Dialog,
@@ -9,88 +9,14 @@ import {
 } from "@/components/ui/dialog"
 import { PickingKPICards } from "./PickingKPICards"
 import { PickingTable } from "./PickingTable"
-import { PickingLineSheet } from "./PickingLineSheet"
-import { PickingStatusChart } from "./PickingStatusChart"
-import { PickingByOperatorChart } from "./PickingByOperatorChart"
-import { PickingTrendsChart } from "./PickingTrendsChart"
-import { PickingByPriorityChart } from "./PickingByPriorityChart"
-import type {
-  PickingLine,
-  PickingStatus,
-  Priority,
-  PickingSummary,
-  PickingStatusDistribution,
-  PickingOperatorPerformance,
-  PickingTrendData,
-  PickingPriorityDistribution,
-} from "./types"
-
-type StatusFilter = "all" | PickingStatus
-type PriorityFilter = "all" | Priority
-type WarehouseFilter = "all" | "Warehouse 1" | "Warehouse 2" | "Warehouse 3"
-type ZoneFilter = "all" | "Zone A" | "Zone B" | "Zone C" | "Zone D"
+import type { PickingsData } from "@/types/entities"
 
 interface PickingPageProps {
-  data: {
-    summary: PickingSummary
-    pickingLines: PickingLine[]
-    statusDistribution: PickingStatusDistribution[]
-    operatorPerformance: PickingOperatorPerformance[]
-    trends: PickingTrendData[]
-    priorityDistribution: PickingPriorityDistribution[]
-  }
+  data: PickingsData
 }
 
 export function PickingPage({ data }: PickingPageProps) {
-  const [selectedLine, setSelectedLine] = useState<PickingLine | null>(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false)
-
-  // Filter states
-  const [search, setSearch] = useState("")
-  const [sortStatus, setSortStatus] = useState<StatusFilter>("all")
-  const [sortPriority, setSortPriority] = useState<PriorityFilter>("all")
-  const [sortWarehouse, setSortWarehouse] = useState<WarehouseFilter>("all")
-  const [sortZone, setSortZone] = useState<ZoneFilter>("all")
-
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(0)
-  const itemsPerPage = 5
-
-  // Filter picking lines
-  const filteredLines = useMemo(() => {
-    return data.pickingLines.filter((line) => {
-      if (sortStatus !== "all" && line.picking.status !== sortStatus) return false
-      if (sortPriority !== "all" && line.commande.priority !== sortPriority) return false
-      if (sortWarehouse !== "all" && line.emplacement.warehouse !== sortWarehouse) return false
-      if (sortZone !== "all" && line.emplacement.zone !== sortZone.replace("Zone ", "")) return false
-      if (
-        search &&
-        !line.commande.orderId.toLowerCase().includes(search.toLowerCase()) &&
-        !line.article.productName.toLowerCase().includes(search.toLowerCase())
-      ) {
-        return false
-      }
-      return true
-    })
-  }, [data.pickingLines, sortStatus, sortPriority, sortWarehouse, sortZone, search])
-
-  const handleViewDetails = (line: PickingLine) => {
-    setSelectedLine(line)
-    setIsSheetOpen(true)
-  }
-
-  const handleStartPicking = (line: PickingLine) => {
-    console.log("Starting picking for line:", line.id)
-  }
-
-  const handleCompletePicking = (line: PickingLine, qty: number) => {
-    console.log("Completing picking for line:", line.id, "quantity:", qty)
-  }
-
-  const handleReportError = (line: PickingLine, error: any) => {
-    console.log("Reporting error for line:", line.id, error)
-  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-4">
@@ -99,7 +25,7 @@ export function PickingPage({ data }: PickingPageProps) {
         <div className="flex items-center gap-3">
           <Sparkles className="h-4 w-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Monitor picking operations</span> and track order fulfillment progress across all zones in real-time.
+            <span className="font-medium">Manage picking operations</span> and track order fulfillment progress efficiently.
           </p>
         </div>
         <button
@@ -111,64 +37,23 @@ export function PickingPage({ data }: PickingPageProps) {
       </div>
 
       {/* KPIs */}
-      <PickingKPICards
-        totalLines={data.summary.today.totalLines}
-        completedLines={data.summary.today.completedLines}
-        pendingLines={data.summary.today.pendingLines}
-        completionRate={data.summary.today.completionRate}
-      />
-
-      {/* Charts Row */}
-      <div className="grid gap-2 md:grid-cols-2">
-        <PickingStatusChart data={data.statusDistribution} />
-        <PickingByOperatorChart data={data.operatorPerformance} />
-      </div>
+      <PickingKPICards kpis={data.kpis} />
 
       {/* Picking Table */}
-      <PickingTable
-        pickingLines={filteredLines}
-        search={search}
-        onSearchChange={setSearch}
-        sortStatus={sortStatus}
-        onSortStatusChange={setSortStatus}
-        sortPriority={sortPriority}
-        onSortPriorityChange={setSortPriority}
-        sortWarehouse={sortWarehouse}
-        onSortWarehouseChange={setSortWarehouse}
-        sortZone={sortZone}
-        onSortZoneChange={setSortZone}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-        itemsPerPage={itemsPerPage}
-        onViewDetails={handleViewDetails}
-      />
-
-      {/* Detail Sheet */}
-      <PickingLineSheet
-        pickingLine={selectedLine}
-        open={isSheetOpen}
-        onClose={() => {
-          setIsSheetOpen(false)
-          setSelectedLine(null)
-        }}
-        onStartPicking={handleStartPicking}
-        onCompletePicking={handleCompletePicking}
-        onReportError={handleReportError}
-      />
+      <PickingTable pickings={data.pickings} />
 
       {/* Info Dialog */}
       <Dialog open={isInfoDialogOpen} onOpenChange={setIsInfoDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Picking Overview</DialogTitle>
+            <DialogTitle>Picking Management</DialogTitle>
             <DialogDescription>
-              Comprehensive view of warehouse picking operations and order fulfillment status
+              Track and manage all picking orders from assignment to completion
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             {/* Top Row - 2 Cards */}
             <div className="grid grid-cols-2 gap-3">
-              {/* Key Metrics Section */}
               <div className="rounded-lg border bg-muted/50 p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="h-2 w-2 rounded-full bg-primary" />
@@ -178,46 +63,38 @@ export function PickingPage({ data }: PickingPageProps) {
                   <div className="flex items-start gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-foreground">Total Lines</p>
-                      <p className="text-muted-foreground">Complete count of all picking lines</p>
+                      <p className="font-medium text-foreground">Total Pickings</p>
+                      <p className="text-muted-foreground">All picking orders</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">Pending</p>
+                      <p className="text-muted-foreground">Awaiting assignment</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-2 w-2 rounded-full bg-primary" />
+                  <h4 className="font-semibold text-sm">Progress Tracking</h4>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-start gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">In Progress</p>
+                      <p className="text-muted-foreground">Currently being picked</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
                     <div>
                       <p className="font-medium text-foreground">Completion Rate</p>
-                      <p className="text-muted-foreground">Percentage of orders fulfilled</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Pending & Completed</p>
-                      <p className="text-muted-foreground">Track picking progress status</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Charts Section */}
-              <div className="rounded-lg border bg-muted/50 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <h4 className="font-semibold text-sm">Charts</h4>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Status Distribution</p>
-                      <p className="text-muted-foreground">Visual breakdown by picking status</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Operator Performance</p>
-                      <p className="text-muted-foreground">Track picker efficiency</p>
+                      <p className="text-muted-foreground">Overall efficiency metric</p>
                     </div>
                   </div>
                 </div>
@@ -233,13 +110,13 @@ export function PickingPage({ data }: PickingPageProps) {
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div className="space-y-2">
                   <p className="text-muted-foreground">
-                    Browse and manage all picking lines with powerful filtering options by status, priority, warehouse, and zone.
+                    Monitor all picking orders with real-time progress tracking and operator assignments.
                   </p>
                   <div className="flex items-start gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-foreground">Expand Row</p>
-                      <p className="text-muted-foreground">View detailed line information</p>
+                      <p className="font-medium text-foreground">Filters</p>
+                      <p className="text-muted-foreground">Status, priority, warehouse</p>
                     </div>
                   </div>
                 </div>
@@ -248,14 +125,14 @@ export function PickingPage({ data }: PickingPageProps) {
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
                     <div>
                       <p className="font-medium text-foreground">Search</p>
-                      <p className="text-muted-foreground">Find by order ID or product</p>
+                      <p className="text-muted-foreground">Find by number or order</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground mt-1 flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-foreground">Filters</p>
-                      <p className="text-muted-foreground">Status, priority, warehouse, zone</p>
+                      <p className="font-medium text-foreground">Actions</p>
+                      <p className="text-muted-foreground">View details and assign</p>
                     </div>
                   </div>
                 </div>

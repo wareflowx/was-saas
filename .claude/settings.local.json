@@ -6,7 +6,9 @@
       "Bash(git push:*)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
-      "Bash(gh release view:*)"
+      "Bash(gh release view:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find:*)"
     ]
   }
 }

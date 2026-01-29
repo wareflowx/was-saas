@@ -1,4 +1,4 @@
-import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -8,190 +8,141 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-export type LocationType = "rack" | "shelf" | "floor" | "bin"
-export type LocationStatus = "available" | "medium" | "full"
-
-export interface Product {
-  id: string
-  name: string
-  sku: string
-  quantity: number
-}
-
-interface Location {
-  id: string
-  code: string
-  zone: string
-  warehouse?: string
-  type: LocationType
-  capacity: number
-  used: number
-  productsCount: number
-  status: LocationStatus
-  products?: Product[]
-}
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import type { Location } from "@/types/entities"
 
 interface LocationsTableProps {
   locations: Location[]
   search: string
-  onSearchChange: (search: string) => void
-  sortZone: string
-  onSortZoneChange: (zone: string) => void
-  sortWarehouse: string
-  onSortWarehouseChange: (warehouse: string) => void
-  sortType: string
-  onSortTypeChange: (type: string) => void
-  currentPage: number
-  onPageChange: (page: number) => void
-  itemsPerPage: number
-  onViewDetails?: (location: Location) => void
-  className?: string
+  onSearchChange: (value: string) => void
+  statusFilter: string
+  onStatusChange: (value: string) => void
 }
 
 export function LocationsTable({
   locations,
   search,
   onSearchChange,
-  sortZone,
-  onSortZoneChange,
-  sortWarehouse,
-  onSortWarehouseChange,
-  sortType,
-  onSortTypeChange,
-  currentPage,
-  onPageChange,
-  itemsPerPage,
-  onViewDetails,
-  className,
+  statusFilter,
+  onStatusChange,
 }: LocationsTableProps) {
-  // Calculate pagination
-  const totalPages = Math.ceil(locations.length / itemsPerPage)
-  const startIndex = currentPage * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedLocations = locations.slice(startIndex, endIndex)
+  const getStatusBadge = (status: Location["status"]) => {
+    switch (status) {
+      case "available":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-500/10 border border-green-500/20 text-green-500">
+            Available
+          </span>
+        )
+      case "occupied":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-500/10 border border-blue-500/20 text-blue-500">
+            Occupied
+          </span>
+        )
+      case "full":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-500">
+            Full
+          </span>
+        )
+      case "blocked":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-500/10 border border-yellow-500/20 text-yellow-500">
+            Blocked
+          </span>
+        )
+      case "reserved":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-purple-500/10 border border-purple-500/20 text-purple-500">
+            Reserved
+          </span>
+        )
+    }
+  }
+
+  const getTypeLabel = (type: string): string => {
+    const labels: Record<string, string> = {
+      rack: "Rack",
+      shelf: "Shelf",
+      floor: "Floor",
+      bin: "Bin",
+      pallet: "Pallet",
+    }
+    return labels[type] || type
+  }
 
   return (
-    <div className={className}>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+    <div className="space-y-3">
+      {/* Search and Filters */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search locations..."
+            placeholder="Search by location code..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9"
           />
         </div>
-
-        <Select value={sortZone} onValueChange={onSortZoneChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Zone" />
+        <Select value={statusFilter} onValueChange={onStatusChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Zones</SelectItem>
-            <SelectItem value="A">Zone A</SelectItem>
-            <SelectItem value="B">Zone B</SelectItem>
-            <SelectItem value="C">Zone C</SelectItem>
-            <SelectItem value="D">Zone D</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={sortWarehouse} onValueChange={onSortWarehouseChange}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Warehouse" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Warehouses</SelectItem>
-            <SelectItem value="Warehouse 1">Warehouse 1</SelectItem>
-            <SelectItem value="Warehouse 2">Warehouse 2</SelectItem>
-            <SelectItem value="Warehouse 3">Warehouse 3</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={sortType} onValueChange={onSortTypeChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="rack">Rack</SelectItem>
-            <SelectItem value="shelf">Shelf</SelectItem>
-            <SelectItem value="floor">Floor</SelectItem>
-            <SelectItem value="bin">Bin</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="occupied">Occupied</SelectItem>
+            <SelectItem value="full">Full</SelectItem>
+            <SelectItem value="blocked">Blocked</SelectItem>
+            <SelectItem value="reserved">Reserved</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      {/* Table */}
+      <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-muted-foreground">Location Code</TableHead>
-              <TableHead className="text-muted-foreground">Zone</TableHead>
-              <TableHead className="text-muted-foreground">Warehouse</TableHead>
-              <TableHead className="text-muted-foreground">Type</TableHead>
+              <TableHead>Code</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Zone</TableHead>
+              <TableHead>Warehouse</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {locations.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center text-muted-foreground"
-                >
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   No locations found
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedLocations.map((location) => (
-                <TableRow key={location.id}>
-                  <TableCell>
-                    <button
-                      onClick={() => onViewDetails && onViewDetails(location)}
-                      className="font-medium text-left text-muted-foreground hover:text-primary transition-colors hover:underline"
-                    >
-                      {location.code}
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{location.zone}</TableCell>
-                  <TableCell className="text-muted-foreground">{location.warehouse || "-"}</TableCell>
-                  <TableCell className="capitalize text-muted-foreground">{location.type}</TableCell>
-                </TableRow>
-              ))
+              locations.map((location) => {
+                const occupancyRate = (location.usedCapacity / location.capacity) * 100
+                return (
+                  <TableRow key={location.id}>
+                    <TableCell className="font-medium">{location.code}</TableCell>
+                    <TableCell>{getTypeLabel(location.type)}</TableCell>
+                    <TableCell className="text-muted-foreground">{location.zoneName}</TableCell>
+                    <TableCell className="text-muted-foreground">{location.warehouseName}</TableCell>
+                    <TableCell>{getStatusBadge(location.status)}</TableCell>
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {currentPage + 1} / {totalPages}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => currentPage > 0 && onPageChange(currentPage - 1)}
-              disabled={currentPage === 0}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => currentPage < totalPages - 1 && onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages - 1}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
+

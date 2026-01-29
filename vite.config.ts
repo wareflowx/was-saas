@@ -32,7 +32,7 @@ export default defineConfig({
       },
       {
         // Preload script
-        entry: 'electron/preload.mjs',
+        entry: 'electron/preload.cjs',
         onstart(options) {
           options.reload()
         },

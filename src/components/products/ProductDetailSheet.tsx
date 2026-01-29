@@ -6,7 +6,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
-import type { Product, StockStatus } from "./ProductsTable"
+import type { Product } from "@/types/entities"
 
 interface Movement {
   id: string
@@ -24,7 +24,7 @@ interface ProductDetailSheetProps {
 }
 
 function getStatusBadgeVariant(
-  status: StockStatus
+  status: Product["status"]
 ): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
     case "in_stock":
@@ -33,6 +33,8 @@ function getStatusBadgeVariant(
       return "secondary"
     case "out_of_stock":
       return "destructive"
+    default:
+      return "outline"
   }
 }
 
@@ -73,7 +75,7 @@ export function ProductDetailSheet({
                 </div>
                 <div className="rounded-lg border bg-muted/30 p-2 text-center">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Location</p>
-                  <p className="font-semibold text-[10px] truncate">{product.location}</p>
+                  <p className="font-semibold text-[10px] truncate">{product.locationCode || '-'}</p>
                 </div>
               </div>
 
@@ -89,7 +91,7 @@ export function ProductDetailSheet({
                   </Badge>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1.5">
-                  Last updated: {product.lastUpdated}
+                  Last updated: {new Date(product.lastUpdated).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </p>
               </div>
 

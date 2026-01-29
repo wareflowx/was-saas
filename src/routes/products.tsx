@@ -1,395 +1,192 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarRail,
-} from "@/components/ui/sidebar"
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
-import {
-  Home,
-  Package,
-  Warehouse,
-  ClipboardList,
-  FileSpreadsheet,
-  Settings,
-  Building2,
-  ArrowRight,
-  ShoppingCart,
-  TrendingUp,
-  Truck,
-  AlertTriangle,
-  ChevronRight,
-  BarChart3,
-} from "lucide-react";
-import { ProductsPage } from "@/components/products";
-import type { Product } from "@/components/products";
+import { createFileRoute } from "@tanstack/react-router"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/AppSidebar"
+import { ProductsPage } from "@/components/products/ProductsPage"
+import type { ProductsData } from "@/types/entities"
 
 export const Route = createFileRoute("/products")({
-  component: Products,
-});
+  component: ProductsRoute,
+})
 
-function Products() {
-  // Demo data - replace with actual data from your backend
-  const productsData = {
-    kpis: {
-      totalProducts: 248,
-      lowStock: 18,
-      outOfStock: 7,
-      totalQuantity: 12450,
+const demoData: ProductsData = {
+  kpis: {
+    totalProducts: 150,
+    inStock: 125,
+    lowStock: 18,
+    outOfStock: 7,
+    totalQuantity: 12450,
+    totalValue: 247500,
+    categories: 8,
+  },
+  products: [
+    {
+      id: "prod-1",
+      sku: "ELE-001",
+      name: "Laptop Pro 15",
+      description: "High performance laptop",
+      category: "Electronics",
+      subcategory: "Computers",
+      brand: "TechBrand",
+      unit: "unit",
+      weight: 2.5,
+      volume: 0.02,
+      quantity: 150,
+      minStock: 20,
+      maxStock: 200,
+      reorderPoint: 30,
+      reorderQuantity: 50,
+      locationCode: "A-01-01-01",
+      locationId: "loc-1",
+      zoneName: "Storage Zone A",
+      sectorName: "Sector A1",
+      warehouseName: "Paris North Warehouse",
+      costPrice: 800,
+      sellingPrice: 1200,
+      supplier: "TechSupplier Inc.",
+      lastReceivedDate: "2025-01-25",
+      lastShippedDate: "2025-01-28",
+      status: "in_stock",
+      createdAt: "2024-01-15T10:00:00Z",
+      lastUpdated: "2025-01-28T10:30:00Z",
     },
-    productsByCategory: [
-      { category: "Electronics", count: 85, fill: "hsl(var(--chart-1))" },
-      { category: "Clothing", count: 62, fill: "hsl(var(--chart-2))" },
-      { category: "Food", count: 54, fill: "hsl(var(--chart-3))" },
-      { category: "Tools", count: 47, fill: "hsl(var(--chart-4))" },
-    ],
-    stockLevels: [
-      { level: "In Stock", count: 195, fill: "hsl(var(--chart-1))" },
-      { level: "Low Stock", count: 46, fill: "hsl(var(--chart-2))" },
-      { level: "Out of Stock", count: 7, fill: "hsl(var(--chart-3))" },
-    ],
-    products: [
-      {
-        id: "1",
-        sku: "ELEC-001",
-        name: "Wireless Mouse",
-        category: "Electronics",
-        quantity: 150,
-        location: "A-01-01",
-        status: "in_stock",
-        popularity: 5,
-        lastUpdated: "2024-01-28",
-      },
-      {
-        id: "2",
-        sku: "ELEC-002",
-        name: "USB-C Cable",
-        category: "Electronics",
-        quantity: 25,
-        location: "A-01-02",
-        status: "low_stock",
-        popularity: 4,
-        lastUpdated: "2024-01-27",
-      },
-      {
-        id: "3",
-        sku: "CLOTH-001",
-        name: "Cotton T-Shirt",
-        category: "Clothing",
-        quantity: 200,
-        location: "B-01-01",
-        status: "in_stock",
-        popularity: 3,
-        lastUpdated: "2024-01-26",
-      },
-      {
-        id: "4",
-        sku: "FOOD-001",
-        name: "Organic Coffee",
-        category: "Food",
-        quantity: 0,
-        location: "C-01-01",
-        status: "out_of_stock",
-        popularity: 5,
-        lastUpdated: "2024-01-25",
-      },
-      {
-        id: "5",
-        sku: "TOOL-001",
-        name: "Hammer",
-        category: "Tools",
-        quantity: 75,
-        location: "D-01-01",
-        status: "in_stock",
-        popularity: 2,
-        lastUpdated: "2024-01-24",
-      },
-      {
-        id: "6",
-        sku: "ELEC-003",
-        name: "Bluetooth Keyboard",
-        category: "Electronics",
-        quantity: 8,
-        location: "A-02-01",
-        status: "low_stock",
-        popularity: 4,
-        lastUpdated: "2024-01-23",
-      },
-      {
-        id: "7",
-        sku: "CLOTH-002",
-        name: "Denim Jeans",
-        category: "Clothing",
-        quantity: 120,
-        location: "B-01-02",
-        status: "in_stock",
-        popularity: 3,
-        lastUpdated: "2024-01-22",
-      },
-      {
-        id: "8",
-        sku: "FOOD-002",
-        name: "Green Tea",
-        category: "Food",
-        quantity: 45,
-        location: "C-01-02",
-        status: "in_stock",
-        popularity: 2,
-        lastUpdated: "2024-01-21",
-      },
-      {
-        id: "9",
-        sku: "TOOL-002",
-        name: "Screwdriver Set",
-        category: "Tools",
-        quantity: 0,
-        location: "D-01-02",
-        status: "out_of_stock",
-        popularity: 1,
-        lastUpdated: "2024-01-20",
-      },
-      {
-        id: "10",
-        sku: "ELEC-004",
-        name: "Webcam HD",
-        category: "Electronics",
-        quantity: 60,
-        location: "A-02-02",
-        status: "in_stock",
-        popularity: 5,
-        lastUpdated: "2024-01-19",
-      },
-    ] as Product[],
-  };
+    {
+      id: "prod-2",
+      sku: "ELE-002",
+      name: "Smartphone X",
+      description: "Latest generation smartphone",
+      category: "Electronics",
+      subcategory: "Phones",
+      brand: "TechBrand",
+      unit: "unit",
+      weight: 0.2,
+      volume: 0.001,
+      quantity: 12,
+      minStock: 25,
+      maxStock: 150,
+      reorderPoint: 40,
+      reorderQuantity: 50,
+      locationCode: "A-01-01-02",
+      locationId: "loc-2",
+      zoneName: "Storage Zone A",
+      sectorName: "Sector A1",
+      warehouseName: "Paris North Warehouse",
+      costPrice: 400,
+      sellingPrice: 650,
+      supplier: "TechSupplier Inc.",
+      lastReceivedDate: "2025-01-20",
+      lastShippedDate: "2025-01-27",
+      status: "low_stock",
+      createdAt: "2024-02-01T10:00:00Z",
+      lastUpdated: "2025-01-28T10:25:00Z",
+    },
+    {
+      id: "prod-3",
+      sku: "MEC-001",
+      name: "5mm Screw Box",
+      description: "Box of 100 5mm screws",
+      category: "Mechanical",
+      subcategory: "Fasteners",
+      brand: "ToolMaster",
+      unit: "piece",
+      weight: 0.5,
+      volume: 0.0005,
+      quantity: 0,
+      minStock: 50,
+      maxStock: 500,
+      reorderPoint: 100,
+      reorderQuantity: 200,
+      locationCode: "D-01-01-01",
+      locationId: "loc-5",
+      zoneName: "Picking Zone",
+      sectorName: "Sector D1",
+      warehouseName: "Paris North Warehouse",
+      costPrice: 15,
+      sellingPrice: 25,
+      supplier: "FastenerSupply",
+      lastReceivedDate: "2025-01-15",
+      lastShippedDate: "2025-01-26",
+      status: "out_of_stock",
+      createdAt: "2024-01-10T10:00:00Z",
+      lastUpdated: "2025-01-28T09:00:00Z",
+    },
+    {
+      id: "prod-4",
+      sku: "FOOD-001",
+      name: "1kg Coffee Beans",
+      description: "Premium coffee beans",
+      category: "Food",
+      subcategory: "Beverages",
+      brand: "CaféPremium",
+      unit: "package",
+      weight: 1,
+      volume: 0.003,
+      quantity: 300,
+      minStock: 100,
+      maxStock: 500,
+      reorderPoint: 150,
+      reorderQuantity: 100,
+      locationCode: "G-01-01-01",
+      locationId: "loc-8",
+      zoneName: "Storage Zone C",
+      sectorName: "Sector G1",
+      warehouseName: "Marseille Warehouse",
+      costPrice: 12,
+      sellingPrice: 20,
+      supplier: "CaféDirect",
+      lastReceivedDate: "2025-01-22",
+      lastShippedDate: "2025-01-28",
+      status: "in_stock",
+      createdAt: "2024-03-01T10:00:00Z",
+      lastUpdated: "2025-01-28T11:00:00Z",
+    },
+    {
+      id: "prod-5",
+      sku: "AUT-001",
+      name: "Oil Filter",
+      description: "Oil Filter universel",
+      category: "Automobile",
+      subcategory: "Engine parts",
+      brand: "AutoParts",
+      unit: "unit",
+      weight: 0.3,
+      volume: 0.002,
+      quantity: 85,
+      minStock: 30,
+      maxStock: 200,
+      reorderPoint: 50,
+      reorderQuantity: 50,
+      locationCode: "E-01-01-01",
+      locationId: "loc-6",
+      zoneName: "Storage Zone B",
+      sectorName: "Sector E1",
+      warehouseName: "Lyon Warehouse",
+      costPrice: 8,
+      sellingPrice: 15,
+      supplier: "AutoSupply Co.",
+      lastReceivedDate: "2025-01-18",
+      lastShippedDate: "2025-01-27",
+      status: "in_stock",
+      createdAt: "2024-01-20T10:00:00Z",
+      lastUpdated: "2025-01-28T09:30:00Z",
+    },
+  ],
+}
 
+function ProductsRoute() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar collapsible="icon" className="bg-background border-r">
-          <SidebarHeader className="h-14 border-b bg-background">
-            <SidebarMenuButton size="lg" asChild>
-              <Link to="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Building2 className="size-4" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Wareflow</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarHeader>
-
-          <SidebarContent className="bg-background">
-            <SidebarGroup>
-              <SidebarGroupLabel>Overview</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-muted-foreground"
-                    >
-                      <Link to="/dashboard">
-                        <Home />
-                        <span>Dashboard</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>Warehouse</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-muted-foreground"
-                    >
-                      <Link to="/locations">
-                        <Warehouse />
-                        <span>Locations</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <Collapsible defaultOpen className="group/collapsible">
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton className="text-muted-foreground">
-                          <Package />
-                          <span>Products</span>
-                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <Link to="/products">
-                                <Package className="text-muted-foreground" />
-                                <span className="text-muted-foreground">All Products</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <Link to="/dead-stock">
-                                <AlertTriangle className="text-muted-foreground" />
-                                <span className="text-muted-foreground">Dead Stock</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <Link to="/misplaced-items">
-                                <TrendingUp className="text-muted-foreground" />
-                                <span className="text-muted-foreground">Misplaced Items</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <Link to="/abc-analysis">
-                                <BarChart3 className="text-muted-foreground" />
-                                <span className="text-muted-foreground">ABC Analysis</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>Operations</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-muted-foreground"
-                    >
-                      <Link to="/picking">
-                        <ClipboardList />
-                        <span>Picking</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-muted-foreground"
-                    >
-                      <Link to="/dashboard">
-                        <ArrowRight />
-                        <span>Movements</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-muted-foreground"
-                    >
-                      <Link to="/dashboard">
-                        <ShoppingCart />
-                        <span>Orders</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-muted-foreground"
-                    >
-                      <Link to="/dashboard">
-                        <ClipboardList />
-                        <span>Inventory</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>Analytics</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-muted-foreground"
-                    >
-                      <Link to="/dashboard">
-                        <TrendingUp />
-                        <span>Reports</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      className="text-muted-foreground"
-                    >
-                      <Link to="/dashboard">
-                        <FileSpreadsheet />
-                        <span>Imports</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-
-          <SidebarFooter className="bg-background">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className="text-muted-foreground">
-                  <Link to="/settings">
-                    <Settings />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
-          <SidebarRail />
-        </Sidebar>
-
+        <AppSidebar />
         <main className="flex-1">
           <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-2">
             <SidebarTrigger />
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <ProductsPage data={productsData} />
+            <ProductsPage data={demoData} />
           </div>
         </main>
       </div>
     </SidebarProvider>
-  );
+  )
 }

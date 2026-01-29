@@ -9,8 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ZonesRouteImport } from './routes/zones'
+import { Route as WarehousesRouteImport } from './routes/warehouses'
+import { Route as TestRouteImport } from './routes/test'
+import { Route as SectorsRouteImport } from './routes/sectors'
+import { Route as ReturnsRouteImport } from './routes/returns'
+import { Route as RestockingsRouteImport } from './routes/restockings'
+import { Route as ReceptionsRouteImport } from './routes/receptions'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PickingRouteImport } from './routes/picking'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as MisplacedItemsRouteImport } from './routes/misplaced-items'
 import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as DeadStockRouteImport } from './routes/dead-stock'
@@ -21,6 +29,41 @@ import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding/welco
 import { Route as OnboardingWarehouseRouteImport } from './routes/onboarding/warehouse'
 import { Route as OnboardingImportRouteImport } from './routes/onboarding/import'
 
+const ZonesRoute = ZonesRouteImport.update({
+  id: '/zones',
+  path: '/zones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehousesRoute = WarehousesRouteImport.update({
+  id: '/warehouses',
+  path: '/warehouses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SectorsRoute = SectorsRouteImport.update({
+  id: '/sectors',
+  path: '/sectors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReturnsRoute = ReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestockingsRoute = RestockingsRouteImport.update({
+  id: '/restockings',
+  path: '/restockings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReceptionsRoute = ReceptionsRouteImport.update({
+  id: '/receptions',
+  path: '/receptions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -29,6 +72,11 @@ const ProductsRoute = ProductsRouteImport.update({
 const PickingRoute = PickingRouteImport.update({
   id: '/picking',
   path: '/picking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MisplacedItemsRoute = MisplacedItemsRouteImport.update({
@@ -84,8 +132,16 @@ export interface FileRoutesByFullPath {
   '/dead-stock': typeof DeadStockRoute
   '/locations': typeof LocationsRoute
   '/misplaced-items': typeof MisplacedItemsRoute
+  '/orders': typeof OrdersRoute
   '/picking': typeof PickingRoute
   '/products': typeof ProductsRoute
+  '/receptions': typeof ReceptionsRoute
+  '/restockings': typeof RestockingsRoute
+  '/returns': typeof ReturnsRoute
+  '/sectors': typeof SectorsRoute
+  '/test': typeof TestRoute
+  '/warehouses': typeof WarehousesRoute
+  '/zones': typeof ZonesRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
@@ -97,8 +153,16 @@ export interface FileRoutesByTo {
   '/dead-stock': typeof DeadStockRoute
   '/locations': typeof LocationsRoute
   '/misplaced-items': typeof MisplacedItemsRoute
+  '/orders': typeof OrdersRoute
   '/picking': typeof PickingRoute
   '/products': typeof ProductsRoute
+  '/receptions': typeof ReceptionsRoute
+  '/restockings': typeof RestockingsRoute
+  '/returns': typeof ReturnsRoute
+  '/sectors': typeof SectorsRoute
+  '/test': typeof TestRoute
+  '/warehouses': typeof WarehousesRoute
+  '/zones': typeof ZonesRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
@@ -111,8 +175,16 @@ export interface FileRoutesById {
   '/dead-stock': typeof DeadStockRoute
   '/locations': typeof LocationsRoute
   '/misplaced-items': typeof MisplacedItemsRoute
+  '/orders': typeof OrdersRoute
   '/picking': typeof PickingRoute
   '/products': typeof ProductsRoute
+  '/receptions': typeof ReceptionsRoute
+  '/restockings': typeof RestockingsRoute
+  '/returns': typeof ReturnsRoute
+  '/sectors': typeof SectorsRoute
+  '/test': typeof TestRoute
+  '/warehouses': typeof WarehousesRoute
+  '/zones': typeof ZonesRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
@@ -126,8 +198,16 @@ export interface FileRouteTypes {
     | '/dead-stock'
     | '/locations'
     | '/misplaced-items'
+    | '/orders'
     | '/picking'
     | '/products'
+    | '/receptions'
+    | '/restockings'
+    | '/returns'
+    | '/sectors'
+    | '/test'
+    | '/warehouses'
+    | '/zones'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
@@ -139,8 +219,16 @@ export interface FileRouteTypes {
     | '/dead-stock'
     | '/locations'
     | '/misplaced-items'
+    | '/orders'
     | '/picking'
     | '/products'
+    | '/receptions'
+    | '/restockings'
+    | '/returns'
+    | '/sectors'
+    | '/test'
+    | '/warehouses'
+    | '/zones'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
@@ -152,8 +240,16 @@ export interface FileRouteTypes {
     | '/dead-stock'
     | '/locations'
     | '/misplaced-items'
+    | '/orders'
     | '/picking'
     | '/products'
+    | '/receptions'
+    | '/restockings'
+    | '/returns'
+    | '/sectors'
+    | '/test'
+    | '/warehouses'
+    | '/zones'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
@@ -166,8 +262,16 @@ export interface RootRouteChildren {
   DeadStockRoute: typeof DeadStockRoute
   LocationsRoute: typeof LocationsRoute
   MisplacedItemsRoute: typeof MisplacedItemsRoute
+  OrdersRoute: typeof OrdersRoute
   PickingRoute: typeof PickingRoute
   ProductsRoute: typeof ProductsRoute
+  ReceptionsRoute: typeof ReceptionsRoute
+  RestockingsRoute: typeof RestockingsRoute
+  ReturnsRoute: typeof ReturnsRoute
+  SectorsRoute: typeof SectorsRoute
+  TestRoute: typeof TestRoute
+  WarehousesRoute: typeof WarehousesRoute
+  ZonesRoute: typeof ZonesRoute
   OnboardingImportRoute: typeof OnboardingImportRoute
   OnboardingWarehouseRoute: typeof OnboardingWarehouseRoute
   OnboardingWelcomeRoute: typeof OnboardingWelcomeRoute
@@ -175,6 +279,55 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/zones': {
+      id: '/zones'
+      path: '/zones'
+      fullPath: '/zones'
+      preLoaderRoute: typeof ZonesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouses': {
+      id: '/warehouses'
+      path: '/warehouses'
+      fullPath: '/warehouses'
+      preLoaderRoute: typeof WarehousesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sectors': {
+      id: '/sectors'
+      path: '/sectors'
+      fullPath: '/sectors'
+      preLoaderRoute: typeof SectorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/returns': {
+      id: '/returns'
+      path: '/returns'
+      fullPath: '/returns'
+      preLoaderRoute: typeof ReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restockings': {
+      id: '/restockings'
+      path: '/restockings'
+      fullPath: '/restockings'
+      preLoaderRoute: typeof RestockingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/receptions': {
+      id: '/receptions'
+      path: '/receptions'
+      fullPath: '/receptions'
+      preLoaderRoute: typeof ReceptionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -187,6 +340,13 @@ declare module '@tanstack/react-router' {
       path: '/picking'
       fullPath: '/picking'
       preLoaderRoute: typeof PickingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/misplaced-items': {
@@ -262,8 +422,16 @@ const rootRouteChildren: RootRouteChildren = {
   DeadStockRoute: DeadStockRoute,
   LocationsRoute: LocationsRoute,
   MisplacedItemsRoute: MisplacedItemsRoute,
+  OrdersRoute: OrdersRoute,
   PickingRoute: PickingRoute,
   ProductsRoute: ProductsRoute,
+  ReceptionsRoute: ReceptionsRoute,
+  RestockingsRoute: RestockingsRoute,
+  ReturnsRoute: ReturnsRoute,
+  SectorsRoute: SectorsRoute,
+  TestRoute: TestRoute,
+  WarehousesRoute: WarehousesRoute,
+  ZonesRoute: ZonesRoute,
   OnboardingImportRoute: OnboardingImportRoute,
   OnboardingWarehouseRoute: OnboardingWarehouseRoute,
   OnboardingWelcomeRoute: OnboardingWelcomeRoute,
