@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Sparkles, Info } from "lucide-react"
 import {
   Dialog,
@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dialog"
 import { SectorsKPICards } from "./SectorsKPICards"
 import { SectorsTable } from "./SectorsTable"
+import { SectorCapacityChart } from "./SectorCapacityChart"
+import { SectorTypesDistributionChart } from "./SectorTypesDistributionChart"
 import type { SectorsData, Sector } from "@/types/entities"
 
 interface SectorsPageProps {
@@ -21,10 +23,53 @@ export function SectorsPage({ data }: SectorsPageProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [typeFilter, setTypeFilter] = useState<string>("all")
 
+  // Calculate capacity utilization by sector
+  const capacityBySector = useMemo(() => {
+    const sectorsWithOccupancy = data.sectors.map((sector) => ({
+      sector: sector.name.length > 20 ? sector.name.substring(0, 20) + "..." : sector.name,
+      occupancy: sector.capacity > 0 ? (sector.usedCapacity / sector.capacity) * 100 : 0,
+    }))
+
+    // Sort by occupancy and take top 3 highest and bottom 2 lowest
+    sectorsWithOccupancy.sort((a, b) => b.occupancy - a.occupancy)
+    return [
+      ...sectorsWithOccupancy.slice(0, 3),
+      ...sectorsWithOccupancy.slice(-2).reverse(),
+    ]
+  }, [data.sectors])
+
+  // Calculate sector types distribution
+  const sectorTypesDistribution = useMemo(() => {
+    const colors = [
+      "hsl(221, 83%, 53%)",
+      "hsl(280, 65%, 60%)",
+      "hsl(160, 60%, 45%)",
+      "hsl(30, 80%, 55%)",
+      "hsl(340, 75%, 55%)",
+    ]
+
+    const typeLabels: Record<string, string> = {
+      rack: "Rack",
+      shelf: "Shelf",
+      floor: "Floor",
+      bin: "Bin",
+      mezzanine: "Mezzanine",
+    }
+
+    return Object.entries(data.kpis.sectorTypes)
+      .map(([type, count], index) => ({
+        type: typeLabels[type] || type,
+        count,
+        fill: colors[index % colors.length],
+      }))
+      .filter((item) => item.count > 0)
+      .sort((a, b) => b.count - a.count)
+  }, [data.kpis.sectorTypes])
+
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       {/* Info Banner */}
-      <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
+      <div className="rounded-lg border bg-card p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Sparkles className="h-4 w-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
@@ -41,6 +86,12 @@ export function SectorsPage({ data }: SectorsPageProps) {
 
       {/* KPIs */}
       <SectorsKPICards kpis={data.kpis} />
+
+      {/* Charts Row */}
+      <div className="grid gap-2 md:grid-cols-2">
+        <SectorCapacityChart data={capacityBySector} />
+        <SectorTypesDistributionChart data={sectorTypesDistribution} />
+      </div>
 
       {/* Sectors Table */}
       <SectorsTable

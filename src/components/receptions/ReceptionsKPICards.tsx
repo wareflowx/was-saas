@@ -29,8 +29,12 @@ function KPICard({ title, value, icon: Icon, description }: KPICardProps) {
 }
 
 export function ReceptionsKPICards({ kpis }: ReceptionsKPICardsProps) {
+  const completionRate = kpis.totalQuantity > 0
+    ? ((kpis.receivedQuantity / kpis.totalQuantity) * 100).toFixed(1)
+    : "0.0"
+
   return (
-    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
       <KPICard
         title="Total Receptions"
         value={kpis.totalReceptions}
@@ -72,7 +76,7 @@ export function ReceptionsKPICards({ kpis }: ReceptionsKPICardsProps) {
             <polyline points="12 6 12 12 16 14" />
           </svg>
         )}
-        description="Awaiting processing"
+        description={`${kpis.pendingQuantity.toLocaleString()} qty pending`}
       />
       <KPICard
         title="In Progress"
@@ -114,7 +118,7 @@ export function ReceptionsKPICards({ kpis }: ReceptionsKPICardsProps) {
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}
-        description={`${kpis.totalQuantity.toLocaleString()} total`}
+        description={`${completionRate}% completion rate`}
       />
     </div>
   )

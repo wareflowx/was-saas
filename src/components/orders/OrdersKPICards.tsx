@@ -30,7 +30,7 @@ function KPICard({ title, value, icon: Icon, description }: KPICardProps) {
 
 export function OrdersKPICards({ kpis }: OrdersKPICardsProps) {
   return (
-    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
       <KPICard
         title="Total Orders"
         value={kpis.totalOrders}
@@ -51,7 +51,7 @@ export function OrdersKPICards({ kpis }: OrdersKPICardsProps) {
             <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
           </svg>
         )}
-        description={`${kpis.inProgressOrders} in progress`}
+        description={`${kpis.shippedOrders + kpis.deliveredOrders} fulfilled`}
       />
       <KPICard
         title="Pending"
@@ -72,7 +72,7 @@ export function OrdersKPICards({ kpis }: OrdersKPICardsProps) {
             <polyline points="12 6 12 12 16 14" />
           </svg>
         )}
-        description="Awaiting processing"
+        description={`${kpis.inProgressOrders} in progress`}
       />
       <KPICard
         title="Shipped"

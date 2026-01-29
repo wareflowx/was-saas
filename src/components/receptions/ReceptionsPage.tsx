@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Sparkles, Info, Package } from "lucide-react"
+import { useState, useMemo } from "react"
+import { Sparkles, Info } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dialog"
 import { ReceptionsKPICards } from "./ReceptionsKPICards"
 import { ReceptionsTable } from "./ReceptionsTable"
+import { ReceptionStatusChart } from "./ReceptionStatusChart"
+import { ReceptionsByPriorityChart } from "./ReceptionsByPriorityChart"
 import type { ReceptionsData } from "@/types/entities"
 
 interface ReceptionsPageProps {
@@ -18,10 +20,70 @@ interface ReceptionsPageProps {
 export function ReceptionsPage({ data }: ReceptionsPageProps) {
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false)
 
+  // Calculate status distribution
+  const statusDistribution = useMemo(() => {
+    const statusCounts: Record<string, number> = {
+      pending: data.kpis.pendingReceptions,
+      in_progress: data.kpis.inProgressReceptions,
+      completed: data.kpis.completedReceptions,
+    }
+
+    const colors = [
+      "hsl(38, 92%, 50%)", // pending - orange
+      "hsl(221, 83%, 53%)", // in_progress - blue
+      "hsl(142, 76%, 36%)", // completed - green
+    ]
+
+    const labels: Record<string, string> = {
+      pending: "Pending",
+      in_progress: "In Progress",
+      completed: "Completed",
+    }
+
+    return Object.entries(statusCounts)
+      .filter(([_, count]) => count > 0)
+      .map(([status, count], index) => ({
+        status: labels[status] || status,
+        count,
+        fill: colors[index % colors.length],
+      }))
+  }, [data.kpis])
+
+  // Calculate priority distribution
+  const priorityDistribution = useMemo(() => {
+    const priorityMap = new Map<string, number>()
+
+    data.receptions.forEach((reception) => {
+      priorityMap.set(reception.priority, (priorityMap.get(reception.priority) || 0) + 1)
+    })
+
+    const colors: Record<string, string> = {
+      urgent: "hsl(0, 84%, 60%)",
+      high: "hsl(38, 92%, 50%)",
+      medium: "hsl(142, 76%, 36%)",
+      low: "hsl(221, 83%, 53%)",
+    }
+
+    const labels: Record<string, string> = {
+      urgent: "Urgent",
+      high: "High",
+      medium: "Medium",
+      low: "Low",
+    }
+
+    return Array.from(priorityMap.entries())
+      .map(([priority, count]) => ({
+        priority: labels[priority] || priority,
+        count,
+        fill: colors[priority] || "hsl(0, 0%, 50%)",
+      }))
+      .sort((a, b) => b.count - a.count)
+  }, [data.receptions])
+
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       {/* Info Banner */}
-      <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
+      <div className="rounded-lg border bg-card p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Sparkles className="h-4 w-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
@@ -38,6 +100,12 @@ export function ReceptionsPage({ data }: ReceptionsPageProps) {
 
       {/* KPIs */}
       <ReceptionsKPICards kpis={data.kpis} />
+
+      {/* Charts Row */}
+      <div className="grid gap-2 md:grid-cols-2">
+        <ReceptionStatusChart data={statusDistribution} />
+        <ReceptionsByPriorityChart data={priorityDistribution} />
+      </div>
 
       {/* Receptions Table */}
       <ReceptionsTable receptions={data.receptions} />

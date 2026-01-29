@@ -29,10 +29,12 @@ function KPICard({ title, value, icon: Icon, description }: KPICardProps) {
 }
 
 export function RestockingsKPICards({ kpis }: RestockingsKPICardsProps) {
-  const completionRate = Math.round((kpis.completedRestockings / kpis.totalRestockings) * 100)
+  const completionRate = kpis.totalRestockings > 0
+    ? Math.round((kpis.completedRestockings / kpis.totalRestockings) * 100)
+    : 0
 
   return (
-    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
       <KPICard
         title="Total Restockings"
         value={kpis.totalRestockings}
@@ -97,7 +99,7 @@ export function RestockingsKPICards({ kpis }: RestockingsKPICardsProps) {
             <path d="M16 21h5v-5" />
           </svg>
         )}
-        description="Being restocked"
+        description={`${kpis.restockedProducts}/${kpis.totalProducts} products`}
       />
       <KPICard
         title="Completed"
@@ -117,7 +119,7 @@ export function RestockingsKPICards({ kpis }: RestockingsKPICardsProps) {
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}
-        description={`${completionRate}% completion`}
+        description={`${completionRate}% completion rate`}
       />
     </div>
   )

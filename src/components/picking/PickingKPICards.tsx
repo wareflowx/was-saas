@@ -29,8 +29,10 @@ function KPICard({ title, value, icon: Icon, description }: KPICardProps) {
 }
 
 export function PickingKPICards({ kpis }: PickingKPICardsProps) {
+  const pendingLines = kpis.totalLines - kpis.pickedLines
+
   return (
-    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
       <KPICard
         title="Total Pickings"
         value={kpis.totalPickings}
@@ -74,7 +76,7 @@ export function PickingKPICards({ kpis }: PickingKPICardsProps) {
             <polyline points="12 6 12 12 16 14" />
           </svg>
         )}
-        description="Awaiting assignment"
+        description={`${pendingLines} lines pending`}
       />
       <KPICard
         title="In Progress"

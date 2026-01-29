@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Sparkles, Info } from "lucide-react"
 import {
   Dialog,
@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dialog"
 import { OrdersKPICards } from "./OrdersKPICards"
 import { OrdersTable } from "./OrdersTable"
+import { OrderStatusChart } from "./OrderStatusChart"
+import { OrdersByPriorityChart } from "./OrdersByPriorityChart"
 import type { OrdersData } from "@/types/entities"
 
 interface OrdersPageProps {
@@ -18,10 +20,76 @@ interface OrdersPageProps {
 export function OrdersPage({ data }: OrdersPageProps) {
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false)
 
+  // Calculate status distribution
+  const statusDistribution = useMemo(() => {
+    const statusCounts: Record<string, number> = {
+      pending: data.kpis.pendingOrders,
+      confirmed: 0,
+      picking: data.kpis.inProgressOrders,
+      shipped: data.kpis.shippedOrders,
+      delivered: data.kpis.deliveredOrders,
+    }
+
+    const colors = [
+      "hsl(38, 92%, 50%)", // pending - orange
+      "hsl(221, 83%, 53%)", // confirmed - blue
+      "hsl(168, 76%, 45%)", // picking - purple
+      "hsl(142, 76%, 36%)", // shipped - green
+      "hsl(16, 100%, 50%)", // delivered - emerald
+    ]
+
+    const labels: Record<string, string> = {
+      pending: "Pending",
+      confirmed: "Confirmed",
+      picking: "Picking",
+      shipped: "Shipped",
+      delivered: "Delivered",
+    }
+
+    return Object.entries(statusCounts)
+      .filter(([_, count]) => count > 0)
+      .map(([status, count], index) => ({
+        status: labels[status] || status,
+        count,
+        fill: colors[index % colors.length],
+      }))
+  }, [data.kpis])
+
+  // Calculate priority distribution
+  const priorityDistribution = useMemo(() => {
+    const priorityMap = new Map<string, number>()
+
+    data.orders.forEach((order) => {
+      priorityMap.set(order.priority, (priorityMap.get(order.priority) || 0) + 1)
+    })
+
+    const colors: Record<string, string> = {
+      urgent: "hsl(0, 84%, 60%)",
+      high: "hsl(38, 92%, 50%)",
+      medium: "hsl(142, 76%, 36%)",
+      low: "hsl(221, 83%, 53%)",
+    }
+
+    const labels: Record<string, string> = {
+      urgent: "Urgent",
+      high: "High",
+      medium: "Medium",
+      low: "Low",
+    }
+
+    return Array.from(priorityMap.entries())
+      .map(([priority, count]) => ({
+        priority: labels[priority] || priority,
+        count,
+        fill: colors[priority] || "hsl(0, 0%, 50%)",
+      }))
+      .sort((a, b) => b.count - a.count)
+  }, [data.orders])
+
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       {/* Info Banner */}
-      <div className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
+      <div className="rounded-lg border bg-card p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Sparkles className="h-4 w-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
@@ -38,6 +106,12 @@ export function OrdersPage({ data }: OrdersPageProps) {
 
       {/* KPIs */}
       <OrdersKPICards kpis={data.kpis} />
+
+      {/* Charts Row */}
+      <div className="grid gap-2 md:grid-cols-2">
+        <OrderStatusChart data={statusDistribution} />
+        <OrdersByPriorityChart data={priorityDistribution} />
+      </div>
 
       {/* Orders Table */}
       <OrdersTable orders={data.orders} />

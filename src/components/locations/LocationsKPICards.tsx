@@ -55,6 +55,7 @@ export function LocationsKPICards({ kpis }: LocationsKPICardsProps) {
             <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
           </svg>
         )}
+        description={`${kpis.blockedLocations + kpis.reservedLocations} unavailable`}
       />
       <KPICard
         title="Occupied"
@@ -74,6 +75,7 @@ export function LocationsKPICards({ kpis }: LocationsKPICardsProps) {
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
           </svg>
         )}
+        description={`${kpis.totalLocations - kpis.availableLocations - kpis.blockedLocations - kpis.reservedLocations} locations in use`}
       />
       <KPICard
         title="Available"
@@ -94,6 +96,7 @@ export function LocationsKPICards({ kpis }: LocationsKPICardsProps) {
             <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
         )}
+        description="Ready for new stock"
       />
       <KPICard
         title="Occupancy Rate"

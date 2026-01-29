@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -8,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -15,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search } from "lucide-react"
 import type { Reception } from "@/types/entities"
 
 interface ReceptionsTableProps {
@@ -26,6 +27,9 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
+  const [warehouseFilter, setWarehouseFilter] = useState<string>("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
 
   const uniqueStatuses = useMemo(() => {
     const statuses = new Set(receptions.map((r) => r.status))
@@ -37,6 +41,11 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
     return Array.from(priorities)
   }, [receptions])
 
+  const uniqueWarehouses = useMemo(() => {
+    const warehouses = new Set(receptions.map((r) => r.warehouseName))
+    return Array.from(warehouses)
+  }, [receptions])
+
   const filteredReceptions = useMemo(() => {
     return receptions.filter((reception) => {
       const matchesSearch =
@@ -45,9 +54,22 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
         reception.supplierName.toLowerCase().includes(search.toLowerCase())
       const matchesStatus = statusFilter === "all" || reception.status === statusFilter
       const matchesPriority = priorityFilter === "all" || reception.priority === priorityFilter
-      return matchesSearch && matchesStatus && matchesPriority
+      const matchesWarehouse = warehouseFilter === "all" || reception.warehouseName === warehouseFilter
+      return matchesSearch && matchesStatus && matchesPriority && matchesWarehouse
     })
-  }, [receptions, search, statusFilter, priorityFilter])
+  }, [receptions, search, statusFilter, priorityFilter, warehouseFilter])
+
+  // Pagination
+  const totalPages = Math.ceil(filteredReceptions.length / itemsPerPage)
+  const paginatedReceptions = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return filteredReceptions.slice(start, start + itemsPerPage)
+  }, [filteredReceptions, currentPage, itemsPerPage])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter, priorityFilter, warehouseFilter])
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; className: string }> = {
@@ -104,8 +126,8 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
   return (
     <div className="space-y-3">
       {/* Search and Filters */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by number or supplier..."
@@ -114,21 +136,21 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Statuses" />
+        <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Warehouses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {uniqueStatuses.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status === "pending" ? "Pending" : status === "in_progress" ? "In Progress" : status === "completed" ? "Completed" : status === "partial" ? "Partial" : "Cancelled"}
+            <SelectItem value="all">All Warehouses</SelectItem>
+            {uniqueWarehouses.map((warehouse) => (
+              <SelectItem key={warehouse} value={warehouse}>
+                {warehouse.length > 20 ? warehouse.substring(0, 20) + "..." : warehouse}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="All Priorities" />
           </SelectTrigger>
           <SelectContent>
@@ -140,10 +162,23 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
             ))}
           </SelectContent>
         </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {uniqueStatuses.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status === "pending" ? "Pending" : status === "in_progress" ? "In Progress" : status === "completed" ? "Completed" : status === "partial" ? "Partial" : "Cancelled"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -159,14 +194,14 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredReceptions.length === 0 ? (
+            {paginatedReceptions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   No receptions found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredReceptions.map((reception) => (
+              paginatedReceptions.map((reception) => (
                 <TableRow key={reception.id}>
                   <TableCell className="font-medium">{reception.receptionNumber}</TableCell>
                   <TableCell>{reception.supplierName}</TableCell>
@@ -183,6 +218,33 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {filteredReceptions.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredReceptions.length)} of {filteredReceptions.length} receptions
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

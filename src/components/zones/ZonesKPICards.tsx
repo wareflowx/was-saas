@@ -37,7 +37,7 @@ export function ZonesKPICards({ kpis, className }: ZonesKPICardsProps) {
 
   return (
     <div className={className}>
-      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Total Zones"
           value={kpis.totalZones}
@@ -80,6 +80,7 @@ export function ZonesKPICards({ kpis, className }: ZonesKPICardsProps) {
               <path d="M9 21V9" />
             </svg>
           )}
+          description={`${Math.round(kpis.totalSurface / kpis.totalZones)} m² per zone`}
         />
         <KPICard
           title="Total Capacity"
@@ -102,6 +103,7 @@ export function ZonesKPICards({ kpis, className }: ZonesKPICardsProps) {
               <path d="M15 21V3h4v18" />
             </svg>
           )}
+          description={`${((kpis.usedCapacity / kpis.totalCapacity) * 100).toFixed(1)}% utilized`}
         />
         <KPICard
           title="Occupancy Rate"

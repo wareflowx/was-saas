@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -8,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -15,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search } from "lucide-react"
 import type { Restocking } from "@/types/entities"
 
 interface RestockingsTableProps {
@@ -25,10 +26,24 @@ interface RestockingsTableProps {
 export function RestockingsTable({ restockings }: RestockingsTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [priorityFilter, setPriorityFilter] = useState<string>("all")
+  const [warehouseFilter, setWarehouseFilter] = useState<string>("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
 
   const uniqueStatuses = useMemo(() => {
     const statuses = new Set(restockings.map((r) => r.status))
     return Array.from(statuses)
+  }, [restockings])
+
+  const uniquePriorities = useMemo(() => {
+    const priorities = new Set(restockings.map((r) => r.priority))
+    return Array.from(priorities)
+  }, [restockings])
+
+  const uniqueWarehouses = useMemo(() => {
+    const warehouses = new Set(restockings.map((r) => r.warehouseName))
+    return Array.from(warehouses)
   }, [restockings])
 
   const filteredRestockings = useMemo(() => {
@@ -39,9 +54,23 @@ export function RestockingsTable({ restockings }: RestockingsTableProps) {
         restocking.warehouseName.toLowerCase().includes(search.toLowerCase()) ||
         (restocking.assignedTo && restocking.assignedTo.toLowerCase().includes(search.toLowerCase()))
       const matchesStatus = statusFilter === "all" || restocking.status === statusFilter
-      return matchesSearch && matchesStatus
+      const matchesPriority = priorityFilter === "all" || restocking.priority === priorityFilter
+      const matchesWarehouse = warehouseFilter === "all" || restocking.warehouseName === warehouseFilter
+      return matchesSearch && matchesStatus && matchesPriority && matchesWarehouse
     })
-  }, [restockings, search, statusFilter])
+  }, [restockings, search, statusFilter, priorityFilter, warehouseFilter])
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRestockings.length / itemsPerPage)
+  const paginatedRestockings = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return filteredRestockings.slice(start, start + itemsPerPage)
+  }, [filteredRestockings, currentPage, itemsPerPage])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter, priorityFilter, warehouseFilter])
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; className: string }> = {
@@ -90,8 +119,8 @@ export function RestockingsTable({ restockings }: RestockingsTableProps) {
   return (
     <div className="space-y-3">
       {/* Search and Filters */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by number, warehouse, assignee..."
@@ -100,8 +129,34 @@ export function RestockingsTable({ restockings }: RestockingsTableProps) {
             className="pl-9"
           />
         </div>
+        <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Warehouses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Warehouses</SelectItem>
+            {uniqueWarehouses.map((warehouse) => (
+              <SelectItem key={warehouse} value={warehouse}>
+                {warehouse.length > 20 ? warehouse.substring(0, 20) + "..." : warehouse}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All Priorities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            {uniquePriorities.map((priority) => (
+              <SelectItem key={priority} value={priority}>
+                {priority === "low" ? "Low" : priority === "medium" ? "Medium" : "High"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
@@ -116,7 +171,7 @@ export function RestockingsTable({ restockings }: RestockingsTableProps) {
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -130,14 +185,14 @@ export function RestockingsTable({ restockings }: RestockingsTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRestockings.length === 0 ? (
+            {paginatedRestockings.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No restockings found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredRestockings.map((restocking) => (
+              paginatedRestockings.map((restocking) => (
                 <TableRow key={restocking.id}>
                   <TableCell className="font-medium">{restocking.restockingNumber}</TableCell>
                   <TableCell className="text-muted-foreground">{restocking.warehouseName}</TableCell>
@@ -154,6 +209,33 @@ export function RestockingsTable({ restockings }: RestockingsTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {filteredRestockings.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredRestockings.length)} of {filteredRestockings.length} restockings
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

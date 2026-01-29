@@ -1,5 +1,5 @@
-import { useMemo } from "react"
-import { Search } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
+import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -37,6 +38,11 @@ export function SectorsTable({
   typeFilter,
   onTypeChange,
 }: SectorsTableProps) {
+  const [zoneFilter, setZoneFilter] = useState<string>("all")
+  const [warehouseFilter, setWarehouseFilter] = useState<string>("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
+
   // Get unique values for filters
   const uniqueStatuses = useMemo(() => {
     const statuses = new Set(sectors.map((s) => s.status))
@@ -46,6 +52,16 @@ export function SectorsTable({
   const uniqueTypes = useMemo(() => {
     const types = new Set(sectors.map((s) => s.type))
     return Array.from(types)
+  }, [sectors])
+
+  const uniqueZones = useMemo(() => {
+    const zones = new Set(sectors.map((s) => s.zoneName))
+    return Array.from(zones)
+  }, [sectors])
+
+  const uniqueWarehouses = useMemo(() => {
+    const warehouses = new Set(sectors.map((s) => s.warehouseName))
+    return Array.from(warehouses)
   }, [sectors])
 
   // Filter sectors
@@ -58,10 +74,24 @@ export function SectorsTable({
 
       const matchesStatus = statusFilter === "all" || sector.status === statusFilter
       const matchesType = typeFilter === "all" || sector.type === typeFilter
+      const matchesZone = zoneFilter === "all" || sector.zoneName === zoneFilter
+      const matchesWarehouse = warehouseFilter === "all" || sector.warehouseName === warehouseFilter
 
-      return matchesSearch && matchesStatus && matchesType
+      return matchesSearch && matchesStatus && matchesType && matchesZone && matchesWarehouse
     })
-  }, [sectors, search, statusFilter, typeFilter])
+  }, [sectors, search, statusFilter, typeFilter, zoneFilter, warehouseFilter])
+
+  // Pagination
+  const totalPages = Math.ceil(filteredSectors.length / itemsPerPage)
+  const paginatedSectors = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return filteredSectors.slice(start, start + itemsPerPage)
+  }, [filteredSectors, currentPage, itemsPerPage])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter, typeFilter, zoneFilter, warehouseFilter])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -101,8 +131,8 @@ export function SectorsTable({
   return (
     <div className="space-y-3">
       {/* Search and Filters */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name or code..."
@@ -111,21 +141,34 @@ export function SectorsTable({
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Statuses" />
+        <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Warehouses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {uniqueStatuses.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status === "active" ? "Active" : status === "inactive" ? "Inactive" : status === "maintenance" ? "Maintenance" : "Full"}
+            <SelectItem value="all">All Warehouses</SelectItem>
+            {uniqueWarehouses.map((warehouse) => (
+              <SelectItem key={warehouse} value={warehouse}>
+                {warehouse.length > 20 ? warehouse.substring(0, 20) + "..." : warehouse}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={zoneFilter} onValueChange={setZoneFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="All Zones" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Zones</SelectItem>
+            {uniqueZones.map((zone) => (
+              <SelectItem key={zone} value={zone}>
+                {zone.length > 20 ? zone.substring(0, 20) + "..." : zone}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={typeFilter} onValueChange={onTypeChange}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
@@ -137,10 +180,23 @@ export function SectorsTable({
             ))}
           </SelectContent>
         </Select>
+        <Select value={statusFilter} onValueChange={onStatusChange}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {uniqueStatuses.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status === "active" ? "Active" : status === "inactive" ? "Inactive" : status === "maintenance" ? "Maintenance" : "Full"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -152,14 +208,14 @@ export function SectorsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredSectors.length === 0 ? (
+            {paginatedSectors.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   No sectors found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredSectors.map((sector) => (
+              paginatedSectors.map((sector) => (
                 <TableRow key={sector.id}>
                   <TableCell>
                     <div>
@@ -177,6 +233,33 @@ export function SectorsTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {filteredSectors.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredSectors.length)} of {filteredSectors.length} sectors
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

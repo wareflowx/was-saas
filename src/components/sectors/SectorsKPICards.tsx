@@ -34,10 +34,11 @@ export function SectorsKPICards({ kpis, className }: SectorsKPICardsProps) {
   const occupancyRate = kpis.totalCapacity > 0
     ? ((kpis.usedCapacity / kpis.totalCapacity) * 100).toFixed(1)
     : "0.0"
+  const inactiveCount = kpis.totalSectors - kpis.activeSectors
 
   return (
     <div className={className}>
-      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Total Sectors"
           value={kpis.totalSectors}
@@ -58,7 +59,7 @@ export function SectorsKPICards({ kpis, className }: SectorsKPICardsProps) {
               <line x1="12" y1="22.08" x2="12" y2="2" />
             </svg>
           )}
-          description={`${kpis.activeSectors} active`}
+          description={`${kpis.activeSectors} active, ${inactiveCount} inactive`}
         />
         <KPICard
           title="Total Capacity"
@@ -80,7 +81,7 @@ export function SectorsKPICards({ kpis, className }: SectorsKPICardsProps) {
               <line x1="12" y1="22.08" x2="12" y2="12" />
             </svg>
           )}
-          description="Storage locations"
+          description={`${Math.round(kpis.totalCapacity / kpis.totalSectors)} per sector`}
         />
         <KPICard
           title="Used Capacity"
@@ -102,7 +103,7 @@ export function SectorsKPICards({ kpis, className }: SectorsKPICardsProps) {
               <path d="M9 21V9" />
             </svg>
           )}
-          description="Occupied locations"
+          description={`${occupancyRate}% utilized`}
         />
         <KPICard
           title="Occupancy Rate"
@@ -124,7 +125,7 @@ export function SectorsKPICards({ kpis, className }: SectorsKPICardsProps) {
               <line x1="6" x2="6" y1="20" y2="16" />
             </svg>
           )}
-          description="Utilization rate"
+          description={`${kpis.usedCapacity.toLocaleString()} occupied`}
         />
       </div>
     </div>

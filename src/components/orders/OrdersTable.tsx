@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -8,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -15,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search } from "lucide-react"
 import type { Order } from "@/types/entities"
 
 interface OrdersTableProps {
@@ -26,6 +27,9 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
+  const [warehouseFilter, setWarehouseFilter] = useState<string>("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
 
   const uniqueStatuses = useMemo(() => {
     const statuses = new Set(orders.map((o) => o.status))
@@ -37,6 +41,11 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     return Array.from(priorities)
   }, [orders])
 
+  const uniqueWarehouses = useMemo(() => {
+    const warehouses = new Set(orders.map((o) => o.warehouseName))
+    return Array.from(warehouses)
+  }, [orders])
+
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const matchesSearch =
@@ -45,9 +54,22 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         order.customerName.toLowerCase().includes(search.toLowerCase())
       const matchesStatus = statusFilter === "all" || order.status === statusFilter
       const matchesPriority = priorityFilter === "all" || order.priority === priorityFilter
-      return matchesSearch && matchesStatus && matchesPriority
+      const matchesWarehouse = warehouseFilter === "all" || order.warehouseName === warehouseFilter
+      return matchesSearch && matchesStatus && matchesPriority && matchesWarehouse
     })
-  }, [orders, search, statusFilter, priorityFilter])
+  }, [orders, search, statusFilter, priorityFilter, warehouseFilter])
+
+  // Pagination
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return filteredOrders.slice(start, start + itemsPerPage)
+  }, [filteredOrders, currentPage, itemsPerPage])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter, priorityFilter, warehouseFilter])
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; className: string }> = {
@@ -120,8 +142,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   return (
     <div className="space-y-3">
       {/* Search and Filters */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by number or customer..."
@@ -130,21 +152,21 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Statuses" />
+        <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Warehouses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {uniqueStatuses.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status === "pending" ? "Pending" : status === "confirmed" ? "Confirmed" : status === "picking" ? "Picking" : status === "picked" ? "Picked" : status === "packing" ? "Packing" : status === "packed" ? "Packed" : status === "shipped" ? "Shipped" : status === "delivered" ? "Delivered" : "Cancelled"}
+            <SelectItem value="all">All Warehouses</SelectItem>
+            {uniqueWarehouses.map((warehouse) => (
+              <SelectItem key={warehouse} value={warehouse}>
+                {warehouse.length > 20 ? warehouse.substring(0, 20) + "..." : warehouse}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="All Priorities" />
           </SelectTrigger>
           <SelectContent>
@@ -156,10 +178,23 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             ))}
           </SelectContent>
         </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {uniqueStatuses.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status === "pending" ? "Pending" : status === "confirmed" ? "Confirmed" : status === "picking" ? "Picking" : status === "picked" ? "Picked" : status === "packing" ? "Packing" : status === "packed" ? "Packed" : status === "shipped" ? "Shipped" : status === "delivered" ? "Delivered" : "Cancelled"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -175,14 +210,14 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.length === 0 ? (
+            {paginatedOrders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   No orders found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredOrders.map((order) => (
+              paginatedOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">{order.orderNumber}</TableCell>
                   <TableCell>{order.customerName}</TableCell>
@@ -199,6 +234,33 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {filteredOrders.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
