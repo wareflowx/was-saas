@@ -25,6 +25,8 @@ import { Route as DeadStockRouteImport } from './routes/dead-stock'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AbcAnalysisRouteImport } from './routes/abc-analysis'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OrdersIndexRouteImport } from './routes/orders/index'
+import { Route as OrdersOrderIdRouteImport } from './routes/orders/$orderId'
 import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding/welcome'
 import { Route as OnboardingWarehouseRouteImport } from './routes/onboarding/warehouse'
 import { Route as OnboardingImportRouteImport } from './routes/onboarding/import'
@@ -109,6 +111,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OrdersRoute,
+} as any)
+const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => OrdersRoute,
+} as any)
 const OnboardingWelcomeRoute = OnboardingWelcomeRouteImport.update({
   id: '/onboarding/welcome',
   path: '/onboarding/welcome',
@@ -132,7 +144,7 @@ export interface FileRoutesByFullPath {
   '/dead-stock': typeof DeadStockRoute
   '/locations': typeof LocationsRoute
   '/misplaced-items': typeof MisplacedItemsRoute
-  '/orders': typeof OrdersRoute
+  '/orders': typeof OrdersRouteWithChildren
   '/picking': typeof PickingRoute
   '/products': typeof ProductsRoute
   '/receptions': typeof ReceptionsRoute
@@ -145,6 +157,8 @@ export interface FileRoutesByFullPath {
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/orders/': typeof OrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -153,7 +167,6 @@ export interface FileRoutesByTo {
   '/dead-stock': typeof DeadStockRoute
   '/locations': typeof LocationsRoute
   '/misplaced-items': typeof MisplacedItemsRoute
-  '/orders': typeof OrdersRoute
   '/picking': typeof PickingRoute
   '/products': typeof ProductsRoute
   '/receptions': typeof ReceptionsRoute
@@ -166,6 +179,8 @@ export interface FileRoutesByTo {
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/orders': typeof OrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -175,7 +190,7 @@ export interface FileRoutesById {
   '/dead-stock': typeof DeadStockRoute
   '/locations': typeof LocationsRoute
   '/misplaced-items': typeof MisplacedItemsRoute
-  '/orders': typeof OrdersRoute
+  '/orders': typeof OrdersRouteWithChildren
   '/picking': typeof PickingRoute
   '/products': typeof ProductsRoute
   '/receptions': typeof ReceptionsRoute
@@ -188,6 +203,8 @@ export interface FileRoutesById {
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/orders/': typeof OrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -211,6 +228,8 @@ export interface FileRouteTypes {
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
+    | '/orders/$orderId'
+    | '/orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,7 +238,6 @@ export interface FileRouteTypes {
     | '/dead-stock'
     | '/locations'
     | '/misplaced-items'
-    | '/orders'
     | '/picking'
     | '/products'
     | '/receptions'
@@ -232,6 +250,8 @@ export interface FileRouteTypes {
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
+    | '/orders/$orderId'
+    | '/orders'
   id:
     | '__root__'
     | '/'
@@ -253,6 +273,8 @@ export interface FileRouteTypes {
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
+    | '/orders/$orderId'
+    | '/orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -262,7 +284,7 @@ export interface RootRouteChildren {
   DeadStockRoute: typeof DeadStockRoute
   LocationsRoute: typeof LocationsRoute
   MisplacedItemsRoute: typeof MisplacedItemsRoute
-  OrdersRoute: typeof OrdersRoute
+  OrdersRoute: typeof OrdersRouteWithChildren
   PickingRoute: typeof PickingRoute
   ProductsRoute: typeof ProductsRoute
   ReceptionsRoute: typeof ReceptionsRoute
@@ -391,6 +413,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/orders/': {
+      id: '/orders/'
+      path: '/'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof OrdersRoute
+    }
+    '/orders/$orderId': {
+      id: '/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof OrdersOrderIdRouteImport
+      parentRoute: typeof OrdersRoute
+    }
     '/onboarding/welcome': {
       id: '/onboarding/welcome'
       path: '/onboarding/welcome'
@@ -415,6 +451,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface OrdersRouteChildren {
+  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
+}
+
+const OrdersRouteChildren: OrdersRouteChildren = {
+  OrdersOrderIdRoute: OrdersOrderIdRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
+}
+
+const OrdersRouteWithChildren =
+  OrdersRoute._addFileChildren(OrdersRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AbcAnalysisRoute: AbcAnalysisRoute,
@@ -422,7 +471,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeadStockRoute: DeadStockRoute,
   LocationsRoute: LocationsRoute,
   MisplacedItemsRoute: MisplacedItemsRoute,
-  OrdersRoute: OrdersRoute,
+  OrdersRoute: OrdersRouteWithChildren,
   PickingRoute: PickingRoute,
   ProductsRoute: ProductsRoute,
   ReceptionsRoute: ReceptionsRoute,

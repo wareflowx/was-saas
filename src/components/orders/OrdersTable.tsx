@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { useNavigate } from "@tanstack/react-router"
 import {
   Table,
   TableBody,
@@ -24,6 +25,7 @@ interface OrdersTableProps {
 }
 
 export function OrdersTable({ orders }: OrdersTableProps) {
+  const navigate = useNavigate()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
@@ -218,7 +220,11 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               </TableRow>
             ) : (
               paginatedOrders.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow
+                  key={order.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => navigate({ to: `/orders/${order.id}` })}
+                >
                   <TableCell className="font-medium">{order.orderNumber}</TableCell>
                   <TableCell>{order.customerName}</TableCell>
                   <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
