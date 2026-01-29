@@ -72,18 +72,8 @@ export function LocationsPage({ data }: LocationsPageProps) {
       .sort((a, b) => b.count - a.count)
   }, [data.locations])
 
-  // Filter locations
-  const filteredLocations = useMemo(() => {
-    return data.locations.filter((location) => {
-      if (statusFilter !== "all" && location.status !== statusFilter) return false
-      if (
-        search &&
-        !location.code.toLowerCase().includes(search.toLowerCase())
-      )
-        return false
-      return true
-    })
-  }, [data.locations, search, statusFilter])
+  // Note: Filtering and pagination are now handled in LocationsTable
+  const allLocations = data.locations
 
   return (
     <div className="max-w-6xl mx-auto space-y-4">
@@ -114,7 +104,7 @@ export function LocationsPage({ data }: LocationsPageProps) {
 
       {/* Locations Table */}
       <LocationsTable
-        locations={filteredLocations}
+        locations={allLocations}
         search={search}
         onSearchChange={setSearch}
         statusFilter={statusFilter}
