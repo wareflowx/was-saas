@@ -54,33 +54,29 @@ export function CapacityUtilizationChart({
         <ChartContainer config={chartConfig} className="h-[200px] w-full">
           <BarChart
             data={data}
-            layout="vertical"
             height={200}
             margin={{
-              top: 10,
-              right: 30,
-              left: 90,
-              bottom: 10,
+              top: 20,
+              right: 20,
+              left: 40,
+              bottom: 5,
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" horizontal={true} vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" vertical={true} horizontal={false} />
             <XAxis
-              type="number"
+              dataKey="zone"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
+              tick={false}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={10}
               tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
               domain={[0, 100]}
               tickFormatter={(value) => `${value}%`}
-            />
-            <YAxis
-              type="category"
-              dataKey="zone"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
-              width={85}
             />
             <ChartTooltip
               cursor={false}
