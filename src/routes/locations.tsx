@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { LocationsPage } from "@/components/locations/LocationsPage"
@@ -9,6 +9,8 @@ export const Route = createFileRoute("/locations")({
 })
 
 function LocationsRoute() {
+  const navigate = useNavigate()
+
   // Fetch warehouses to get default warehouse ID
   const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
 
@@ -19,6 +21,11 @@ function LocationsRoute() {
     isLoading: isLoadingLocations,
     error,
   } = useLocations(defaultWarehouseId)
+
+  // Redirect to onboarding if no warehouses exist
+  if (!isLoadingWarehouses && warehouses?.length === 0) {
+    navigate({ to: "/onboarding/welcome" })
+  }
 
   // Loading state
   if (isLoadingWarehouses || isLoadingLocations) {
@@ -55,8 +62,16 @@ function LocationsRoute() {
         <div className="flex min-h-screen w-full">
           <AppSidebar />
           <main className="flex-1 flex items-center justify-center">
-            <div className="text-muted-foreground">
-              No locations found. Please complete the setup first.
+            <div className="text-center">
+              <div className="text-muted-foreground mb-4">
+                No locations found. Please complete the setup first.
+              </div>
+              <button
+                onClick={() => navigate({ to: "/onboarding/welcome" })}
+                className="px-6 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+              >
+                Go to Setup
+              </button>
             </div>
           </main>
         </div>
