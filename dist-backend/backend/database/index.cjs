@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createWarehouse = exports.getAllWarehouses = exports.warehouseExists = exports.getDatabaseStats = exports.vacuumDatabase = exports.getDatabaseFilePath = exports.closeDatabase = exports.initializeDatabase = exports.getDatabase = void 0;
 const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
 const electron_1 = require("electron");
-const schema_1 = require("./schema");
+const schema_1 = require('./schema.cjs');
 // Database state
 let db = null;
 /**

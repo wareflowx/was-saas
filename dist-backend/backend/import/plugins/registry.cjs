@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeDefaultPlugins = exports.pluginExists = exports.unregisterPlugin = exports.registerPlugin = exports.listPlugins = exports.getPlugin = exports.registry = void 0;
-const generic_excel_1 = require("./generic-excel");
-const mock_data_generator_1 = require("./mock-data-generator");
+const generic_excel_1 = require('./generic-excel.cjs');
+const mock_data_generator_1 = require('./mock-data-generator.cjs');
 // ============================================================================
 // PLUGIN REGISTRY
 // Record type containing all available plugins
