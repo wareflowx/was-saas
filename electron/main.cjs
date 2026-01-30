@@ -1,19 +1,16 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron'
-import path from 'path'
-import { fileURLToPath } from 'url'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const { app, BrowserWindow, dialog, ipcMain } = require('electron')
+const path = require('path')
 
 // ============================================================================
 // IPC HANDLERS (Backend services)
 // ============================================================================
 
-import { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } from '../dist-backend/backend/database/index.js'
-import * as queries from '../dist-backend/backend/database/queries.js'
-import { registry, initializeDefaultPlugins } from '../dist-backend/backend/import/plugins/registry.js'
-import * as importService from '../dist-backend/backend/services/import-service.js'
-import * as pluginService from '../dist-backend/backend/services/plugin-service.js'
-import * as analysis from '../dist-backend/backend/analysis/index.js'
+const { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } = require('../dist-backend/backend/database/index.js')
+const queries = require('../dist-backend/backend/database/queries.js')
+const { registry, initializeDefaultPlugins } = require('../dist-backend/backend/import/plugins/registry.js')
+const importService = require('../dist-backend/backend/services/import-service.js')
+const pluginService = require('../dist-backend/backend/services/plugin-service.js')
+const analysis = require('../dist-backend/backend/analysis/index.js')
 
 // Register default plugins when app starts
 initializeDefaultPlugins()
