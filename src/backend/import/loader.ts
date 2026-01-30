@@ -1,5 +1,4 @@
-import type Database from 'better-sqlite3'
-import type { NormalizedData, Product, Inventory, Movement } from '../types'
+import type { NormalizedData, Product, Inventory, Movement } from './types'
 import { getDatabase } from '../database/index'
 
 /**
@@ -20,7 +19,7 @@ export const insertProducts = (products: readonly Product[]): number => {
 
   let inserted = 0
 
-  const insertMany = db.transaction((products) => {
+  const insertMany = db.transaction((products: readonly Product[]) => {
     for (const product of products) {
       try {
         stmt.run(
@@ -76,7 +75,7 @@ export const insertInventory = (
 
   let inserted = 0
 
-  const insertMany = db.transaction((inventory) => {
+  const insertMany = db.transaction((inventory: readonly Inventory[]) => {
     for (const inv of inventory) {
       try {
         const id = `${warehouseId}-${inv.productId}-${inv.locationId || 'default'}`
@@ -88,8 +87,8 @@ export const insertInventory = (
           inv.quantity,
           inv.availableQuantity,
           inv.reservedQuantity,
-          inv.lastReceivedAt || null,
-          inv.lastShippedAt || null
+          null, // last_received_at
+          null  // last_shipped_at
         )
         inserted++
       } catch (error) {
@@ -122,7 +121,7 @@ export const insertMovements = (movements: readonly Movement[]): number => {
 
   let inserted = 0
 
-  const insertMany = db.transaction((movements) => {
+  const insertMany = db.transaction((movements: readonly Movement[]) => {
     for (const movement of movements) {
       try {
         const id = `${movement.warehouseId}-${movement.productId}-${movement.movementDate.getTime()}-${Math.random().toString(36).substring(2, 15)}`

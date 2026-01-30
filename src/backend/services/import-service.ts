@@ -1,7 +1,6 @@
 import * as fs from 'fs'
-import type { ImportPlugin, ImportResult, ValidationResult, TransformContext } from '../types'
-import type { getDatabase } from '../database/index'
-import { parseExcelFile, isValidExcelFile } from './parser'
+import type { ImportPlugin, ImportResult, ValidationResult, TransformContext } from '../import/types'
+import { parseExcelFile, isValidExcelFile } from '../import/parser'
 
 /**
  * Validate file with selected plugin
@@ -80,7 +79,6 @@ export const executeImport = async (
 ): Promise<ImportResult> => {
   const startTime = Date.now()
   let totalRows = 0
-  const errors: ValidationResult[] = []
   const warnings: ValidationResult[] = []
 
   try {
@@ -88,7 +86,7 @@ export const executeImport = async (
     onProgress?.(10, 'Parsing Excel file...')
     const inputData = await parseExcelFile(filePath)
     totalRows = Object.values(inputData.sheets).reduce(
-      (sum, sheet) => sum + sheet.rows.length,
+      (sum: number, sheet: { rows: readonly unknown[] }) => sum + sheet.rows.length,
       0
     )
 
@@ -98,7 +96,7 @@ export const executeImport = async (
     const context: TransformContext = {
       warehouseId,
       pluginId: plugin.id,
-      onProgress: (progress, message) => {
+      onProgress: (progress: number, message: string) => {
         onProgress?.(20 + progress * 0.6, message)
       },
     }
@@ -108,7 +106,7 @@ export const executeImport = async (
     onProgress?.(80, 'Loading data into database...')
 
     // Import loader function
-    const { loadToDatabase } = await import('./loader')
+    const { loadToDatabase } = await import('../import/loader')
 
     // Step 3: Load to database
     const stats = loadToDatabase(normalizedData)

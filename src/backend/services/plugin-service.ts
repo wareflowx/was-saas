@@ -14,7 +14,7 @@ export const listPlugins = (): readonly {
   wmsSystem: string
   supportedFormats: readonly string[]
 }[] => {
-  return Object.values(registry).map(plugin => ({
+  return Object.values(registry).map((plugin) => ({
     id: plugin.id,
     name: plugin.name,
     version: plugin.version,

@@ -8,7 +8,9 @@
       "Bash(gh run view:*)",
       "Bash(gh release view:*)",
       "Bash(npx tsc:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(pnpm tsc:*)"
     ]
   }
 }

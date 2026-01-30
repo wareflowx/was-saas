@@ -1,4 +1,5 @@
 import type { ImportPlugin, PluginRegistry } from '../types'
+import { genericExcelPlugin } from './generic-excel'
 
 // ============================================================================
 // PLUGIN REGISTRY
@@ -12,85 +13,64 @@ import type { ImportPlugin, PluginRegistry } from '../types'
 export const registry: PluginRegistry = {}
 
 // ============================================================================
-// REGISTRY FUNCTIONS (Pure functions)
+// REGISTRY FUNCTIONS
 // ============================================================================
 
 /**
- * Get a plugin by ID
- * @param registry - Plugin registry
+ * Get a plugin by ID from global registry
  * @param pluginId - Plugin ID
  * @returns Plugin or undefined if not found
  */
-export const getPlugin = (
-  registry: PluginRegistry,
-  pluginId: string
-): ImportPlugin | undefined => {
+export const getPlugin = (pluginId: string): ImportPlugin | undefined => {
   return registry[pluginId]
 }
 
 /**
- * List all available plugins
- * @param registry - Plugin registry
+ * List all available plugins from global registry
  * @returns Array of all plugins
  */
-export const listPlugins = (registry: PluginRegistry): readonly ImportPlugin[] => {
+export const listPlugins = (): readonly ImportPlugin[] => {
   return Object.values(registry)
 }
 
 /**
- * Register a new plugin
- * @param registry - Current registry
+ * Register a plugin in the global registry
  * @param plugin - Plugin to register
- * @returns New registry with plugin added
  */
-export const registerPlugin = (
-  registry: PluginRegistry,
-  plugin: ImportPlugin
-): PluginRegistry => {
-  return {
-    ...registry,
-    [plugin.id]: plugin,
-  }
+export const registerPlugin = (plugin: ImportPlugin): void => {
+  registry[plugin.id] = plugin
 }
 
 /**
- * Unregister a plugin
- * @param registry - Current registry
+ * Unregister a plugin from the global registry
  * @param pluginId - Plugin ID to remove
- * @returns New registry without the plugin
  */
-export const unregisterPlugin = (
-  registry: PluginRegistry,
-  pluginId: string
-): PluginRegistry => {
-  const { [pluginId]: removed, ...rest } = registry
-  return rest
+export const unregisterPlugin = (pluginId: string): void => {
+  delete registry[pluginId]
 }
 
 /**
- * Check if plugin exists
- * @param registry - Plugin registry
+ * Check if plugin exists in global registry
  * @param pluginId - Plugin ID to check
  * @returns True if plugin exists
  */
-export const pluginExists = (
-  registry: PluginRegistry,
-  pluginId: string
-): boolean => {
+export const pluginExists = (pluginId: string): boolean => {
   return pluginId in registry
 }
 
 // ============================================================================
-// DEFAULT PLUGINS (Will be added as we implement them)
+// DEFAULT PLUGINS INITIALIZATION
 // ============================================================================
 
 /**
  * Initialize default plugins
  * Registers all built-in plugins
- * Currently empty - plugins will be added in next commits
  */
 export const initializeDefaultPlugins = (): void => {
-  // Generic Excel plugin will be registered here
-  // Solochain plugin will be registered here
-  // Other plugins will be registered here
+  // Register Generic Excel plugin
+  registerPlugin(genericExcelPlugin)
+
+  // More plugins will be registered here as we implement them
+  // - Solochain plugin
+  // - other WMS plugins
 }

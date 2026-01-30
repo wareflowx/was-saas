@@ -1,58 +1,18 @@
 import type {
   ImportPlugin,
   WMSInputData,
-  WMSInputSchema,
   ValidationResult,
   NormalizedData,
   TransformContext,
-} from '../../types'
-import type {
   Product,
   Inventory,
   Movement,
-  Warehouse,
-  Zone,
-  Sector,
-  Location,
-  Order,
-  OrderLine,
-  Picking,
-  PickingLine,
-  Reception,
-  ReceptionLine,
-  Restocking,
-  RestockingLine,
-  Return,
-  ReturnLine,
-  Supplier,
-  Customer,
-  User,
 } from '../../types'
 
 // ============================================================================
 // GENERIC EXCEL PLUGIN
 // Allows manual column mapping from any Excel format
 // ============================================================================
-
-/**
- * Column mapping configuration
- * Maps Excel columns to normalized schema fields
- */
-type ColumnMapping = {
-  readonly sheet: string
-  readonly excelColumn: string
-  readonly targetField: string
-  readonly transform: 'string' | 'number' | 'date' | 'boolean'
-}
-
-/**
- * Plugin configuration for Generic Excel
- */
-type GenericExcelConfig = {
-  readonly columnMappings: readonly ColumnMapping[]
-  readonly skipRows?: number // Number of rows to skip at start
-  readonly dateFormats?: readonly string[] // Custom date formats to try
-}
 
 // ============================================================================
 // GENERIC EXCEL PLUGIN DEFINITION
@@ -204,26 +164,27 @@ export const genericExcelPlugin: ImportPlugin = {
       const { headers, rows } = productsSheet
       const headerMap = new Map(headers.map((h, i) => [h, i]))
 
-      for (const row of rows as Record<string, unknown>[]) {
+      for (const row of rows) {
+        const rowArray = row as readonly unknown[]
         products.push({
-          id: getString(row, headerMap.get('id') || 0),
-          sku: getString(row, headerMap.get('sku') || 1),
-          name: getString(row, headerMap.get('name') || 2),
-          description: getString(row, headerMap.get('description') || 3),
-          category: getString(row, headerMap.get('category') || 4),
-          subcategory: getString(row, headerMap.get('subcategory') || 5),
-          brand: getString(row, headerMap.get('brand') || 6),
-          unit: getString(row, headerMap.get('unit') || 7),
-          weight: getNumber(row, headerMap.get('weight') || 8),
-          volume: getNumber(row, headerMap.get('volume') || 9),
-          minStock: getNumber(row, headerMap.get('min_stock') || 10),
-          maxStock: getNumber(row, headerMap.get('max_stock') || 11),
-          reorderPoint: getNumber(row, headerMap.get('reorder_point') || 12),
-          reorderQuantity: getNumber(row, headerMap.get('reorder_quantity') || 13),
-          costPrice: getNumber(row, headerMap.get('cost_price') || 14),
-          sellingPrice: getNumber(row, headerMap.get('selling_price') || 15),
-          supplier: getString(row, headerMap.get('supplier') || 16),
-          status: (getString(row, headerMap.get('status') || 17) || 'in_stock'),
+          id: getValueByIndex(rowArray, headerMap.get('id'), ''),
+          sku: getValueByIndex(rowArray, headerMap.get('sku'), ''),
+          name: getValueByIndex(rowArray, headerMap.get('name'), ''),
+          description: getValueByIndex(rowArray, headerMap.get('description'), ''),
+          category: getValueByIndex(rowArray, headerMap.get('category'), ''),
+          subcategory: getValueByIndex(rowArray, headerMap.get('subcategory'), ''),
+          brand: getValueByIndex(rowArray, headerMap.get('brand'), ''),
+          unit: getValueByIndex(rowArray, headerMap.get('unit'), 'ea'),
+          weight: getNumberByIndex(rowArray, headerMap.get('weight')),
+          volume: getNumberByIndex(rowArray, headerMap.get('volume')),
+          minStock: getNumberByIndex(rowArray, headerMap.get('min_stock')),
+          maxStock: getNumberByIndex(rowArray, headerMap.get('max_stock')),
+          reorderPoint: getNumberByIndex(rowArray, headerMap.get('reorder_point')),
+          reorderQuantity: getNumberByIndex(rowArray, headerMap.get('reorder_quantity')),
+          costPrice: getNumberByIndex(rowArray, headerMap.get('cost_price')),
+          sellingPrice: getNumberByIndex(rowArray, headerMap.get('selling_price')),
+          supplier: getValueByIndex(rowArray, headerMap.get('supplier'), ''),
+          status: (getValueByIndex(rowArray, headerMap.get('status'), '') || 'in_stock'),
         })
       }
     }
@@ -236,16 +197,17 @@ export const genericExcelPlugin: ImportPlugin = {
       const { headers, rows } = inventorySheet
       const headerMap = new Map(headers.map((h, i) => [h, i]))
 
-      for (const row of rows as Record<string, unknown>[]) {
-        const productId = getString(row, headerMap.get('product_id') || 0)
+      for (const row of rows) {
+        const rowArray = row as readonly unknown[]
+        const productId = getValueByIndex(rowArray, headerMap.get('product_id'), '')
         if (productId) {
           inventory.push({
             warehouseId,
             productId,
-            locationId: getString(row, headerMap.get('location_id') || 1),
-            quantity: getNumber(row, headerMap.get('quantity') || 2) || 0,
-            availableQuantity: getNumber(row, headerMap.get('available_quantity') || 3) || 0,
-            reservedQuantity: getNumber(row, headerMap.get('reserved_quantity') || 4) || 0,
+            locationId: getValueByIndex(rowArray, headerMap.get('location_id'), ''),
+            quantity: getNumberByIndex(rowArray, headerMap.get('quantity')) || 0,
+            availableQuantity: getNumberByIndex(rowArray, headerMap.get('available_quantity')) || 0,
+            reservedQuantity: getNumberByIndex(rowArray, headerMap.get('reserved_quantity')) || 0,
           })
         }
       }
@@ -259,30 +221,31 @@ export const genericExcelPlugin: ImportPlugin = {
       const { headers, rows } = movementsSheet
       const headerMap = new Map(headers.map((h, i) => [h, i]))
 
-      for (const row of rows as Record<string, unknown>[]) {
-        const movementDate = getDate(row, headerMap.get('date') || 3)
+      for (const row of rows) {
+        const rowArray = row as readonly unknown[]
+        const movementDate = getDateByIndex(rowArray, headerMap.get('date'))
 
         movements.push({
           warehouseId,
-          productId: getString(row, headerMap.get('product_id') || 0),
+          productId: getValueByIndex(rowArray, headerMap.get('product_id'), ''),
           productSku: '',
           productName: '',
-          type: getString(row, headerMap.get('type') || 1) as
+          type: getValueByIndex(rowArray, headerMap.get('type'), '') as
             | 'inbound'
             | 'outbound'
             | 'transfer'
             | 'adjustment',
-          sourceLocationId: getString(row, headerMap.get('source_location_id') || 4),
-          sourceZone: getString(row, headerMap.get('source_zone') || 5),
-          sourceLocationCode: getString(row, headerMap.get('source_location_code') || 6),
-          destinationLocationId: getString(row, headerMap.get('destination_location_id') || 7),
-          destinationZone: getString(row, headerMap.get('destination_zone') || 8),
-          destinationLocationCode: getString(row, headerMap.get('destination_location_code') || 9),
-          quantity: getNumber(row, headerMap.get('quantity') || 2) || 0,
+          sourceLocationId: getValueByIndex(rowArray, headerMap.get('source_location_id'), ''),
+          sourceZone: getValueByIndex(rowArray, headerMap.get('source_zone'), ''),
+          sourceLocationCode: getValueByIndex(rowArray, headerMap.get('source_location_code'), ''),
+          destinationLocationId: getValueByIndex(rowArray, headerMap.get('destination_location_id'), ''),
+          destinationZone: getValueByIndex(rowArray, headerMap.get('destination_zone'), ''),
+          destinationLocationCode: getValueByIndex(rowArray, headerMap.get('destination_location_code'), ''),
+          quantity: getNumberByIndex(rowArray, headerMap.get('quantity')) || 0,
           unit: 'ea',
           movementDate: movementDate || new Date(),
-          user: getString(row, headerMap.get('user') || 10),
-          reason: getString(row, headerMap.get('reason') || 11),
+          user: getValueByIndex(rowArray, headerMap.get('user'), ''),
+          reason: getValueByIndex(rowArray, headerMap.get('reason'), ''),
         })
       }
     }
@@ -310,15 +273,21 @@ export const genericExcelPlugin: ImportPlugin = {
 /**
  * Safely get string value from row by column index
  */
-function getString(row: Record<string, unknown[]>, index: number): string {
+function getValueByIndex(row: readonly unknown[], index: number | undefined, defaultValue: string): string {
+  if (index === undefined || index < 0 || index >= row.length) {
+    return defaultValue
+  }
   const value = row[index]
-  return value ? String(value) : ''
+  return value ? String(value) : defaultValue
 }
 
 /**
  * Safely get number value from row by column index
  */
-function getNumber(row: Record<string, unknown[]>, index: number): number | undefined {
+function getNumberByIndex(row: readonly unknown[], index: number | undefined): number | undefined {
+  if (index === undefined || index < 0 || index >= row.length) {
+    return undefined
+  }
   const value = row[index]
   if (value === null || value === undefined) {
     return undefined
@@ -330,7 +299,10 @@ function getNumber(row: Record<string, unknown[]>, index: number): number | unde
 /**
  * Safely get date value from row by column index
  */
-function getDate(row: Record<string, unknown[]>, index: number): Date | undefined {
+function getDateByIndex(row: readonly unknown[], index: number | undefined): Date | undefined {
+  if (index === undefined || index < 0 || index >= row.length) {
+    return undefined
+  }
   const value = row[index]
   if (value === null || value === undefined) {
     return undefined

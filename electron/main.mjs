@@ -13,6 +13,7 @@ import * as queries from '../dist-backend/database/queries.js'
 import { registry, initializeDefaultPlugins } from '../dist-backend/import/plugins/registry.js'
 import * as importService from '../dist-backend/services/import-service.js'
 import * as pluginService from '../dist-backend/services/plugin-service.js'
+import * as analysis from '../dist-backend/analysis/index.js'
 
 // Register default plugins when app starts
 initializeDefaultPlugins()
@@ -105,14 +106,19 @@ ipcMain.handle('warehouse:create', async (event, warehouse) => {
 
 ipcMain.handle('analysis:abc', async (event, params) => {
   initializeDatabase()
-  // TODO: Implement ABC analysis
-  return {}
+  const { warehouseId, dateFrom, dateTo } = params
+  return analysis.runABCAnalysis(warehouseId, dateFrom, dateTo)
 })
 
 ipcMain.handle('analysis:dead-stock', async (event, params) => {
   initializeDatabase()
-  // TODO: Implement dead stock analysis
-  return {}
+  const { warehouseId, thresholdDays, criticalThreshold, warningThreshold } = params
+  return analysis.runDeadStockAnalysis(
+    warehouseId,
+    thresholdDays || 90,
+    criticalThreshold || 180,
+    warningThreshold || 90
+  )
 })
 
 // ==========================================================================

@@ -1,19 +1,21 @@
-import t from "electron";
-function a(r) {
-  return r && r.__esModule && Object.prototype.hasOwnProperty.call(r, "default") ? r.default : r;
+import require$$0 from "electron";
+function getDefaultExportFromCjs(x) {
+  return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
-var e = {}, o;
-function l() {
-  if (o) return e;
-  o = 1;
-  const { contextBridge: r } = t;
-  return r.exposeInMainWorld("electronAPI", {
+var preload$1 = {};
+var hasRequiredPreload;
+function requirePreload() {
+  if (hasRequiredPreload) return preload$1;
+  hasRequiredPreload = 1;
+  const { contextBridge } = require$$0;
+  contextBridge.exposeInMainWorld("electronAPI", {
     // Tu peux ajouter des APIs ici plus tard
     platform: process.platform
-  }), e;
+  });
+  return preload$1;
 }
-var n = l();
-const u = /* @__PURE__ */ a(n);
+var preloadExports = requirePreload();
+const preload = /* @__PURE__ */ getDefaultExportFromCjs(preloadExports);
 export {
-  u as default
+  preload as default
 };

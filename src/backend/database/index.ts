@@ -1,19 +1,15 @@
 import Database from 'better-sqlite3'
 import { app } from 'electron'
-import path from 'path'
 import { DATABASE_SCHEMA, getDatabasePath, SCHEMA_VERSION } from './schema'
 
-// Database connection type
-type Database = Database.Database
-
 // Database state
-let db: Database | null = null
+let db: ReturnType<typeof Database> | null = null
 
 /**
  * Get or create database connection
  * @returns Database connection
  */
-export const getDatabase = (): Database => {
+export const getDatabase = (): ReturnType<typeof Database> => {
   if (db) {
     return db
   }
