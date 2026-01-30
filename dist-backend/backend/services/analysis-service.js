@@ -1,11 +1,14 @@
+"use strict";
 /**
  * Analysis Service
  *
  * Provides high-level analysis functions for warehouse data.
  * These are the main entry points for all analyses.
  */
-import { runABCAnalysis } from '../analysis/abc-analysis';
-import { runDeadStockAnalysis } from '../analysis/dead-stock-analysis';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.performDeadStockAnalysis = exports.performABCAnalysis = void 0;
+const abc_analysis_1 = require("../analysis/abc-analysis");
+const dead_stock_analysis_1 = require("../analysis/dead-stock-analysis");
 // ============================================================================
 // ABC ANALYSIS
 // ============================================================================
@@ -16,9 +19,10 @@ import { runDeadStockAnalysis } from '../analysis/dead-stock-analysis';
  * @param dateTo - Optional date range end
  * @returns ABC analysis result
  */
-export const performABCAnalysis = (warehouseId, dateFrom, dateTo) => {
-    return runABCAnalysis(warehouseId, dateFrom, dateTo);
+const performABCAnalysis = (warehouseId, dateFrom, dateTo) => {
+    return (0, abc_analysis_1.runABCAnalysis)(warehouseId, dateFrom, dateTo);
 };
+exports.performABCAnalysis = performABCAnalysis;
 // ============================================================================
 // DEAD STOCK ANALYSIS
 // ============================================================================
@@ -30,6 +34,7 @@ export const performABCAnalysis = (warehouseId, dateFrom, dateTo) => {
  * @param warningThreshold - Days for warning level (default: 90)
  * @returns Dead stock analysis result
  */
-export const performDeadStockAnalysis = (warehouseId, thresholdDays = 90, criticalThreshold = 180, warningThreshold = 90) => {
-    return runDeadStockAnalysis(warehouseId, thresholdDays, criticalThreshold, warningThreshold);
+const performDeadStockAnalysis = (warehouseId, thresholdDays = 90, criticalThreshold = 180, warningThreshold = 90) => {
+    return (0, dead_stock_analysis_1.runDeadStockAnalysis)(warehouseId, thresholdDays, criticalThreshold, warningThreshold);
 };
+exports.performDeadStockAnalysis = performDeadStockAnalysis;

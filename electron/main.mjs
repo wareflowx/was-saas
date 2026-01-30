@@ -8,12 +8,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // IPC HANDLERS (Backend services)
 // ============================================================================
 
-import { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } from '../dist-backend/database/index.js'
-import * as queries from '../dist-backend/database/queries.js'
-import { registry, initializeDefaultPlugins } from '../dist-backend/import/plugins/registry.js'
-import * as importService from '../dist-backend/services/import-service.js'
-import * as pluginService from '../dist-backend/services/plugin-service.js'
-import * as analysis from '../dist-backend/analysis/index.js'
+import { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } from '../dist-backend/backend/database/index.js'
+import * as queries from '../dist-backend/backend/database/queries.js'
+import { registry, initializeDefaultPlugins } from '../dist-backend/backend/import/plugins/registry.js'
+import * as importService from '../dist-backend/backend/services/import-service.js'
+import * as pluginService from '../dist-backend/backend/services/plugin-service.js'
+import * as analysis from '../dist-backend/backend/analysis/index.js'
 
 // Register default plugins when app starts
 initializeDefaultPlugins()

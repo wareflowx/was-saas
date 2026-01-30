@@ -1,12 +1,48 @@
-import * as fs from 'fs';
-import { parseExcelFile, isValidExcelFile } from '../import/parser';
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateMockData = exports.executeImport = exports.validateImportFile = void 0;
+const fs = __importStar(require("fs"));
+const parser_1 = require("../import/parser");
 /**
  * Validate file with selected plugin
  * @param filePath - Path to Excel file
  * @param plugin - Import plugin to use
  * @returns Validation result
  */
-export const validateImportFile = async (filePath, plugin) => {
+const validateImportFile = async (filePath, plugin) => {
     const errors = [];
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -19,7 +55,7 @@ export const validateImportFile = async (filePath, plugin) => {
         return { valid: errors.length === 0, errors };
     }
     // Check file format
-    if (!isValidExcelFile(filePath)) {
+    if (!(0, parser_1.isValidExcelFile)(filePath)) {
         errors.push({
             severity: 'error',
             message: 'Invalid file format',
@@ -31,7 +67,7 @@ export const validateImportFile = async (filePath, plugin) => {
     // Parse file
     let inputData;
     try {
-        inputData = await parseExcelFile(filePath);
+        inputData = await (0, parser_1.parseExcelFile)(filePath);
     }
     catch (error) {
         errors.push({
@@ -50,6 +86,7 @@ export const validateImportFile = async (filePath, plugin) => {
         errors,
     };
 };
+exports.validateImportFile = validateImportFile;
 /**
  * Execute complete import workflow
  * @param filePath - Path to Excel file
@@ -58,14 +95,14 @@ export const validateImportFile = async (filePath, plugin) => {
  * @param onProgress - Optional progress callback
  * @returns Import result
  */
-export const executeImport = async (filePath, warehouseId, plugin, onProgress) => {
+const executeImport = async (filePath, warehouseId, plugin, onProgress) => {
     const startTime = Date.now();
     let totalRows = 0;
     const warnings = [];
     try {
         // Step 1: Parse file
         onProgress?.(10, 'Parsing Excel file...');
-        const inputData = await parseExcelFile(filePath);
+        const inputData = await (0, parser_1.parseExcelFile)(filePath);
         totalRows = Object.values(inputData.sheets).reduce((sum, sheet) => sum + sheet.rows.length, 0);
         onProgress?.(20, 'Transforming data...');
         // Step 2: Transform data
@@ -79,7 +116,7 @@ export const executeImport = async (filePath, warehouseId, plugin, onProgress) =
         const normalizedData = plugin.transform(inputData, context);
         onProgress?.(80, 'Loading data into database...');
         // Import loader function
-        const { loadToDatabase } = await import('../import/loader');
+        const { loadToDatabase } = await Promise.resolve().then(() => __importStar(require('../import/loader')));
         // Step 3: Load to database
         const stats = loadToDatabase(normalizedData);
         onProgress?.(100, 'Import completed!');
@@ -130,6 +167,7 @@ export const executeImport = async (filePath, warehouseId, plugin, onProgress) =
         };
     }
 };
+exports.executeImport = executeImport;
 /**
  * Generate mock data for testing
  * @param warehouseId - Target warehouse ID
@@ -137,7 +175,7 @@ export const executeImport = async (filePath, warehouseId, plugin, onProgress) =
  * @param onProgress - Optional progress callback
  * @returns Import result
  */
-export const generateMockData = async (warehouseId, plugin, onProgress) => {
+const generateMockData = async (warehouseId, plugin, onProgress) => {
     const startTime = Date.now();
     const warnings = [];
     try {
@@ -162,7 +200,7 @@ export const generateMockData = async (warehouseId, plugin, onProgress) => {
         const normalizedData = plugin.transform(emptyInput, context);
         onProgress?.(80, 'Loading data into database...');
         // Import loader function
-        const { loadToDatabase } = await import('../import/loader');
+        const { loadToDatabase } = await Promise.resolve().then(() => __importStar(require('../import/loader')));
         // Step 2: Load to database
         const stats = loadToDatabase(normalizedData);
         onProgress?.(100, 'Mock data generated successfully!');
@@ -213,3 +251,4 @@ export const generateMockData = async (warehouseId, plugin, onProgress) => {
         };
     }
 };
+exports.generateMockData = generateMockData;

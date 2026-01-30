@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.runABCAnalysis = void 0;
 /**
  * Run ABC Analysis on warehouse movements
  * @param warehouseId - Warehouse ID
@@ -5,7 +8,7 @@
  * @param dateTo - Optional date range end
  * @returns ABC analysis result
  */
-export const runABCAnalysis = (warehouseId, dateFrom, dateTo) => {
+const runABCAnalysis = (warehouseId, dateFrom, dateTo) => {
     const { getProductMovementTotals } = require('../database/queries');
     // Get product movement totals (outbound = sales/picking)
     const movements = getProductMovementTotals(warehouseId, 'outbound', dateFrom, dateTo);
@@ -90,3 +93,4 @@ export const runABCAnalysis = (warehouseId, dateFrom, dateTo) => {
         },
     };
 };
+exports.runABCAnalysis = runABCAnalysis;

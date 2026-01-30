@@ -1,11 +1,14 @@
-import { getDatabase } from '../database/index';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.loadToDatabase = exports.insertMovements = exports.insertInventory = exports.insertLocations = exports.insertSectors = exports.insertZones = exports.insertProducts = void 0;
+const index_1 = require("../database/index");
 /**
  * Insert products into database
  * @param products - Array of products to insert
  * @returns Number of products inserted
  */
-export const insertProducts = (products) => {
-    const db = getDatabase();
+const insertProducts = (products) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     INSERT OR REPLACE INTO products (
       id, sku, name, description, category, subcategory, brand, unit,
@@ -29,13 +32,14 @@ export const insertProducts = (products) => {
     insertMany(products);
     return inserted;
 };
+exports.insertProducts = insertProducts;
 /**
  * Insert zones into database
  * @param zones - Array of zones to insert
  * @returns Number of zones inserted
  */
-export const insertZones = (zones) => {
-    const db = getDatabase();
+const insertZones = (zones) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     INSERT OR REPLACE INTO zones (
       id, warehouse_id, code, name, type,
@@ -58,13 +62,14 @@ export const insertZones = (zones) => {
     insertMany(zones);
     return inserted;
 };
+exports.insertZones = insertZones;
 /**
  * Insert sectors into database
  * @param sectors - Array of sectors to insert
  * @returns Number of sectors inserted
  */
-export const insertSectors = (sectors) => {
-    const db = getDatabase();
+const insertSectors = (sectors) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     INSERT OR REPLACE INTO sectors (
       id, warehouse_id, zone_id, code, name, type,
@@ -87,13 +92,14 @@ export const insertSectors = (sectors) => {
     insertMany(sectors);
     return inserted;
 };
+exports.insertSectors = insertSectors;
 /**
  * Insert locations into database
  * @param locations - Array of locations to insert
  * @returns Number of locations inserted
  */
-export const insertLocations = (locations) => {
-    const db = getDatabase();
+const insertLocations = (locations) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     INSERT OR REPLACE INTO locations (
       id, warehouse_id, zone_id, sector_id, code, type,
@@ -117,14 +123,15 @@ export const insertLocations = (locations) => {
     insertMany(locations);
     return inserted;
 };
+exports.insertLocations = insertLocations;
 /**
  * Insert inventory records into database
  * @param warehouseId - Warehouse ID
  * @param inventory - Array of inventory records
  * @returns Number of records inserted
  */
-export const insertInventory = (warehouseId, inventory) => {
-    const db = getDatabase();
+const insertInventory = (warehouseId, inventory) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     INSERT OR REPLACE INTO inventory (
       id, warehouse_id, product_id, location_id,
@@ -151,13 +158,14 @@ export const insertInventory = (warehouseId, inventory) => {
     insertMany(inventory);
     return inserted;
 };
+exports.insertInventory = insertInventory;
 /**
  * Insert movements into database
  * @param movements - Array of movements to insert
  * @returns Number of movements inserted
  */
-export const insertMovements = (movements) => {
-    const db = getDatabase();
+const insertMovements = (movements) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     INSERT INTO movements (
       id, warehouse_id, product_id, product_sku, product_name,
@@ -184,12 +192,13 @@ export const insertMovements = (movements) => {
     insertMany(movements);
     return inserted;
 };
+exports.insertMovements = insertMovements;
 /**
  * Load normalized data into database
  * @param data - Normalized data from plugin
  * @returns Import statistics
  */
-export const loadToDatabase = (data) => {
+const loadToDatabase = (data) => {
     const stats = {
         productsImported: 0,
         inventoryImported: 0,
@@ -205,32 +214,33 @@ export const loadToDatabase = (data) => {
     };
     // Insert zones first (locations reference them)
     if (data.zones && data.zones.length > 0) {
-        stats.zonesImported = insertZones(data.zones);
+        stats.zonesImported = (0, exports.insertZones)(data.zones);
     }
     // Insert sectors (locations reference them)
     if (data.sectors && data.sectors.length > 0) {
-        stats.sectorsImported = insertSectors(data.sectors);
+        stats.sectorsImported = (0, exports.insertSectors)(data.sectors);
     }
     // Insert locations (products and inventory reference them)
     if (data.locations && data.locations.length > 0) {
-        stats.locationsImported = insertLocations(data.locations);
+        stats.locationsImported = (0, exports.insertLocations)(data.locations);
     }
     // Insert products
     if (data.products.length > 0) {
-        stats.productsImported = insertProducts(data.products);
+        stats.productsImported = (0, exports.insertProducts)(data.products);
     }
     // Insert inventory
     if (data.inventory.length > 0) {
-        stats.inventoryImported = insertInventory(data.metadata.warehouseId, data.inventory);
+        stats.inventoryImported = (0, exports.insertInventory)(data.metadata.warehouseId, data.inventory);
     }
     // Insert movements
     if (data.movements.length > 0) {
-        stats.movementsImported = insertMovements(data.movements);
+        stats.movementsImported = (0, exports.insertMovements)(data.movements);
     }
     // TODO: Insert orders, pickings, receptions, restockings, returns
     // These will be implemented as needed
     return stats;
 };
+exports.loadToDatabase = loadToDatabase;
 /**
  * Format date to SQLite string format
  */

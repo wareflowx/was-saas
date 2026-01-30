@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.genericExcelPlugin = void 0;
 // ============================================================================
 // GENERIC EXCEL PLUGIN
 // Allows manual column mapping from any Excel format
@@ -5,7 +8,7 @@
 // ============================================================================
 // GENERIC EXCEL PLUGIN DEFINITION
 // ============================================================================
-export const genericExcelPlugin = {
+exports.genericExcelPlugin = {
     // Identification
     id: 'generic-excel',
     name: 'Generic Excel Plugin',

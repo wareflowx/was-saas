@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.mockDataGeneratorPlugin = void 0;
 // ============================================================================
 // MOCK DATA GENERATOR PLUGIN
 // Generates realistic test data for development and testing
@@ -24,7 +27,7 @@ const UNITS = ['ea', 'kg', 'lb', 'm', 'l', 'gal', 'box', 'pallet'];
 // ============================================================================
 // MOCK DATA GENERATOR PLUGIN DEFINITION
 // ============================================================================
-export const mockDataGeneratorPlugin = {
+exports.mockDataGeneratorPlugin = {
     // Identification
     id: 'mock-data-generator',
     name: 'Mock Data Generator',

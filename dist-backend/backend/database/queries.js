@@ -1,4 +1,7 @@
-import { getDatabase } from './index';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getLocationsByWarehouse = exports.getDeadStock = exports.getProductMovementTotals = exports.getOrdersByWarehouse = exports.getLastMovementDate = exports.getMovementsByWarehouse = exports.getInventoryByWarehouse = exports.getProductBySku = exports.getProductById = exports.getProductsByWarehouse = void 0;
+const index_1 = require("./index");
 // ============================================================================
 // PRODUCTS
 // ============================================================================
@@ -7,8 +10,8 @@ import { getDatabase } from './index';
  * @param warehouseId - Warehouse ID filter (REQUIRED)
  * @returns Array of products with inventory for this warehouse
  */
-export const getProductsByWarehouse = (warehouseId) => {
-    const db = getDatabase();
+const getProductsByWarehouse = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       p.id,
@@ -42,24 +45,27 @@ export const getProductsByWarehouse = (warehouseId) => {
   `);
     return stmt.all(warehouseId, warehouseId);
 };
+exports.getProductsByWarehouse = getProductsByWarehouse;
 /**
  * Get a single product by ID
  * @param productId - Product ID
  * @returns Product or null
  */
-export const getProductById = (productId) => {
-    const db = getDatabase();
+const getProductById = (productId) => {
+    const db = (0, index_1.getDatabase)();
     return db.prepare('SELECT * FROM products WHERE id = ?').get(productId);
 };
+exports.getProductById = getProductById;
 /**
  * Get product by SKU
  * @param sku - Product SKU
  * @returns Product or null
  */
-export const getProductBySku = (sku) => {
-    const db = getDatabase();
+const getProductBySku = (sku) => {
+    const db = (0, index_1.getDatabase)();
     return db.prepare('SELECT * FROM products WHERE sku = ?').get(sku);
 };
+exports.getProductBySku = getProductBySku;
 // ============================================================================
 // INVENTORY
 // ============================================================================
@@ -68,8 +74,8 @@ export const getProductBySku = (sku) => {
  * @param filters - Filters including warehouseId (REQUIRED)
  * @returns Array of inventory records
  */
-export const getInventoryByWarehouse = (filters) => {
-    const db = getDatabase();
+const getInventoryByWarehouse = (filters) => {
+    const db = (0, index_1.getDatabase)();
     let sql = `
     SELECT
       i.id,
@@ -102,6 +108,7 @@ export const getInventoryByWarehouse = (filters) => {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
 };
+exports.getInventoryByWarehouse = getInventoryByWarehouse;
 // ============================================================================
 // MOVEMENTS
 // ============================================================================
@@ -110,8 +117,8 @@ export const getInventoryByWarehouse = (filters) => {
  * @param filters - Filters including warehouseId (REQUIRED)
  * @returns Array of movements
  */
-export const getMovementsByWarehouse = (filters) => {
-    const db = getDatabase();
+const getMovementsByWarehouse = (filters) => {
+    const db = (0, index_1.getDatabase)();
     let sql = 'SELECT * FROM movements WHERE warehouse_id = ?';
     const params = [filters.warehouseId];
     if (filters.productId) {
@@ -138,19 +145,21 @@ export const getMovementsByWarehouse = (filters) => {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
 };
+exports.getMovementsByWarehouse = getMovementsByWarehouse;
 /**
  * Get last movement date for a product in a warehouse
  * @param warehouseId - Warehouse ID
  * @param productId - Product ID
  * @returns Last movement date or null
  */
-export const getLastMovementDate = (warehouseId, productId) => {
-    const db = getDatabase();
+const getLastMovementDate = (warehouseId, productId) => {
+    const db = (0, index_1.getDatabase)();
     const result = db
         .prepare('SELECT MAX(movement_date) as last_date FROM movements WHERE warehouse_id = ? AND product_id = ?')
         .get(warehouseId, productId);
     return result.last_date;
 };
+exports.getLastMovementDate = getLastMovementDate;
 // ============================================================================
 // ORDERS
 // ============================================================================
@@ -159,8 +168,8 @@ export const getLastMovementDate = (warehouseId, productId) => {
  * @param filters - Filters including warehouseId (REQUIRED)
  * @returns Array of orders
  */
-export const getOrdersByWarehouse = (filters) => {
-    const db = getDatabase();
+const getOrdersByWarehouse = (filters) => {
+    const db = (0, index_1.getDatabase)();
     let sql = 'SELECT * FROM orders WHERE warehouse_id = ?';
     const params = [filters.warehouseId];
     if (filters.status) {
@@ -175,6 +184,7 @@ export const getOrdersByWarehouse = (filters) => {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
 };
+exports.getOrdersByWarehouse = getOrdersByWarehouse;
 // ============================================================================
 // ANALYTICS HELPERS
 // ============================================================================
@@ -186,8 +196,8 @@ export const getOrdersByWarehouse = (filters) => {
  * @param dateTo - Optional date range end
  * @returns Array of products with movement totals
  */
-export const getProductMovementTotals = (warehouseId, type, dateFrom, dateTo) => {
-    const db = getDatabase();
+const getProductMovementTotals = (warehouseId, type, dateFrom, dateTo) => {
+    const db = (0, index_1.getDatabase)();
     let sql = `
     SELECT
       m.product_id,
@@ -212,14 +222,15 @@ export const getProductMovementTotals = (warehouseId, type, dateFrom, dateTo) =>
     const stmt = db.prepare(sql);
     return stmt.all(...params);
 };
+exports.getProductMovementTotals = getProductMovementTotals;
 /**
  * Get dead stock products
  * @param warehouseId - Warehouse ID
  * @param thresholdDays - Days threshold for considering as dead stock
  * @returns Array of products with last movement date and tied capital
  */
-export const getDeadStock = (warehouseId, thresholdDays = 90) => {
-    const db = getDatabase();
+const getDeadStock = (warehouseId, thresholdDays = 90) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     SELECT
       p.id,
@@ -241,6 +252,7 @@ export const getDeadStock = (warehouseId, thresholdDays = 90) => {
   `);
     return stmt.all(warehouseId, thresholdDays);
 };
+exports.getDeadStock = getDeadStock;
 // ============================================================================
 // LOCATIONS
 // ============================================================================
@@ -249,8 +261,8 @@ export const getDeadStock = (warehouseId, thresholdDays = 90) => {
  * @param warehouseId - Warehouse ID filter (REQUIRED)
  * @returns Array of locations with zone, sector, warehouse info and products
  */
-export const getLocationsByWarehouse = (warehouseId) => {
-    const db = getDatabase();
+const getLocationsByWarehouse = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       l.id,
@@ -327,3 +339,4 @@ export const getLocationsByWarehouse = (warehouseId) => {
         locations,
     };
 };
+exports.getLocationsByWarehouse = getLocationsByWarehouse;

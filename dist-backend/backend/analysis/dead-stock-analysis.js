@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.runDeadStockAnalysis = void 0;
 // ============================================================================
 // DEAD STOCK ANALYSIS FUNCTIONS
 // ============================================================================
@@ -9,7 +12,7 @@
  * @param warningThreshold - Days for warning level (default: 90)
  * @returns Dead stock analysis result
  */
-export const runDeadStockAnalysis = (warehouseId, thresholdDays = 90, criticalThreshold = 180, warningThreshold = 90) => {
+const runDeadStockAnalysis = (warehouseId, thresholdDays = 90, criticalThreshold = 180, warningThreshold = 90) => {
     const { getDeadStock } = require('../database/queries');
     // Get dead stock data
     const deadStockData = getDeadStock(warehouseId);
@@ -120,3 +123,4 @@ export const runDeadStockAnalysis = (warehouseId, thresholdDays = 90, criticalTh
         },
     };
 };
+exports.runDeadStockAnalysis = runDeadStockAnalysis;

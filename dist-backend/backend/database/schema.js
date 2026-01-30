@@ -1,8 +1,11 @@
+"use strict";
 // Database Schema for Wareflow
 // All tables use warehouse_id as explicit filter (NOT automatic)
 // Tables are named in English for consistency
-export const SCHEMA_VERSION = '1.0.0';
-export const DATABASE_SCHEMA = `
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DEFAULT_WAREHOUSE_ID = exports.getDatabasePath = exports.DATABASE_SCHEMA = exports.SCHEMA_VERSION = void 0;
+exports.SCHEMA_VERSION = '1.0.0';
+exports.DATABASE_SCHEMA = `
 -- =====================================================
 -- WAREHOUSE STRUCTURE
 -- =====================================================
@@ -652,9 +655,10 @@ CREATE INDEX IF NOT EXISTS idx_import_history_warehouse ON import_history(wareho
 CREATE INDEX IF NOT EXISTS idx_import_history_date ON import_history(imported_at);
 `;
 // Database file location configuration
-export const getDatabasePath = (userDataPath) => {
+const getDatabasePath = (userDataPath) => {
     const path = require('path');
     return path.join(userDataPath, 'wareflow.db');
 };
+exports.getDatabasePath = getDatabasePath;
 // Default warehouse ID (used when no warehouse specified)
-export const DEFAULT_WAREHOUSE_ID = 'default';
+exports.DEFAULT_WAREHOUSE_ID = 'default';
