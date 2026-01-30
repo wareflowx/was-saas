@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { ArrowLeft, ArrowRight, Upload, FileSpreadsheet, Loader2, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Upload, FileSpreadsheet, Loader2, CheckCircle2, FlaskConical, Database } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useBackend } from "@/hooks/use-backend"
 
 export const Route = createFileRoute("/onboarding/import")({
   component: DataImport,
@@ -14,14 +15,16 @@ type LoadingStep = {
 
 function DataImport() {
   const navigate = useNavigate()
+  const backend = useBackend()
   const [isLoading, setIsLoading] = useState(false)
+  const [useMockData, setUseMockData] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
 
   const steps: LoadingStep[] = [
-    { id: "parse", label: "Parsing Solochain export file...", status: "pending" },
+    { id: "warehouse", label: "Creating warehouse...", status: "pending" },
+    { id: "generate", label: useMockData ? "Generating mock data..." : "Parsing Excel file...", status: "pending" },
     { id: "products", label: "Processing products data...", status: "pending" },
     { id: "movements", label: "Processing movements data...", status: "pending" },
-    { id: "orders", label: "Processing orders data...", status: "pending" },
     { id: "analyze", label: "Running initial analysis...", status: "pending" },
     { id: "complete", label: "Setup complete!", status: "pending" },
   ]
@@ -31,8 +34,10 @@ function DataImport() {
   useEffect(() => {
     if (!isLoading) return
 
-    const intervals = steps.map((step, index) => {
-      return setTimeout(() => {
+    const runSetup = async () => {
+      const warehouseId = 'WH-001'
+
+      for (let index = 0; index < steps.length; index++) {
         setLoadingSteps((prev) => {
           const newSteps = [...prev]
           newSteps[index].status = "loading"
@@ -40,26 +45,45 @@ function DataImport() {
         })
         setCurrentStep(index)
 
-        // Complete after 800-1500ms
-        setTimeout(() => {
-          setLoadingSteps((prev) => {
-            const newSteps = [...prev]
-            newSteps[index].status = "complete"
-            return newSteps
-          })
+        // Simulate processing time
+        await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700))
 
-          // Navigate to dashboard after last step
-          if (index === steps.length - 1) {
-            setTimeout(() => {
-              navigate({ to: "/dashboard" })
-            }, 500)
+        // Actual data generation for mock data option
+        if (index === 1 && useMockData) {
+          try {
+            // Create warehouse first
+            await backend.createWarehouse({
+              id: warehouseId,
+              code: 'WH-001',
+              name: 'Demo Warehouse',
+              city: 'Paris',
+              country: 'France',
+            })
+
+            // Generate mock data
+            await backend.generateMockData(warehouseId)
+          } catch (error) {
+            console.error('Error generating mock data:', error)
           }
-        }, 800 + Math.random() * 700)
-      }, index * 1500)
-    })
+        }
 
-    return () => intervals.forEach(clearTimeout)
-  }, [isLoading])
+        setLoadingSteps((prev) => {
+          const newSteps = [...prev]
+          newSteps[index].status = "complete"
+          return newSteps
+        })
+
+        // Navigate to dashboard after last step
+        if (index === steps.length - 1) {
+          setTimeout(() => {
+            navigate({ to: "/dashboard" })
+          }, 500)
+        }
+      }
+    }
+
+    runSetup()
+  }, [isLoading, useMockData])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6 relative">
@@ -98,7 +122,7 @@ function DataImport() {
 
         {/* Upload Area */}
         <div>
-          <div className="border-2 border-dashed p-12 text-center hover:border-primary/50 hover:bg-accent/5 transition-all cursor-pointer">
+          <div className={`border-2 border-dashed p-12 text-center transition-all cursor-pointer ${useMockData ? 'opacity-50 pointer-events-none' : 'hover:border-primary/50 hover:bg-accent/5'}`}>
             <div className="flex flex-col items-center gap-4">
               <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
                 <Upload className="w-10 h-10 text-primary" />
@@ -116,6 +140,45 @@ function DataImport() {
                 .xlsx, .xls, .csv
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Mock Data Option */}
+        <div
+          className={`mt-6 p-6 border transition-colors cursor-pointer ${useMockData ? 'bg-primary/10 border-primary' : 'hover:bg-accent/50'}`}
+          onClick={() => setUseMockData(!useMockData)}
+        >
+          <div className="flex items-start gap-4">
+            <input
+              type="checkbox"
+              id="mock-data"
+              checked={useMockData}
+              onChange={() => setUseMockData(!useMockData)}
+              className="w-5 h-5 mt-1 rounded border-2 border-primary focus:ring-2 focus:ring-primary/50"
+            />
+            <label htmlFor="mock-data" className="flex-1 cursor-pointer">
+              <div className="flex items-center gap-2 font-medium mb-1">
+                <FlaskConical className="w-5 h-5 text-primary" />
+                Generate test data for exploration
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Create realistic mock data (50 products, 200 movements) to explore the application without needing a real WMS export
+              </div>
+              {useMockData && (
+                <div className="mt-3 p-3 bg-background rounded border">
+                  <div className="flex items-center gap-2 text-sm font-medium text-primary mb-2">
+                    <Database className="w-4 h-4" />
+                    Test data includes:
+                  </div>
+                  <ul className="text-sm text-muted-foreground space-y-1 ml-6">
+                    <li>• 50 products across 10 categories</li>
+                    <li>• 200 movements over 90 days</li>
+                    <li>• ABC classification data</li>
+                    <li>• Dead stock analysis samples</li>
+                  </ul>
+                </div>
+              )}
+            </label>
           </div>
         </div>
 
