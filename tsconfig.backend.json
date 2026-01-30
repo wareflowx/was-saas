@@ -13,7 +13,9 @@
     "strict": true,
     "noEmit": false,
     "allowImportingTsExtensions": false,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "emitDeclarationOnly": false,
+    "declaration": true
   },
   "include": [
     "src/backend/**/*",

@@ -5,12 +5,12 @@ const path = require('path')
 // IPC HANDLERS (Backend services)
 // ============================================================================
 
-const { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } = require('../dist-backend/backend/database/index.js')
-const queries = require('../dist-backend/backend/database/queries.js')
-const { registry, initializeDefaultPlugins } = require('../dist-backend/backend/import/plugins/registry.js')
-const importService = require('../dist-backend/backend/services/import-service.js')
-const pluginService = require('../dist-backend/backend/services/plugin-service.js')
-const analysis = require('../dist-backend/backend/analysis/index.js')
+const { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } = require('../dist-backend/backend/database/index.cjs')
+const queries = require('../dist-backend/backend/database/queries.cjs')
+const { registry, initializeDefaultPlugins } = require('../dist-backend/backend/import/plugins/registry.cjs')
+const importService = require('../dist-backend/backend/services/import-service.cjs')
+const pluginService = require('../dist-backend/backend/services/plugin-service.cjs')
+const analysis = require('../dist-backend/backend/analysis/index.cjs')
 
 // Register default plugins when app starts
 initializeDefaultPlugins()
@@ -168,7 +168,7 @@ function createWindow() {
   console.log('Creating window...')
   console.log('__dirname:', __dirname)
 
-  const preloadPath = path.join(__dirname, '..', 'dist-electron', 'preload', 'index.js')
+  const preloadPath = path.join(__dirname, '..', 'dist-electron', 'preload', 'index.cjs')
   console.log('Preload path:', preloadPath)
 
   const win = new BrowserWindow({
