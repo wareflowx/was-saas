@@ -1,8 +1,155 @@
-import { app, BrowserWindow, dialog } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// ============================================================================
+// IPC HANDLERS (Backend services)
+// ============================================================================
+
+import { initializeDatabase, getDatabase, closeDatabase } from '../dist-backend/database/index.js'
+import * as queries from '../dist-backend/database/queries.js'
+import { registry, initializeDefaultPlugins } from '../dist-backend/import/plugins/registry.js'
+
+// Register default plugins when app starts
+initializeDefaultPlugins()
+
+// ==========================================================================
+// PLUGINS
+// ==========================================================================
+
+ipcMain.handle('plugins:list', () => {
+  const plugins = Object.values(registry).map(plugin => ({
+    id: plugin.id,
+    name: plugin.name,
+    version: plugin.version,
+    description: plugin.description,
+    wmsSystem: plugin.wmsSystem,
+    supportedFormats: plugin.supportedFormats,
+  }))
+  return plugins
+})
+
+ipcMain.handle('plugins:get', (event, pluginId) => {
+  const plugin = registry[pluginId]
+  if (!plugin) {
+    return null
+  }
+  return {
+    id: plugin.id,
+    name: plugin.name,
+    version: plugin.version,
+    description: plugin.description,
+    wmsSystem: plugin.wmsSystem,
+    supportedFormats: plugin.supportedFormats,
+  }
+})
+
+// ==========================================================================
+// IMPORT WORKFLOW
+// ==========================================================================
+
+ipcMain.handle('import:validate', async (event, filePath, pluginId) => {
+  // TODO: Implement file validation
+  return { valid: true, errors: [] }
+})
+
+ipcMain.handle('import:execute', async (event, filePath, warehouseId, pluginId) => {
+  // TODO: Implement import execution
+  return {
+    status: 'success',
+    stats: {
+      rowsProcessed: 0,
+      productsImported: 0,
+      inventoryImported: 0,
+      movementsImported: 0,
+    },
+    duration: 0,
+    errors: [],
+  }
+})
+
+// ==========================================================================
+// DATABASE QUERIES
+// ==========================================================================
+
+ipcMain.handle('db:get-products', async (event, filters) => {
+  initializeDatabase()
+  return queries.getProductsByWarehouse(filters.warehouseId)
+})
+
+ipcMain.handle('db:get-inventory', async (event, filters) => {
+  initializeDatabase()
+  return queries.getInventoryByWarehouse(filters)
+})
+
+ipcMain.handle('db:get-movements', async (event, filters) => {
+  initializeDatabase()
+  return queries.getMovementsByWarehouse(filters)
+})
+
+ipcMain.handle('db:get-orders', async (event, filters) => {
+  initializeDatabase()
+  return queries.getOrdersByWarehouse(filters)
+})
+
+ipcMain.handle('db:get-stats', async () => {
+  initializeDatabase()
+  return queries.getDatabaseStats()
+})
+
+// ==========================================================================
+// WAREHOUSE MANAGEMENT
+// ==========================================================================
+
+ipcMain.handle('warehouse:getAll', async () => {
+  initializeDatabase()
+  return queries.getAllWarehouses()
+})
+
+ipcMain.handle('warehouse:exists', async (event, warehouseId) => {
+  initializeDatabase()
+  return queries.warehouseExists(warehouseId)
+})
+
+ipcMain.handle('warehouse:create', async (event, warehouse) => {
+  initializeDatabase()
+  return queries.createWarehouse(warehouse)
+})
+
+// ==========================================================================
+// ANALYTICS
+// ==========================================================================
+
+ipcMain.handle('analysis:abc', async (event, params) => {
+  initializeDatabase()
+  // TODO: Implement ABC analysis
+  return {}
+})
+
+ipcMain.handle('analysis:dead-stock', async (event, params) => {
+  initializeDatabase()
+  // TODO: Implement dead stock analysis
+  return {}
+})
+
+// ==========================================================================
+// UTILITIES
+// ==========================================================================
+
+ipcMain.handle('app:get-version', () => {
+  return { version: app.getVersion() }
+})
+
+// ==========================================================================
+// CLEANUP
+// ==========================================================================
+
+app.on('before-quit', () => {
+  console.log('App quitting, closing database...')
+  closeDatabase()
+})
 
 function createWindow() {
   console.log('Creating window...')
