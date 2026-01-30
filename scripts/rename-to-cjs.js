@@ -39,18 +39,30 @@ function fixRequires(dir) {
     } else if (file.endsWith('.cjs')) {
       let content = readFileSync(fullPath, 'utf-8')
 
-      // Fix relative requires from ./xxx to ./xxx.cjs
+      // Fix relative requires - but check if they're directories first
       const originalContent = content
-      content = content.replace(
-        /require\(['"]((?!\.\.\/)[^'"]+)['"]\)/g,
-        (match, path) => {
-          // Only fix relative requires that don't already have .cjs extension
-          if (path.startsWith('.') && !path.includes('.cjs') && !path.includes('.json')) {
-            return `require('${path}.cjs')`
+
+      // First, revert incorrectly fixed requires (directories that got .cjs appended)
+      // Check if the path without .cjs is a directory
+      const lines = content.split('\n')
+      for (let i = 0; i < lines.length; i++) {
+        lines[i] = lines[i].replace(
+          /require\(['"]((?!\.\.\/)[^'"]+)\.cjs['"]\)/g,
+          (match, pathWithoutExt) => {
+            const relativeDir = join(dir, pathWithoutExt)
+            try {
+              if (statSync(relativeDir).isDirectory()) {
+                // It's a directory, remove the .cjs extension
+                return `require('${pathWithoutExt}')`
+              }
+            } catch (err) {
+              // Not a directory or doesn't exist, keep .cjs
+            }
+            return match
           }
-          return match
-        }
-      )
+        )
+      }
+      content = lines.join('\n')
 
       if (content !== originalContent) {
         writeFileSync(fullPath, content)
