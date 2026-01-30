@@ -1,4 +1,5 @@
 import { genericExcelPlugin } from './generic-excel';
+import { mockDataGeneratorPlugin } from './mock-data-generator';
 // ============================================================================
 // PLUGIN REGISTRY
 // Record type containing all available plugins
@@ -58,6 +59,8 @@ export const pluginExists = (pluginId) => {
 export const initializeDefaultPlugins = () => {
     // Register Generic Excel plugin
     registerPlugin(genericExcelPlugin);
+    // Register Mock Data Generator plugin (for testing)
+    registerPlugin(mockDataGeneratorPlugin);
     // More plugins will be registered here as we implement them
     // - Solochain plugin
     // - other WMS plugins

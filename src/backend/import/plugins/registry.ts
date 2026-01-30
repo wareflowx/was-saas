@@ -1,5 +1,6 @@
 import type { ImportPlugin, PluginRegistry } from '../types'
 import { genericExcelPlugin } from './generic-excel'
+import { mockDataGeneratorPlugin } from './mock-data-generator'
 
 // ============================================================================
 // PLUGIN REGISTRY
@@ -69,6 +70,9 @@ export const pluginExists = (pluginId: string): boolean => {
 export const initializeDefaultPlugins = (): void => {
   // Register Generic Excel plugin
   registerPlugin(genericExcelPlugin)
+
+  // Register Mock Data Generator plugin (for testing)
+  registerPlugin(mockDataGeneratorPlugin)
 
   // More plugins will be registered here as we implement them
   // - Solochain plugin
