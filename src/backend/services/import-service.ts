@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import type { ImportPlugin, ImportResult, ValidationResult, TransformContext } from '../import/types'
+import type { ImportPlugin, ImportResult, ValidationResult, TransformContext, WMSInputData } from '../import/types'
 import { parseExcelFile, isValidExcelFile } from '../import/parser'
 
 /**
@@ -147,6 +147,98 @@ export const executeImport = async (
         {
           severity: 'error',
           message: `Import failed: ${error}`,
+          suggestion: 'Check the error details and try again',
+          canContinue: false,
+        },
+      ],
+      warnings,
+    }
+  }
+}
+
+/**
+ * Generate mock data for testing
+ * @param warehouseId - Target warehouse ID
+ * @param plugin - Mock data generator plugin
+ * @param onProgress - Optional progress callback
+ * @returns Import result
+ */
+export const generateMockData = async (
+  warehouseId: string,
+  plugin: ImportPlugin,
+  onProgress?: (progress: number, message: string) => void
+): Promise<ImportResult> => {
+  const startTime = Date.now()
+  const warnings: ValidationResult[] = []
+
+  try {
+    // Step 1: Generate mock data
+    onProgress?.(10, 'Generating mock data...')
+
+    const context: TransformContext = {
+      warehouseId,
+      pluginId: plugin.id,
+      onProgress: (progress: number, message: string) => {
+        onProgress?.(20 + progress * 0.6, message)
+      },
+    }
+
+    // Mock data generator doesn't need input data, provide empty WMSInputData
+    const emptyInput: WMSInputData = {
+      sheets: {},
+      metadata: {
+        filename: 'mock-data',
+        fileSize: 0,
+        uploadedAt: new Date(),
+      },
+    }
+
+    const normalizedData = plugin.transform(emptyInput, context)
+
+    onProgress?.(80, 'Loading data into database...')
+
+    // Import loader function
+    const { loadToDatabase } = await import('../import/loader')
+
+    // Step 2: Load to database
+    const stats = loadToDatabase(normalizedData)
+
+    onProgress?.(100, 'Mock data generated successfully!')
+
+    const duration = Date.now() - startTime
+
+    return {
+      status: 'success',
+      warehouseId,
+      pluginId: plugin.id,
+      stats: {
+        rowsProcessed: 0, // Not applicable for mock data
+        productsImported: stats.productsImported,
+        inventoryImported: stats.inventoryImported,
+        movementsImported: stats.movementsImported,
+      },
+      duration,
+      errors: [],
+      warnings,
+    }
+  } catch (error) {
+    const duration = Date.now() - startTime
+
+    return {
+      status: 'failed',
+      warehouseId,
+      pluginId: plugin.id,
+      stats: {
+        rowsProcessed: 0,
+        productsImported: 0,
+        inventoryImported: 0,
+        movementsImported: 0,
+      },
+      duration,
+      errors: [
+        {
+          severity: 'error',
+          message: `Mock data generation failed: ${error}`,
           suggestion: 'Check the error details and try again',
           canContinue: false,
         },

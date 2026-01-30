@@ -26,6 +26,10 @@ const electronAPI = {
      * Execute import
      */
     executeImport: (filePath, warehouseId, pluginId) => ipcRenderer.invoke('import:execute', filePath, warehouseId, pluginId),
+    /**
+     * Generate mock data for testing
+     */
+    generateMockData: (warehouseId, onProgress) => ipcRenderer.invoke('import:generate-mock-data', warehouseId, onProgress),
     // ==========================================================================
     // DATABASE QUERIES (all require explicit filters)
     // ===========================================================================

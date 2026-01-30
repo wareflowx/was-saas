@@ -65,7 +65,7 @@ export function useBackend() {
 
     getAllWarehouses: async (): Promise<readonly unknown[]> => {
       if (!isElectron) return []
-      return await (window as any).electronAPI.getAllWarehouses()
+      return await (window as any).electronAPI.getWarehouses()
     },
 
     createWarehouse: async (warehouse: {
@@ -125,11 +125,9 @@ export function useBackend() {
         throw new Error('Not in Electron environment')
       }
 
-      // Generate mock data using the mock-data-generator plugin
-      return await (window as any).electronAPI.executeImport(
-        '', // No file needed
+      // Generate mock data using dedicated endpoint
+      return await (window as any).electronAPI.generateMockData(
         warehouseId,
-        'mock-data-generator',
         onProgress
       )
     },

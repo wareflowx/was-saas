@@ -19,6 +19,19 @@ import * as analysis from '../dist-backend/analysis/index.js'
 initializeDefaultPlugins()
 
 // ==========================================================================
+// MOCK DATA GENERATION
+// ==========================================================================
+
+ipcMain.handle('import:generate-mock-data', async (event, warehouseId, onProgress) => {
+  initializeDatabase()
+  const plugin = pluginService.getPlugin('mock-data-generator')
+  if (!plugin) {
+    throw new Error('Mock data generator plugin not found')
+  }
+  return importService.generateMockData(warehouseId, plugin, onProgress)
+})
+
+// ==========================================================================
 // PLUGINS
 // ==========================================================================
 
