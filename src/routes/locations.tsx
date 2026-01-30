@@ -2,593 +2,79 @@ import { createFileRoute } from "@tanstack/react-router"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { LocationsPage } from "@/components/locations/LocationsPage"
-import type { LocationsData } from "@/types/entities"
+import { useLocations, useWarehouses } from "@/hooks/use-locations"
 
 export const Route = createFileRoute("/locations")({
   component: LocationsRoute,
 })
 
-// Demo data
-const demoData: LocationsData = {
-  kpis: {
-    totalLocations: 500,
-    availableLocations: 125,
-    occupiedLocations: 320,
-    blockedLocations: 15,
-    reservedLocations: 40,
-    totalCapacity: 25000,
-    usedCapacity: 18750,
-    averageOccupancy: 75,
-  },
-  locations: [
-    // Storage Zone A - High occupancy racks
-    {
-      id: "loc-1",
-      code: "A-01-01-01",
-      sectorId: "sec-1",
-      sectorName: "Sector A1",
-      zoneId: "zone-1",
-      zoneName: "Storage Zone A",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 95,
-      productCount: 3,
-      pickerCount: 1,
-      aisle: "A",
-      level: 1,
-      position: "01",
-      barcode: "7500012345678",
-      products: [
-        { id: "p1", sku: "WID-XL-001", name: "Widget XL", quantity: 50 },
-        { id: "p2", sku: "GAD-PRO-002", name: "Gadget Pro", quantity: 30 },
-        { id: "p3", sku: "COM-Z-003", name: "Component Z", quantity: 15 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:30:00Z",
-    },
-    {
-      id: "loc-2",
-      code: "A-01-01-02",
-      sectorId: "sec-1",
-      sectorName: "Sector A1",
-      zoneId: "zone-1",
-      zoneName: "Storage Zone A",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 88,
-      productCount: 2,
-      pickerCount: 0,
-      aisle: "A",
-      level: 1,
-      position: "02",
-      products: [
-        { id: "p4", sku: "PRO-A-001", name: "Product A", quantity: 50 },
-        { id: "p5", sku: "PRO-B-002", name: "Product B", quantity: 38 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:25:00Z",
-    },
-    {
-      id: "loc-3",
-      code: "A-01-02-01",
-      sectorId: "sec-1",
-      sectorName: "Sector A1",
-      zoneId: "zone-1",
-      zoneName: "Storage Zone A",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 92,
-      productCount: 4,
-      pickerCount: 1,
-      aisle: "A",
-      level: 1,
-      position: "03",
-      products: [
-        { id: "p6", sku: "ITM-X-001", name: "Item X", quantity: 25 },
-        { id: "p7", sku: "ITM-Y-002", name: "Item Y", quantity: 30 },
-        { id: "p8", sku: "ITM-Z-003", name: "Item Z", quantity: 22 },
-        { id: "p9", sku: "ITM-W-004", name: "Item W", quantity: 15 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T09:00:00Z",
-    },
-    {
-      id: "loc-4",
-      code: "A-01-02-02",
-      sectorId: "sec-1",
-      sectorName: "Sector A1",
-      zoneId: "zone-1",
-      zoneName: "Storage Zone A",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 0,
-      productCount: 0,
-      pickerCount: 0,
-      aisle: "A",
-      level: 1,
-      position: "04",
-      products: [],
-      status: "available",
-      lastUpdated: "2025-01-28T08:00:00Z",
-    },
-    // Receiving Zone - Floor locations
-    {
-      id: "loc-5",
-      code: "B-01-01-01",
-      sectorId: "sec-3",
-      sectorName: "Sector B1",
-      zoneId: "zone-2",
-      zoneName: "Receiving Zone",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "floor",
-      capacity: 200,
-      usedCapacity: 180,
-      productCount: 2,
-      pickerCount: 1,
-      aisle: "B",
-      level: 1,
-      position: "01",
-      products: [
-        { id: "p10", sku: "BLK-A-001", name: "Bulk A", quantity: 100 },
-        { id: "p11", sku: "BLK-B-002", name: "Bulk B", quantity: 80 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T11:00:00Z",
-    },
-    {
-      id: "loc-6",
-      code: "B-01-01-02",
-      sectorId: "sec-3",
-      sectorName: "Sector B1",
-      zoneId: "zone-2",
-      zoneName: "Receiving Zone",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "floor",
-      capacity: 200,
-      usedCapacity: 150,
-      productCount: 3,
-      pickerCount: 0,
-      aisle: "B",
-      level: 1,
-      position: "02",
-      products: [
-        { id: "p12", sku: "LRG-A-001", name: "Large A", quantity: 60 },
-        { id: "p13", sku: "LRG-B-002", name: "Large B", quantity: 50 },
-        { id: "p14", sku: "LRG-C-003", name: "Large C", quantity: 40 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:15:00Z",
-    },
-    {
-      id: "loc-7",
-      code: "B-01-02-01",
-      sectorId: "sec-3",
-      sectorName: "Sector B1",
-      zoneId: "zone-2",
-      zoneName: "Receiving Zone",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "pallet",
-      capacity: 150,
-      usedCapacity: 140,
-      productCount: 2,
-      pickerCount: 1,
-      aisle: "B",
-      level: 1,
-      position: "03",
-      products: [
-        { id: "p15", sku: "PLT-A-001", name: "Pallet A", quantity: 80 },
-        { id: "p16", sku: "PLT-B-002", name: "Pallet B", quantity: 60 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T09:45:00Z",
-    },
-    {
-      id: "loc-8",
-      code: "B-01-02-02",
-      sectorId: "sec-3",
-      sectorName: "Sector B1",
-      zoneId: "zone-2",
-      zoneName: "Receiving Zone",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "pallet",
-      capacity: 150,
-      usedCapacity: 0,
-      productCount: 0,
-      pickerCount: 0,
-      aisle: "B",
-      level: 1,
-      position: "04",
-      products: [],
-      status: "available",
-      lastUpdated: "2025-01-28T08:30:00Z",
-    },
-    // Picking Zone - Shelves
-    {
-      id: "loc-9",
-      code: "D-01-01-01",
-      sectorId: "sec-5",
-      sectorName: "Sector D1",
-      zoneId: "zone-4",
-      zoneName: "Picking Zone",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "shelf",
-      capacity: 50,
-      usedCapacity: 34,
-      productCount: 2,
-      pickerCount: 0,
-      aisle: "D",
-      level: 1,
-      position: "01",
-      products: [
-        { id: "p17", sku: "SML-A-001", name: "Small Part A", quantity: 20 },
-        { id: "p18", sku: "SML-B-002", name: "Small Part B", quantity: 14 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:45:00Z",
-    },
-    {
-      id: "loc-10",
-      code: "D-01-01-02",
-      sectorId: "sec-5",
-      sectorName: "Sector D1",
-      zoneId: "zone-4",
-      zoneName: "Picking Zone",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "shelf",
-      capacity: 50,
-      usedCapacity: 42,
-      productCount: 3,
-      pickerCount: 1,
-      aisle: "D",
-      level: 1,
-      position: "02",
-      products: [
-        { id: "p19", sku: "SML-C-001", name: "Small Part C", quantity: 15 },
-        { id: "p20", sku: "SML-D-002", name: "Small Part D", quantity: 15 },
-        { id: "p21", sku: "SML-E-003", name: "Small Part E", quantity: 12 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:20:00Z",
-    },
-    {
-      id: "loc-11",
-      code: "D-01-02-01",
-      sectorId: "sec-5",
-      sectorName: "Sector D1",
-      zoneId: "zone-4",
-      zoneName: "Picking Zone",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "bin",
-      capacity: 30,
-      usedCapacity: 28,
-      productCount: 2,
-      pickerCount: 0,
-      aisle: "D",
-      level: 1,
-      position: "03",
-      products: [
-        { id: "p22", sku: "TNY-A-001", name: "Tiny A", quantity: 15 },
-        { id: "p23", sku: "TNY-B-002", name: "Tiny B", quantity: 13 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T09:50:00Z",
-    },
-    {
-      id: "loc-12",
-      code: "D-01-02-02",
-      sectorId: "sec-5",
-      sectorName: "Sector D1",
-      zoneId: "zone-4",
-      zoneName: "Picking Zone",
-      warehouseId: "wh-1",
-      warehouseName: "Paris North Warehouse",
-      type: "bin",
-      capacity: 30,
-      usedCapacity: 10,
-      productCount: 1,
-      pickerCount: 0,
-      aisle: "D",
-      level: 1,
-      position: "04",
-      products: [
-        { id: "p24", sku: "TNY-C-001", name: "Tiny C", quantity: 10 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T08:15:00Z",
-    },
-    // Storage Zone B - Medium occupancy
-    {
-      id: "loc-13",
-      code: "E-01-01-01",
-      sectorId: "sec-6",
-      sectorName: "Sector E1",
-      zoneId: "zone-7",
-      zoneName: "Storage Zone B",
-      warehouseId: "wh-2",
-      warehouseName: "Lyon Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 80,
-      productCount: 2,
-      pickerCount: 1,
-      aisle: "E",
-      level: 1,
-      position: "01",
-      products: [
-        { id: "p25", sku: "MED-A-001", name: "Medium Item A", quantity: 50 },
-        { id: "p26", sku: "MED-B-002", name: "Medium Item B", quantity: 30 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T09:30:00Z",
-    },
-    {
-      id: "loc-14",
-      code: "E-01-01-02",
-      sectorId: "sec-6",
-      sectorName: "Sector E1",
-      zoneId: "zone-7",
-      zoneName: "Storage Zone B",
-      warehouseId: "wh-2",
-      warehouseName: "Lyon Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 45,
-      productCount: 1,
-      pickerCount: 0,
-      aisle: "E",
-      level: 1,
-      position: "02",
-      products: [
-        { id: "p27", sku: "MED-C-001", name: "Medium Item C", quantity: 45 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:10:00Z",
-    },
-    {
-      id: "loc-15",
-      code: "E-01-02-01",
-      sectorId: "sec-6",
-      sectorName: "Sector E1",
-      zoneId: "zone-7",
-      zoneName: "Storage Zone B",
-      warehouseId: "wh-2",
-      warehouseName: "Lyon Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 35,
-      productCount: 1,
-      pickerCount: 0,
-      aisle: "E",
-      level: 1,
-      position: "03",
-      products: [
-        { id: "p28", sku: "MED-D-001", name: "Medium Item D", quantity: 35 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T09:20:00Z",
-    },
-    {
-      id: "loc-16",
-      code: "E-01-02-02",
-      sectorId: "sec-6",
-      sectorName: "Sector E1",
-      zoneId: "zone-7",
-      zoneName: "Storage Zone B",
-      warehouseId: "wh-2",
-      warehouseName: "Lyon Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 0,
-      productCount: 0,
-      pickerCount: 0,
-      aisle: "E",
-      level: 1,
-      position: "04",
-      products: [],
-      status: "available",
-      lastUpdated: "2025-01-28T08:00:00Z",
-    },
-    // Storage Zone C - Full capacity
-    {
-      id: "loc-17",
-      code: "G-01-01-01",
-      sectorId: "sec-8",
-      sectorName: "Sector G1",
-      zoneId: "zone-11",
-      zoneName: "Storage Zone C",
-      warehouseId: "wh-3",
-      warehouseName: "Marseille Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 100,
-      productCount: 4,
-      pickerCount: 1,
-      aisle: "G",
-      level: 1,
-      position: "01",
-      products: [
-        { id: "p29", sku: "BLK-1-001", name: "Bulk Product 1", quantity: 30 },
-        { id: "p30", sku: "BLK-2-002", name: "Bulk Product 2", quantity: 25 },
-        { id: "p31", sku: "BLK-3-003", name: "Bulk Product 3", quantity: 25 },
-        { id: "p32", sku: "BLK-4-004", name: "Bulk Product 4", quantity: 20 },
-      ],
-      status: "full",
-      lastUpdated: "2025-01-28T11:00:00Z",
-    },
-    {
-      id: "loc-18",
-      code: "G-01-01-02",
-      sectorId: "sec-8",
-      sectorName: "Sector G1",
-      zoneId: "zone-11",
-      zoneName: "Storage Zone C",
-      warehouseId: "wh-3",
-      warehouseName: "Marseille Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 98,
-      productCount: 3,
-      pickerCount: 1,
-      aisle: "G",
-      level: 1,
-      position: "02",
-      products: [
-        { id: "p33", sku: "BLK-5-005", name: "Bulk Product 5", quantity: 40 },
-        { id: "p34", sku: "BLK-6-006", name: "Bulk Product 6", quantity: 30 },
-        { id: "p35", sku: "BLK-7-007", name: "Bulk Product 7", quantity: 28 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:50:00Z",
-    },
-    {
-      id: "loc-19",
-      code: "G-01-02-01",
-      sectorId: "sec-8",
-      sectorName: "Sector G1",
-      zoneId: "zone-11",
-      zoneName: "Storage Zone C",
-      warehouseId: "wh-3",
-      warehouseName: "Marseille Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 95,
-      productCount: 3,
-      pickerCount: 0,
-      aisle: "G",
-      level: 1,
-      position: "03",
-      products: [
-        { id: "p36", sku: "BLK-8-008", name: "Bulk Product 8", quantity: 35 },
-        { id: "p37", sku: "BLK-9-009", name: "Bulk Product 9", quantity: 30 },
-        { id: "p38", sku: "BLK-10-010", name: "Bulk Product 10", quantity: 30 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:00:00Z",
-    },
-    // Low occupancy zones
-    {
-      id: "loc-20",
-      code: "F-01-01-01",
-      sectorId: "sec-7",
-      sectorName: "Sector F1",
-      zoneId: "zone-8",
-      zoneName: "Receiving Zone",
-      warehouseId: "wh-2",
-      warehouseName: "Lyon Warehouse",
-      type: "floor",
-      capacity: 150,
-      usedCapacity: 30,
-      productCount: 1,
-      pickerCount: 0,
-      aisle: "F",
-      level: 1,
-      position: "01",
-      products: [
-        { id: "p39", sku: "LRG-X-001", name: "Large X", quantity: 30 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T08:00:00Z",
-    },
-    {
-      id: "loc-21",
-      code: "I-01-01-01",
-      sectorId: "sec-10",
-      sectorName: "Sector I1",
-      zoneId: "zone-15",
-      zoneName: "Picking Zone",
-      warehouseId: "wh-4",
-      warehouseName: "Bordeaux Warehouse",
-      type: "bin",
-      capacity: 30,
-      usedCapacity: 14,
-      productCount: 2,
-      pickerCount: 0,
-      aisle: "I",
-      level: 1,
-      position: "01",
-      products: [
-        { id: "p40", sku: "TNY-X-001", name: "Tiny Component X", quantity: 10 },
-        { id: "p41", sku: "TNY-Y-002", name: "Tiny Component Y", quantity: 4 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T10:30:00Z",
-    },
-    {
-      id: "loc-22",
-      code: "J-01-01-01",
-      sectorId: "sec-11",
-      sectorName: "Sector J1",
-      zoneId: "zone-16",
-      zoneName: "Storage Zone E",
-      warehouseId: "wh-5",
-      warehouseName: "Lille Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 20,
-      productCount: 1,
-      pickerCount: 0,
-      aisle: "J",
-      level: 1,
-      position: "01",
-      products: [
-        { id: "p42", sku: "LRG-A-001", name: "Large Item A", quantity: 20 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T09:45:00Z",
-    },
-    {
-      id: "loc-23",
-      code: "J-01-01-02",
-      sectorId: "sec-11",
-      sectorName: "Sector J1",
-      zoneId: "zone-16",
-      zoneName: "Storage Zone E",
-      warehouseId: "wh-5",
-      warehouseName: "Lille Warehouse",
-      type: "rack",
-      capacity: 100,
-      usedCapacity: 15,
-      productCount: 1,
-      pickerCount: 0,
-      aisle: "J",
-      level: 1,
-      position: "02",
-      products: [
-        { id: "p43", sku: "LRG-B-001", name: "Large Item B", quantity: 15 },
-      ],
-      status: "occupied",
-      lastUpdated: "2025-01-28T08:20:00Z",
-    },
-  ],
-}
-
 function LocationsRoute() {
+  // Fetch warehouses to get default warehouse ID
+  const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
+
+  // Fetch locations data from backend
+  const defaultWarehouseId = warehouses?.[0]?.id
+  const {
+    data: locationsData,
+    isLoading: isLoadingLocations,
+    error,
+  } = useLocations(defaultWarehouseId)
+
+  // Loading state
+  if (isLoadingWarehouses || isLoadingLocations) {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-muted-foreground">Loading locations...</div>
+          </main>
+        </div>
+      </SidebarProvider>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-destructive">Error loading locations: {error.message}</div>
+          </main>
+        </div>
+      </SidebarProvider>
+    )
+  }
+
+  // No data state
+  if (!locationsData || !warehouses?.length) {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-muted-foreground">
+              No locations found. Please complete the setup first.
+            </div>
+          </main>
+        </div>
+      </SidebarProvider>
+    )
+  }
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <main className="flex-1">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-2">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[back-filter]:bg-background/60 px-2">
             <SidebarTrigger />
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <LocationsPage data={demoData} />
+            <LocationsPage data={locationsData} />
           </div>
         </main>
       </div>
