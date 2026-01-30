@@ -89,6 +89,11 @@ ipcMain.handle('db:get-orders', async (event, filters) => {
   return queries.getOrdersByWarehouse(filters)
 })
 
+ipcMain.handle('db:get-locations', async (event, filters) => {
+  initializeDatabase()
+  return queries.getLocationsByWarehouse(filters.warehouseId)
+})
+
 ipcMain.handle('db:get-stats', async () => {
   initializeDatabase()
   return queries.getDatabaseStats()
