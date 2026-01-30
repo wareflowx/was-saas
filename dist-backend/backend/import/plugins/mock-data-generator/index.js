@@ -49,10 +49,13 @@ export const mockDataGeneratorPlugin = {
      */
     transform: (_input, context) => {
         const { warehouseId } = context;
-        // Generate mock data
+        // Generate mock data (zones, sectors, locations first, then products, inventory, movements)
+        const zones = generateMockZones(warehouseId);
+        const sectors = generateMockSectors(warehouseId, zones);
+        const locations = generateMockLocations(warehouseId, zones, sectors);
         const products = generateMockProducts(50);
-        const inventory = generateMockInventory(warehouseId, products);
-        const movements = generateMockMovements(warehouseId, products, 200);
+        const inventory = generateMockInventory(warehouseId, products, locations);
+        const movements = generateMockMovements(warehouseId, products, locations, 200);
         return {
             metadata: {
                 warehouseId,
@@ -64,12 +67,120 @@ export const mockDataGeneratorPlugin = {
             products,
             inventory,
             movements,
+            locations,
+            zones,
+            sectors,
         };
     },
 };
 // ============================================================================
 // DATA GENERATION FUNCTIONS
 // ============================================================================
+/**
+ * Generate mock zones
+ */
+function generateMockZones(warehouseId) {
+    const zones = [];
+    const zoneNames = ['Storage Zone A', 'Storage Zone B', 'Storage Zone C', 'Storage Zone D', 'Storage Zone E'];
+    for (let i = 0; i < 5; i++) {
+        zones.push({
+            id: `ZONE-${i + 1}`,
+            warehouseId,
+            code: `ZONE-${String(i + 1).padStart(3, '0')}`,
+            name: zoneNames[i],
+            type: 'storage',
+            surface: getRandomInt(500, 2000),
+            capacity: getRandomInt(1000, 5000),
+            status: 'active',
+        });
+    }
+    return zones;
+}
+/**
+ * Generate mock sectors
+ */
+function generateMockSectors(warehouseId, zones) {
+    const sectors = [];
+    const sectorTypes = ['PICKING', 'STORAGE', 'RECEPTION', 'SHIPPING', 'RESERVED'];
+    let sectorIndex = 0;
+    for (const zone of zones) {
+        for (const sectorType of sectorTypes) {
+            sectorIndex++;
+            sectors.push({
+                id: `SECTOR-${sectorIndex}`,
+                warehouseId,
+                zoneId: zone.id,
+                code: `${zone.code}-${sectorType.substring(0, 3)}`,
+                name: `${zone.name} - ${sectorType.charAt(0) + sectorType.slice(1).toLowerCase()}`,
+                type: sectorType.toLowerCase(),
+                capacity: getRandomInt(200, 1000),
+                status: 'active',
+            });
+        }
+    }
+    return sectors;
+}
+/**
+ * Generate mock locations with realistic warehouse structure
+ */
+function generateMockLocations(warehouseId, zones, sectors) {
+    const locations = [];
+    let locationIndex = 0;
+    for (let zoneIdx = 0; zoneIdx < zones.length; zoneIdx++) {
+        const zone = zones[zoneIdx];
+        for (let sectorIdx = 0; sectorIdx < sectors.length; sectorIdx++) {
+            const sector = sectors[sectorIdx];
+            // Only create locations for sectors in this zone
+            if (sector.zoneId !== zone.id)
+                continue;
+            // Generate 2 locations per sector
+            for (let locIdx = 0; locIdx < 2; locIdx++) {
+                locationIndex++;
+                const locationId = `LOC-${String(locationIndex).padStart(2, '0')}`;
+                const aisle = String.fromCharCode(65 + zoneIdx); // A, B, C, D, E
+                const level = (sectorIdx % 3) + 1;
+                const position = locIdx + 1;
+                // Determine status based on sector type
+                let status;
+                if (sector.type === 'reserved') {
+                    status = 'reserved';
+                }
+                else if (sector.type === 'reception') {
+                    status = Math.random() < 0.5 ? 'occupied' : 'available';
+                }
+                else if (sector.type === 'storage') {
+                    status = Math.random() < 0.7 ? 'occupied' : 'available';
+                }
+                else {
+                    status = 'available';
+                }
+                const capacity = getRandomInt(50, 500);
+                const usedCapacity = status === 'occupied' ? getRandomInt(10, capacity) : 0;
+                const productCount = status === 'occupied' ? getRandomInt(1, 5) : 0;
+                const pickerCount = sector.type === 'picking' ? getRandomInt(1, 3) : 0;
+                locations.push({
+                    id: locationId,
+                    code: `${aisle}-${level.toString().padStart(2, '0')}-${position.toString().padStart(2, '0')}`,
+                    type: sector.type,
+                    capacity,
+                    usedCapacity,
+                    productCount,
+                    pickerCount,
+                    aisle,
+                    level,
+                    position: position.toString(),
+                    barcode: `LOC-${locationId}`,
+                    status,
+                    zoneId: zone.id,
+                    sectorId: sector.id,
+                    warehouseId,
+                    updatedAt: new Date(),
+                });
+            }
+        }
+    }
+    return locations;
+}
 /**
  * Generate mock products with realistic data
  * Ensures different rotation levels for ABC analysis
@@ -125,14 +236,16 @@ function generateMockProducts(count) {
  * Generate mock inventory data
  * Ensures some products have low stock for testing
  */
-function generateMockInventory(warehouseId, products) {
+function generateMockInventory(warehouseId, products, locations) {
     const inventory = [];
     for (const product of products) {
         const quantity = getRandomInt(0, (product.maxStock || 100) * 2);
+        // Pick a random location that exists
+        const location = locations[getRandomInt(0, locations.length - 1)];
         inventory.push({
             warehouseId,
             productId: product.id,
-            locationId: `LOC-${getRandomInt(1, 20).toString().padStart(2, '0')}`,
+            locationId: location.id,
             quantity,
             availableQuantity: Math.floor(quantity * getRandomFloat(0.7, 1)),
             reservedQuantity: Math.floor(quantity * getRandomFloat(0, 0.3)),
@@ -144,7 +257,7 @@ function generateMockInventory(warehouseId, products) {
  * Generate mock movements with realistic patterns
  * Ensures different movement frequencies for ABC and Dead Stock analysis
  */
-function generateMockMovements(warehouseId, products, count) {
+function generateMockMovements(warehouseId, products, locations, count) {
     const movements = [];
     const now = new Date();
     const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
@@ -169,18 +282,21 @@ function generateMockMovements(warehouseId, products, count) {
             type = Math.random() < 0.6 ? 'inbound' : 'transfer';
         }
         const quantity = getRandomInt(1, 100);
+        // Pick random locations that actually exist
+        const sourceLoc = locations[getRandomInt(0, locations.length - 1)];
+        const destLoc = locations[getRandomInt(0, locations.length - 1)];
         movements.push({
             warehouseId,
             productId: product.id,
             productSku: product.sku,
             productName: product.name,
             type,
-            sourceLocationId: type === 'outbound' ? `LOC-${getRandomInt(1, 20).toString().padStart(2, '0')}` : undefined,
-            sourceZone: type === 'outbound' ? `ZONE-${getRandomInt(1, 5)}` : undefined,
-            sourceLocationCode: type === 'outbound' ? `A-${getRandomInt(1, 100)}` : undefined,
-            destinationLocationId: type === 'inbound' ? `LOC-${getRandomInt(1, 20).toString().padStart(2, '0')}` : undefined,
-            destinationZone: type === 'inbound' ? `ZONE-${getRandomInt(1, 5)}` : undefined,
-            destinationLocationCode: type === 'inbound' ? `A-${getRandomInt(1, 100)}` : undefined,
+            sourceLocationId: type === 'outbound' ? sourceLoc.id : undefined,
+            sourceZone: type === 'outbound' ? sourceLoc.zoneId : undefined,
+            sourceLocationCode: type === 'outbound' ? sourceLoc.code : undefined,
+            destinationLocationId: type === 'inbound' ? destLoc.id : undefined,
+            destinationZone: type === 'inbound' ? destLoc.zoneId : undefined,
+            destinationLocationCode: type === 'inbound' ? destLoc.code : undefined,
             quantity,
             unit: product.unit,
             movementDate,

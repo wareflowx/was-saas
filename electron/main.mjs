@@ -27,12 +27,16 @@ console.log('Database initialized at:', getDatabaseFilePath())
 // ==========================================================================
 
 ipcMain.handle('import:generate-mock-data', async (event, warehouseId, onProgress) => {
+  console.log('Generating mock data for warehouse:', warehouseId)
   initializeDatabase()
   const plugin = pluginService.getPlugin('mock-data-generator')
   if (!plugin) {
     throw new Error('Mock data generator plugin not found')
   }
-  return importService.generateMockData(warehouseId, plugin, onProgress)
+  console.log('Plugin found, starting generation...')
+  const result = await importService.generateMockData(warehouseId, plugin, onProgress)
+  console.log('Mock data generation result:', result)
+  return result
 })
 
 // ==========================================================================
@@ -109,17 +113,20 @@ ipcMain.handle('db:get-stats', async () => {
 
 ipcMain.handle('warehouse:getAll', async () => {
   initializeDatabase()
-  return getAllWarehouses()
-})
-
-ipcMain.handle('warehouse:exists', async (event, warehouseId) => {
-  initializeDatabase()
-  return warehouseExists(warehouseId)
+  const db = getDatabase()
+  const count = db.prepare('SELECT COUNT(*) as count FROM warehouses').get()
+  console.log('Warehouse count in DB:', count)
+  const warehouses = getAllWarehouses()
+  console.log('getAllWarehouses returned:', warehouses)
+  return warehouses
 })
 
 ipcMain.handle('warehouse:create', async (event, warehouse) => {
   initializeDatabase()
-  return createWarehouse(warehouse)
+  console.log('Creating warehouse:', warehouse)
+  const result = createWarehouse(warehouse)
+  console.log('Warehouse created:', result)
+  return result
 })
 
 // ==========================================================================

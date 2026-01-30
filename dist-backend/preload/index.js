@@ -49,6 +49,10 @@ const electronAPI = {
      * Get orders for a warehouse
      */
     getOrders: (filters) => ipcRenderer.invoke('db:get-orders', filters),
+    /**
+     * Get locations for a warehouse
+     */
+    getLocations: (filters) => ipcRenderer.invoke('db:get-locations', filters),
     // ==========================================================================
     // WAREHOUSE MANAGEMENT
     // ===========================================================================
