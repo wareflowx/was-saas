@@ -171,11 +171,14 @@ function createWindow() {
   console.log('Creating window...')
   console.log('__dirname:', __dirname)
 
+  const preloadPath = path.join(__dirname, '..', 'dist-electron', 'preload', 'index.js')
+  console.log('Preload path:', preloadPath)
+
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, '../dist-electron/preload/index.js'),
+      preload: preloadPath,
       nodeIntegration: false,
       contextIsolation: true
     }
