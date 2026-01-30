@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // IPC HANDLERS (Backend services)
 // ============================================================================
 
-import { initializeDatabase, getDatabase, closeDatabase } from '../dist-backend/database/index.js'
+import { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } from '../dist-backend/database/index.js'
 import * as queries from '../dist-backend/database/queries.js'
 import { registry, initializeDefaultPlugins } from '../dist-backend/import/plugins/registry.js'
 import * as importService from '../dist-backend/services/import-service.js'
@@ -17,6 +17,10 @@ import * as analysis from '../dist-backend/analysis/index.js'
 
 // Register default plugins when app starts
 initializeDefaultPlugins()
+
+// Initialize database on app startup
+initializeDatabase()
+console.log('Database initialized at:', getDatabaseFilePath())
 
 // ==========================================================================
 // MOCK DATA GENERATION
@@ -105,17 +109,17 @@ ipcMain.handle('db:get-stats', async () => {
 
 ipcMain.handle('warehouse:getAll', async () => {
   initializeDatabase()
-  return queries.getAllWarehouses()
+  return getAllWarehouses()
 })
 
 ipcMain.handle('warehouse:exists', async (event, warehouseId) => {
   initializeDatabase()
-  return queries.warehouseExists(warehouseId)
+  return warehouseExists(warehouseId)
 })
 
 ipcMain.handle('warehouse:create', async (event, warehouse) => {
   initializeDatabase()
-  return queries.createWarehouse(warehouse)
+  return createWarehouse(warehouse)
 })
 
 // ==========================================================================
