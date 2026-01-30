@@ -11,6 +11,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 import { initializeDatabase, getDatabase, closeDatabase } from '../dist-backend/database/index.js'
 import * as queries from '../dist-backend/database/queries.js'
 import { registry, initializeDefaultPlugins } from '../dist-backend/import/plugins/registry.js'
+import * as importService from '../dist-backend/services/import-service.js'
+import * as pluginService from '../dist-backend/services/plugin-service.js'
 
 // Register default plugins when app starts
 initializeDefaultPlugins()
@@ -20,30 +22,11 @@ initializeDefaultPlugins()
 // ==========================================================================
 
 ipcMain.handle('plugins:list', () => {
-  const plugins = Object.values(registry).map(plugin => ({
-    id: plugin.id,
-    name: plugin.name,
-    version: plugin.version,
-    description: plugin.description,
-    wmsSystem: plugin.wmsSystem,
-    supportedFormats: plugin.supportedFormats,
-  }))
-  return plugins
+  return pluginService.listPlugins()
 })
 
 ipcMain.handle('plugins:get', (event, pluginId) => {
-  const plugin = registry[pluginId]
-  if (!plugin) {
-    return null
-  }
-  return {
-    id: plugin.id,
-    name: plugin.name,
-    version: plugin.version,
-    description: plugin.description,
-    wmsSystem: plugin.wmsSystem,
-    supportedFormats: plugin.supportedFormats,
-  }
+  return pluginService.getPlugin(pluginId)
 })
 
 // ==========================================================================
@@ -51,23 +34,21 @@ ipcMain.handle('plugins:get', (event, pluginId) => {
 // ==========================================================================
 
 ipcMain.handle('import:validate', async (event, filePath, pluginId) => {
-  // TODO: Implement file validation
-  return { valid: true, errors: [] }
+  const plugin = pluginService.getPlugin(pluginId)
+  if (!plugin) {
+    throw new Error(`Plugin not found: ${pluginId}`)
+  }
+
+  return importService.validateImportFile(filePath, plugin)
 })
 
 ipcMain.handle('import:execute', async (event, filePath, warehouseId, pluginId) => {
-  // TODO: Implement import execution
-  return {
-    status: 'success',
-    stats: {
-      rowsProcessed: 0,
-      productsImported: 0,
-      inventoryImported: 0,
-      movementsImported: 0,
-    },
-    duration: 0,
-    errors: [],
+  const plugin = pluginService.getPlugin(pluginId)
+  if (!plugin) {
+    throw new Error(`Plugin not found: ${pluginId}`)
   }
+
+  return importService.executeImport(filePath, warehouseId, plugin)
 })
 
 // ==========================================================================
