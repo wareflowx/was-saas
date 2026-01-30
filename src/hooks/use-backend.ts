@@ -132,6 +132,15 @@ export function useBackend() {
       )
     },
 
+    getLocations: async (filters: {
+      warehouseId: string
+    }): Promise<unknown> => {
+      if (!isElectron) {
+        throw new Error('Not in Electron environment')
+      }
+      return await (window as any).electronAPI.getLocations(filters)
+    },
+
     // ==========================================================================
     // ANALYTICS
     // ==========================================================================
