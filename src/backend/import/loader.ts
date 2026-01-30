@@ -1,4 +1,4 @@
-import type { NormalizedData, Product, Inventory, Movement } from './types'
+import type { NormalizedData, Product, Inventory, Movement, Location, Zone, Sector } from './types'
 import { getDatabase } from '../database/index'
 
 /**
@@ -50,6 +50,137 @@ export const insertProducts = (products: readonly Product[]): number => {
   })
 
   insertMany(products)
+  return inserted
+}
+
+/**
+ * Insert zones into database
+ * @param zones - Array of zones to insert
+ * @returns Number of zones inserted
+ */
+export const insertZones = (zones: readonly Zone[]): number => {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO zones (
+      id, warehouse_id, code, name, type,
+      surface, capacity, status,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `)
+
+  let inserted = 0
+
+  const insertMany = db.transaction((zones: readonly Zone[]) => {
+    for (const zone of zones) {
+      try {
+        stmt.run(
+          zone.id,
+          zone.warehouseId,
+          zone.code,
+          zone.name,
+          zone.type,
+          zone.surface || null,
+          zone.capacity || null,
+          zone.status
+        )
+        inserted++
+      } catch (error) {
+        console.error(`Error inserting zone ${zone.code}:`, error)
+      }
+    }
+  })
+
+  insertMany(zones)
+  return inserted
+}
+
+/**
+ * Insert sectors into database
+ * @param sectors - Array of sectors to insert
+ * @returns Number of sectors inserted
+ */
+export const insertSectors = (sectors: readonly Sector[]): number => {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO sectors (
+      id, warehouse_id, zone_id, code, name, type,
+      capacity, status,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `)
+
+  let inserted = 0
+
+  const insertMany = db.transaction((sectors: readonly Sector[]) => {
+    for (const sector of sectors) {
+      try {
+        stmt.run(
+          sector.id,
+          sector.warehouseId,
+          sector.zoneId,
+          sector.code,
+          sector.name,
+          sector.type,
+          sector.capacity || null,
+          sector.status
+        )
+        inserted++
+      } catch (error) {
+        console.error(`Error inserting sector ${sector.code}:`, error)
+      }
+    }
+  })
+
+  insertMany(sectors)
+  return inserted
+}
+
+/**
+ * Insert locations into database
+ * @param locations - Array of locations to insert
+ * @returns Number of locations inserted
+ */
+export const insertLocations = (locations: readonly Location[]): number => {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO locations (
+      id, warehouse_id, zone_id, sector_id, code, type,
+      capacity, used_capacity, product_count, picker_count,
+      aisle, level, position, barcode, status,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `)
+
+  let inserted = 0
+
+  const insertMany = db.transaction((locations: readonly Location[]) => {
+    for (const location of locations) {
+      try {
+        stmt.run(
+          location.id,
+          location.warehouseId,
+          location.zoneId,
+          location.sectorId,
+          location.code,
+          location.type,
+          location.capacity || null,
+          location.usedCapacity || null,
+          location.productCount || null,
+          location.pickerCount || null,
+          location.aisle || null,
+          location.level || null,
+          location.position || null,
+          location.barcode || null,
+          location.status
+        )
+        inserted++
+      } catch (error) {
+        console.error(`Error inserting location ${location.code}:`, error)
+      }
+    }
+  })
+
+  insertMany(locations)
   return inserted
 }
 
@@ -169,6 +300,9 @@ export const loadToDatabase = (data: NormalizedData): {
   productsImported: number
   inventoryImported: number
   movementsImported: number
+  zonesImported?: number
+  sectorsImported?: number
+  locationsImported?: number
   ordersImported?: number
   pickingsImported?: number
   receptionsImported?: number
@@ -179,11 +313,29 @@ export const loadToDatabase = (data: NormalizedData): {
     productsImported: 0,
     inventoryImported: 0,
     movementsImported: 0,
+    zonesImported: 0,
+    sectorsImported: 0,
+    locationsImported: 0,
     ordersImported: 0,
     pickingsImported: 0,
     receptionsImported: 0,
     restockingsImported: 0,
     returnsImported: 0,
+  }
+
+  // Insert zones first (locations reference them)
+  if (data.zones && data.zones.length > 0) {
+    stats.zonesImported = insertZones(data.zones)
+  }
+
+  // Insert sectors (locations reference them)
+  if (data.sectors && data.sectors.length > 0) {
+    stats.sectorsImported = insertSectors(data.sectors)
+  }
+
+  // Insert locations (products and inventory reference them)
+  if (data.locations && data.locations.length > 0) {
+    stats.locationsImported = insertLocations(data.locations)
   }
 
   // Insert products

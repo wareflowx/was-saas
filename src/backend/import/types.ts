@@ -208,10 +208,15 @@ type Location = {
   readonly code: string
   readonly type: string
   readonly capacity?: number
+  readonly usedCapacity?: number
+  readonly productCount?: number
+  readonly pickerCount?: number
   readonly aisle?: string
   readonly level?: number
   readonly position?: string
+  readonly barcode?: string
   readonly status: string
+  readonly updatedAt?: Date
 }
 
 /**
@@ -534,6 +539,9 @@ type ImportResult = {
     readonly productsImported: number
     readonly inventoryImported: number
     readonly movementsImported: number
+    readonly zonesImported?: number
+    readonly sectorsImported?: number
+    readonly locationsImported?: number
     readonly ordersImported?: number
     readonly pickingsImported?: number
     readonly receptionsImported?: number
