@@ -308,3 +308,97 @@ export const getDeadStock = (warehouseId: string, thresholdDays: number = 90) =>
 
   return stmt.all(warehouseId, thresholdDays)
 }
+
+// ============================================================================
+// LOCATIONS
+// ============================================================================
+
+/**
+ * Get all locations for a specific warehouse
+ * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * @returns Array of locations with zone, sector, warehouse info and products
+ */
+export const getLocationsByWarehouse = (warehouseId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT DISTINCT
+      l.id,
+      l.code,
+      l.type,
+      l.capacity,
+      l.used_capacity as usedCapacity,
+      l.product_count as productCount,
+      l.picker_count as pickerCount,
+      l.aisle,
+      l.level,
+      l.position,
+      l.barcode,
+      l.status,
+      l.updated_at as lastUpdated,
+      z.id as zone_id,
+      z.name as zone_name,
+      z.code as zone_code,
+      s.id as sector_id,
+      s.name as sector_name,
+      s.code as sector_code,
+      w.id as warehouse_id,
+      w.name as warehouse_name,
+      w.code as warehouse_code,
+      -- For each location, get products as JSON array
+      (
+        SELECT GROUP_CONCAT(
+          json_object(
+            'id', p.id,
+            'sku', p.sku,
+            'name', p.name,
+            'quantity', i.quantity
+          ),
+          '|'
+        )
+        FROM inventory i2
+        JOIN products p ON i2.product_id = p.id
+        WHERE i2.location_id = l.id AND i2.warehouse_id = ?
+      ) as products_json
+    FROM locations l
+    LEFT JOIN zones z ON l.zone_id = z.id
+    LEFT JOIN sectors s ON l.sector_id = s.id
+    LEFT JOIN warehouses w ON l.warehouse_id = w.id
+    WHERE l.warehouse_id = ?
+    ORDER BY l.code
+  `)
+
+  const rows = stmt.all(warehouseId, warehouseId)
+
+  // Parse products_json and calculate KPIs
+  const locations = rows.map((row: any) => ({
+    ...row,
+    products: row.products_json
+      ? row.products_json.split('|').map((jsonStr: string) => JSON.parse(jsonStr))
+      : [],
+  }))
+
+  // Calculate KPIs
+  const totalLocations = locations.length
+  const availableLocations = locations.filter((l: any) => l.status === 'available').length
+  const occupiedLocations = locations.filter((l: any) => l.status === 'occupied').length
+  const blockedLocations = locations.filter((l: any) => l.status === 'blocked').length
+  const reservedLocations = locations.filter((l: any) => l.status === 'reserved').length
+
+  const totalCapacity = locations.reduce((sum: number, l: any) => sum + (l.capacity || 0), 0)
+  const usedCapacity = locations.reduce((sum: number, l: any) => sum + (l.usedCapacity || 0), 0)
+
+  return {
+    kpis: {
+      totalLocations,
+      availableLocations,
+      occupiedLocations,
+      blockedLocations,
+      reservedLocations,
+      totalCapacity,
+      usedCapacity,
+      averageOccupancy: totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0,
+    },
+    locations,
+  }
+}
