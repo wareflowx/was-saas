@@ -154,6 +154,14 @@ const electronAPI = {
   }): Promise<readonly unknown[]> =>
     ipcRenderer.invoke('db:get-orders', filters),
 
+  /**
+   * Get locations for a warehouse
+   */
+  getLocations: (filters: {
+    warehouseId: string
+  }): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-locations', filters),
+
   // ==========================================================================
   // WAREHOUSE MANAGEMENT
   // ===========================================================================
