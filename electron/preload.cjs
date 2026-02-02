@@ -15,9 +15,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // WAREHOUSE MANAGEMENT
   // ==========================================================================
 
-  getWarehouses: () => ipcRenderer.invoke('warehouse:getAll'),
+  getWarehouses: () => ipcRenderer.invoke('warehouse:get-all'),
 
-  getWarehousesWithKPIs: () => ipcRenderer.invoke('warehouse:getAllWithKPIs'),
+  getWarehousesWithKPIs: () => ipcRenderer.invoke('warehouse:get-all-with-kpis'),
 
   createWarehouse: (warehouse) => ipcRenderer.invoke('warehouse:create', warehouse),
 
@@ -67,9 +67,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ANALYTICS
   // ==========================================================================
 
-  runABCAnalysis: (params) => ipcRenderer.invoke('analysis:abc', params),
+  runABCAnalysis: (params) => ipcRenderer.invoke('analysis:run-abc', params),
 
-  runDeadStockAnalysis: (params) => ipcRenderer.invoke('analysis:dead-stock', params),
+  runDeadStockAnalysis: (params) => ipcRenderer.invoke('analysis:run-dead-stock', params),
 
   // ==========================================================================
   // UTILITIES

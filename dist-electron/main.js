@@ -35486,7 +35486,7 @@ function requireMain() {
     initializeDatabase();
     return queries2.getDatabaseStats();
   });
-  ipcMain.handle("warehouse:getAll", async () => {
+  ipcMain.handle("warehouse:get-all", async () => {
     initializeDatabase();
     const db = getDatabase();
     const count = db.prepare("SELECT COUNT(*) as count FROM warehouses").get();
@@ -35495,7 +35495,7 @@ function requireMain() {
     console.log("getAllWarehouses returned:", warehouses);
     return warehouses;
   });
-  ipcMain.handle("warehouse:getAllWithKPIs", async () => {
+  ipcMain.handle("warehouse:get-all-with-kpis", async () => {
     initializeDatabase();
     return queries2.getWarehousesWithKPIs();
   });
@@ -35519,12 +35519,12 @@ function requireMain() {
     initializeDatabase();
     return queries2.getDashboardKPIs(warehouseId);
   });
-  ipcMain.handle("analysis:abc", async (event, params) => {
+  ipcMain.handle("analysis:run-abc", async (event, params) => {
     initializeDatabase();
     const { warehouseId, dateFrom, dateTo } = params;
     return analysis2.runABCAnalysis(warehouseId, dateFrom, dateTo);
   });
-  ipcMain.handle("analysis:dead-stock", async (event, params) => {
+  ipcMain.handle("analysis:run-dead-stock", async (event, params) => {
     initializeDatabase();
     const { warehouseId, thresholdDays, criticalThreshold, warningThreshold } = params;
     return analysis2.runDeadStockAnalysis(
