@@ -336,15 +336,15 @@ export const getLocationsByWarehouse = (warehouseId: string) => {
       l.barcode,
       l.status,
       l.updated_at as lastUpdated,
-      z.id as zone_id,
-      z.name as zone_name,
-      z.code as zone_code,
-      s.id as sector_id,
-      s.name as sector_name,
-      s.code as sector_code,
-      w.id as warehouse_id,
-      w.name as warehouse_name,
-      w.code as warehouse_code,
+      z.id as zoneId,
+      z.name as zoneName,
+      z.code as zoneCode,
+      s.id as sectorId,
+      s.name as sectorName,
+      s.code as sectorCode,
+      w.id as warehouseId,
+      w.name as warehouseName,
+      w.code as warehouseCode,
       -- For each location, get products as JSON array
       (
         SELECT GROUP_CONCAT(
@@ -352,7 +352,7 @@ export const getLocationsByWarehouse = (warehouseId: string) => {
             'id', p.id,
             'sku', p.sku,
             'name', p.name,
-            'quantity', i.quantity
+            'quantity', i2.quantity
           ),
           '|'
         )
@@ -402,3 +402,139 @@ export const getLocationsByWarehouse = (warehouseId: string) => {
     locations,
   }
 }
+
+// ============================================================================
+// ZONES
+// ============================================================================
+
+/**
+ * Get all zones for a specific warehouse
+ * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * @returns Zones data with KPIs calculated
+ */
+export const getZonesByWarehouse = (warehouseId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT DISTINCT
+      z.id,
+      z.code,
+      z.name,
+      z.type,
+      z.surface,
+      z.capacity,
+      z.used_capacity as usedCapacity,
+      z.sector_count as sectorCount,
+      z.location_count as locationCount,
+      z.picker_count as pickerCount,
+      z.temperature_min as temperatureMin,
+      z.temperature_max as temperatureMax,
+      z.status,
+      z.updated_at as lastUpdated,
+      w.id as warehouseId,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM zones z
+    LEFT JOIN warehouses w ON z.warehouse_id = w.id
+    WHERE z.warehouse_id = ?
+    ORDER BY z.code
+  `)
+
+  const rows = stmt.all(warehouseId)
+
+  // Calculate KPIs
+  const totalZones = rows.length
+  const activeZones = rows.filter((r: any) => r.status === 'active').length
+  const totalSurface = rows.reduce((sum: number, r: any) => sum + (r.surface || 0), 0)
+  const totalCapacity = rows.reduce((sum: number, r: any) => sum + (r.capacity || 0), 0)
+  const usedCapacity = rows.reduce((sum: number, r: any) => sum + (r.usedCapacity || 0), 0)
+  const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
+
+  // Count zones by type
+  const zoneTypes: Record<string, number> = {}
+  rows.forEach((r: any) => {
+    zoneTypes[r.type] = (zoneTypes[r.type] || 0) + 1
+  })
+
+  return {
+    kpis: {
+      totalZones,
+      activeZones,
+      totalSurface,
+      totalCapacity,
+      usedCapacity,
+      averageOccupancy,
+      zoneTypes,
+    },
+    zones: rows,
+  }
+}
+
+// ============================================================================
+// SECTORS
+// ============================================================================
+
+/**
+ * Get all sectors for a specific warehouse
+ * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * @returns Sectors data with KPIs calculated
+ */
+export const getSectorsByWarehouse = (warehouseId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT DISTINCT
+      s.id,
+      s.code,
+      s.name,
+      s.type,
+      s.capacity,
+      s.used_capacity as usedCapacity,
+      s.location_count as locationCount,
+      s.picker_count as pickerCount,
+      s.aisle,
+      s.level,
+      s.position,
+      s.status,
+      s.updated_at as lastUpdated,
+      z.id as zoneId,
+      z.name as zoneName,
+      z.code as zoneCode,
+      w.id as warehouseId,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM sectors s
+    LEFT JOIN zones z ON s.zone_id = z.id
+    LEFT JOIN warehouses w ON s.warehouse_id = w.id
+    WHERE s.warehouse_id = ?
+    ORDER BY s.code
+  `)
+
+  const rows = stmt.all(warehouseId)
+
+  // Calculate KPIs
+  const totalSectors = rows.length
+  const activeSectors = rows.filter((r: any) => r.status === 'active').length
+  const totalCapacity = rows.reduce((sum: number, r: any) => sum + (r.capacity || 0), 0)
+  const usedCapacity = rows.reduce((sum: number, r: any) => sum + (r.usedCapacity || 0), 0)
+  const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
+
+  // Count sectors by type
+  const sectorTypes: Record<string, number> = {}
+  rows.forEach((r: any) => {
+    sectorTypes[r.type] = (sectorTypes[r.type] || 0) + 1
+  })
+
+  return {
+    kpis: {
+      totalSectors,
+      activeSectors,
+      totalCapacity,
+      usedCapacity,
+      averageOccupancy,
+      sectorTypes,
+    },
+    sectors: rows,
+  }
+}
+
