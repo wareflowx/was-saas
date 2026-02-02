@@ -69,7 +69,9 @@ export function useBackend() {
     },
 
     getWarehousesWithKPIs: async (): Promise<unknown> => {
-      if (!isElectron) throw new Error('Not in Electron environment')
+      if (!isElectron) {
+        return { kpis: {}, warehouses: [] }
+      }
       return await (window as any).electronAPI.getWarehousesWithKPIs()
     },
 
@@ -85,7 +87,10 @@ export function useBackend() {
       email?: string
       phone?: string
     }): Promise<unknown> => {
-      if (!isElectron) throw new Error('Not in Electron environment')
+      if (!isElectron) {
+        console.warn('createWarehouse: Not in Electron environment, returning mock')
+        return { ...warehouse, status: 'active' }
+      }
       return await (window as any).electronAPI.createWarehouse(warehouse)
     },
 
@@ -108,7 +113,23 @@ export function useBackend() {
       onProgress?: (progress: number, message: string) => void
     ): Promise<ImportResult> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        console.warn('executeImport: Not in Electron environment, returning mock')
+        onProgress?.(100, 'Import completed (web mode)')
+        return {
+          status: 'success',
+          warehouseId,
+          stats: {
+            productsImported: 50,
+            inventoryImported: 100,
+            movementsImported: 200,
+            zonesImported: 5,
+            sectorsImported: 10,
+            locationsImported: 50,
+          },
+          duration: 1000,
+          errors: [],
+          warnings: [],
+        }
       }
       return await (window as any).electronAPI.executeImport(
         filePath,
@@ -127,7 +148,23 @@ export function useBackend() {
       onProgress?: (progress: number, message: string) => void
     ): Promise<ImportResult> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        console.warn('generateMockData: Not in Electron environment, returning mock')
+        onProgress?.(100, 'Mock data generated (web mode)')
+        return {
+          status: 'success',
+          warehouseId,
+          stats: {
+            productsImported: 50,
+            inventoryImported: 100,
+            movementsImported: 200,
+            zonesImported: 5,
+            sectorsImported: 10,
+            locationsImported: 50,
+          },
+          duration: 1000,
+          errors: [],
+          warnings: [],
+        }
       }
 
       // Generate mock data using dedicated endpoint
@@ -141,7 +178,7 @@ export function useBackend() {
       warehouseId: string
     }): Promise<unknown> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        return { kpis: {}, locations: [] }
       }
       return await (window as any).electronAPI.getLocations(filters)
     },
@@ -150,7 +187,7 @@ export function useBackend() {
       warehouseId: string
     }): Promise<unknown> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        return { kpis: {}, zones: [] }
       }
       return await (window as any).electronAPI.getZones(filters)
     },
@@ -159,7 +196,7 @@ export function useBackend() {
       warehouseId: string
     }): Promise<unknown> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        return { kpis: {}, sectors: [] }
       }
       return await (window as any).electronAPI.getSectors(filters)
     },
@@ -176,7 +213,10 @@ export function useBackend() {
       }
     ): Promise<ABCAnalysisResult> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        return {
+          products: [],
+          summary: { totalProducts: 0, A: 0, B: 0, C: 0 },
+        } as ABCAnalysisResult
       }
       return await (window as any).electronAPI.runABCAnalysis(params)
     },
@@ -190,7 +230,10 @@ export function useBackend() {
       }
     ): Promise<DeadStockAnalysisResult> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        return {
+          products: [],
+          summary: { totalProducts: 0, critical: 0, warning: 0, healthy: 0 },
+        } as DeadStockAnalysisResult
       }
       return await (window as any).electronAPI.runDeadStockAnalysis(params)
     },
@@ -208,14 +251,27 @@ export function useBackend() {
 
     getImportHistory: async (warehouseId?: string): Promise<unknown> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        return []
       }
       return await (window as any).electronAPI.getImportHistory(warehouseId)
     },
 
     getDashboardKPIs: async (warehouseId?: string): Promise<unknown> => {
       if (!isElectron) {
-        throw new Error('Not in Electron environment')
+        return {
+          kpis: {
+            totalProducts: 0,
+            totalLocations: 0,
+            lowStockItems: 0,
+            activeOrders: 0,
+            movementsThisWeek: 0,
+          },
+          stockEvolution: [],
+          movementsByType: [],
+          topProducts: [],
+          lowStockAlerts: [],
+          recentMovements: [],
+        }
       }
       return await (window as any).electronAPI.getDashboardKPIs(warehouseId)
     },
