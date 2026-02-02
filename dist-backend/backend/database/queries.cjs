@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDashboardKPIs = exports.getImportHistory = exports.getWarehousesWithKPIs = exports.getSectorsByWarehouse = exports.getZonesByWarehouse = exports.getLocationsByWarehouse = exports.getDeadStock = exports.getProductMovementTotals = exports.getOrdersByWarehouse = exports.getLastMovementDate = exports.getMovementsByWarehouse = exports.getInventoryByWarehouse = exports.getProductBySku = exports.getProductById = exports.getProductsByWarehouse = void 0;
-const index_1 = require("./index");
+const index_1 = require("./index.cjs");
 // ============================================================================
 // PRODUCTS
 // ============================================================================

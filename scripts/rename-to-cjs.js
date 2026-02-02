@@ -39,39 +39,45 @@ function fixRequires(dir) {
     } else if (file.endsWith('.cjs')) {
       let content = readFileSync(fullPath, 'utf-8')
 
-      // Fix relative requires - but check if they're directories first
+      // Fix relative requires
       const originalContent = content
 
-      // First, revert incorrectly fixed requires (directories that got .cjs appended)
-      // Check if the path without .cjs is a directory
       const lines = content.split('\n')
       for (let i = 0; i < lines.length; i++) {
-        // Fix directory imports to point to index.cjs
+        // Fix relative imports without extensions
         lines[i] = lines[i].replace(
-          /require\(['"]((?!\.\.\/|\.\.\\)[^'"]+)['"]\)/g,
+          /require\(['"](\.\.\/|\.\/[^'"]+)['"]\)/g,
           (match, importPath) => {
             // Skip if already has extension
             if (importPath.endsWith('.cjs') || importPath.endsWith('.js')) {
               return match
             }
 
-            const relativeDir = join(dir, importPath)
+            const relativePath = join(dir, importPath)
+
+            // Try as file first
             try {
-              if (statSync(relativeDir).isDirectory()) {
-                // It's a directory, check if index.cjs exists inside
-                const indexCjsPath = join(relativeDir, 'index.cjs')
-                try {
-                  if (statSync(indexCjsPath).isFile()) {
-                    // Directory has index.cjs, use it
-                    return `require('${importPath}/index.cjs')`
-                  }
-                } catch (err) {
-                  // No index.cjs, keep original
+              const cjsFilePath = relativePath + '.cjs'
+              if (statSync(cjsFilePath).isFile()) {
+                return `require('${importPath}.cjs')`
+              }
+            } catch (err) {
+              // Not a .cjs file, try as directory
+            }
+
+            // Try as directory
+            try {
+              if (statSync(relativePath).isDirectory()) {
+                // Check if index.cjs exists inside
+                const indexCjsPath = join(relativePath, 'index.cjs')
+                if (statSync(indexCjsPath).isFile()) {
+                  return `require('${importPath}/index.cjs')`
                 }
               }
             } catch (err) {
-              // Not a directory or doesn't exist, keep original
+              // Not a directory, keep original
             }
+
             return match
           }
         )
