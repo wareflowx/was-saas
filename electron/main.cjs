@@ -225,7 +225,7 @@ function createWindow() {
     // Ouvre les DevTools en prod pour le debug
     win.webContents.openDevTools()
   }
-})
+}
 
 app.whenReady().then(() => {
   createWindow()

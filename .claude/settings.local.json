@@ -11,7 +11,8 @@
       "Bash(find:*)",
       "Bash(gh issue edit:*)",
       "Bash(pnpm tsc:*)",
-      "Bash(pnpm rename-to-cjs:*)"
+      "Bash(pnpm rename-to-cjs:*)",
+      "Bash(pnpm build:*)"
     ]
   }
 }

@@ -179,6 +179,7 @@ export function useBackend() {
       const fallbackResult: ImportResult = {
         status: 'success',
         warehouseId,
+        pluginId: pluginId,
         stats: {
           rowsProcessed: 415,
           productsImported: 50,
@@ -222,6 +223,7 @@ export function useBackend() {
       const fallbackResult: ImportResult = {
         status: 'success',
         warehouseId,
+        pluginId: 'mock-data-generator',
         stats: {
           rowsProcessed: 415,
           productsImported: 50,
@@ -310,10 +312,15 @@ export function useBackend() {
         () => (window as any).electronAPI.runABCAnalysis(params),
         {
           products: [],
-          summary: { totalProducts: 0, A: 0, B: 0, C: 0 },
+          summary: {
+            totalProducts: 0,
+            classA: { count: 0, contribution: 0 },
+            classB: { count: 0, contribution: 0 },
+            classC: { count: 0, contribution: 0 },
+          },
           totalQuantity: 0,
-          analysisDate: new Date().toISOString(),
-          parameters: { warehouseId: params.warehouseId, dateFrom: params.dateFrom || '', dateTo: params.dateTo || '' },
+          analysisDate: new Date(),
+          parameters: { warehouseId: params.warehouseId, dateFrom: params.dateFrom, dateTo: params.dateTo },
         },
         'runABCAnalysis'
       )
@@ -332,9 +339,21 @@ export function useBackend() {
         () => (window as any).electronAPI.runDeadStockAnalysis(params),
         {
           products: [],
-          summary: { totalProducts: 0, critical: 0, warning: 0, healthy: 0 },
-          analysisDate: new Date().toISOString(),
-          parameters: { warehouseId: params.warehouseId, thresholdDays: params.thresholdDays || 90 },
+          summary: {
+            totalProducts: 0,
+            deadStockProducts: 0,
+            totalTiedCapital: 0,
+            criticalLevel: { count: 0, tiedCapital: 0 },
+            warningLevel: { count: 0, tiedCapital: 0 },
+            monitorLevel: { count: 0, tiedCapital: 0 },
+          },
+          analysisDate: new Date(),
+          parameters: {
+            warehouseId: params.warehouseId,
+            thresholdDays: params.thresholdDays || 90,
+            criticalThreshold: params.criticalThreshold || 180,
+            warningThreshold: params.warningThreshold || 90,
+          },
         },
         'runDeadStockAnalysis'
       )
