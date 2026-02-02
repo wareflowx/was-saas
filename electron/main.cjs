@@ -24,16 +24,12 @@ console.log('Database initialized at:', getDatabaseFilePath())
 // ==========================================================================
 
 ipcMain.handle('import:generate-mock-data', async (event, warehouseId, onProgress) => {
-  console.log('Generating mock data for warehouse:', warehouseId)
   initializeDatabase()
   const plugin = pluginService.getPlugin('mock-data-generator')
   if (!plugin) {
     throw new Error('Mock data generator plugin not found')
   }
-  console.log('Plugin found, starting generation...')
-  const result = await importService.generateMockData(warehouseId, plugin, onProgress)
-  console.log('Mock data generation result:', result)
-  return result
+  return await importService.generateMockData(warehouseId, plugin, onProgress)
 })
 
 // ==========================================================================
@@ -120,12 +116,7 @@ ipcMain.handle('db:get-stats', async () => {
 
 ipcMain.handle('warehouse:get-all', async () => {
   initializeDatabase()
-  const db = getDatabase()
-  const count = db.prepare('SELECT COUNT(*) as count FROM warehouses').get()
-  console.log('Warehouse count in DB:', count)
-  const warehouses = getAllWarehouses()
-  console.log('getAllWarehouses returned:', warehouses)
-  return warehouses
+  return getAllWarehouses()
 })
 
 ipcMain.handle('warehouse:get-all-with-kpis', async () => {
@@ -135,18 +126,14 @@ ipcMain.handle('warehouse:get-all-with-kpis', async () => {
 
 ipcMain.handle('warehouse:create', async (event, warehouse) => {
   initializeDatabase()
-  console.log('Creating warehouse:', warehouse)
 
   // Check if warehouse already exists
   if (warehouseExists(warehouse.id)) {
-    console.log('Warehouse already exists, returning existing warehouse')
     const db = getDatabase()
     return db.prepare('SELECT * FROM warehouses WHERE id = ?').get(warehouse.id)
   }
 
-  const result = createWarehouse(warehouse)
-  console.log('Warehouse created:', result)
-  return result
+  return createWarehouse(warehouse)
 })
 
 ipcMain.handle('db:get-import-history', async (event, warehouseId) => {
@@ -198,11 +185,7 @@ app.on('before-quit', () => {
 })
 
 function createWindow() {
-  console.log('Creating window...')
-  console.log('__dirname:', __dirname)
-
   const preloadPath = path.join(__dirname, '..', 'dist-electron', 'preload.cjs')
-  console.log('Preload path:', preloadPath)
 
   const win = new BrowserWindow({
     width: 1200,
@@ -242,14 +225,9 @@ function createWindow() {
     // Ouvre les DevTools en prod pour le debug
     win.webContents.openDevTools()
   }
-
-  win.on('closed', () => {
-    console.log('Window closed')
-  })
-}
+})
 
 app.whenReady().then(() => {
-  console.log('App is ready, creating window...')
   createWindow()
 }).catch(err => {
   console.error('Failed to initialize app:', err)
@@ -257,7 +235,6 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
-  console.log('All windows closed')
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -265,7 +242,6 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    console.log('Activating app, creating window...')
     createWindow()
   }
 })

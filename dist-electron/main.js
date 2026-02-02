@@ -35423,16 +35423,12 @@ function requireMain() {
   initializeDatabase();
   console.log("Database initialized at:", getDatabaseFilePath());
   ipcMain.handle("import:generate-mock-data", async (event, warehouseId, onProgress) => {
-    console.log("Generating mock data for warehouse:", warehouseId);
     initializeDatabase();
     const plugin = pluginService2.getPlugin("mock-data-generator");
     if (!plugin) {
       throw new Error("Mock data generator plugin not found");
     }
-    console.log("Plugin found, starting generation...");
-    const result = await importService2.generateMockData(warehouseId, plugin, onProgress);
-    console.log("Mock data generation result:", result);
-    return result;
+    return await importService2.generateMockData(warehouseId, plugin, onProgress);
   });
   ipcMain.handle("plugins:list", () => {
     return pluginService2.listPlugins();
@@ -35488,12 +35484,7 @@ function requireMain() {
   });
   ipcMain.handle("warehouse:get-all", async () => {
     initializeDatabase();
-    const db = getDatabase();
-    const count = db.prepare("SELECT COUNT(*) as count FROM warehouses").get();
-    console.log("Warehouse count in DB:", count);
-    const warehouses = getAllWarehouses();
-    console.log("getAllWarehouses returned:", warehouses);
-    return warehouses;
+    return getAllWarehouses();
   });
   ipcMain.handle("warehouse:get-all-with-kpis", async () => {
     initializeDatabase();
@@ -35501,15 +35492,11 @@ function requireMain() {
   });
   ipcMain.handle("warehouse:create", async (event, warehouse) => {
     initializeDatabase();
-    console.log("Creating warehouse:", warehouse);
     if (warehouseExists(warehouse.id)) {
-      console.log("Warehouse already exists, returning existing warehouse");
       const db = getDatabase();
       return db.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
     }
-    const result = createWarehouse(warehouse);
-    console.log("Warehouse created:", result);
-    return result;
+    return createWarehouse(warehouse);
   });
   ipcMain.handle("db:get-import-history", async (event, warehouseId) => {
     initializeDatabase();
@@ -35542,10 +35529,7 @@ function requireMain() {
     closeDatabase();
   });
   function createWindow() {
-    console.log("Creating window...");
-    console.log("__dirname:", __dirname);
     const preloadPath = path.join(__dirname, "..", "dist-electron", "preload.cjs");
-    console.log("Preload path:", preloadPath);
     const win = new BrowserWindow({
       width: 1200,
       height: 800,
