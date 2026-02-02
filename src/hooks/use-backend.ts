@@ -45,6 +45,27 @@ type DatabaseStats = {
 // ============================================================================
 
 /**
+ * Helper function to safely execute IPC calls with error handling
+ */
+async function safeIpcCall<T>(
+  isElectron: boolean,
+  call: () => Promise<T>,
+  fallback: T,
+  context: string
+): Promise<T> {
+  if (!isElectron) {
+    return fallback
+  }
+
+  try {
+    return await call()
+  } catch (error) {
+    console.error(`IPC call failed [${context}]:`, error)
+    throw error
+  }
+}
+
+/**
  * Access backend services through Electron IPC
  * Only works in Electron environment, returns mock functions in web
  */
@@ -59,13 +80,21 @@ export function useBackend() {
     // ==========================================================================
 
     listPlugins: async (): Promise<readonly PluginInfo[]> => {
-      if (!isElectron) return []
-      return await (window as any).electronAPI.listPlugins()
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.listPlugins(),
+        [],
+        'listPlugins'
+      )
     },
 
     getPlugin: async (pluginId: string): Promise<ImportPlugin | null> => {
-      if (!isElectron) return null
-      return await (window as any).electronAPI.getPlugin(pluginId)
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getPlugin(pluginId),
+        null,
+        'getPlugin'
+      )
     },
 
     // ==========================================================================
@@ -73,15 +102,21 @@ export function useBackend() {
     // ==========================================================================
 
     getAllWarehouses: async (): Promise<readonly Warehouse[]> => {
-      if (!isElectron) return []
-      return await (window as any).electronAPI.getWarehouses()
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getWarehouses(),
+        [],
+        'getAllWarehouses'
+      )
     },
 
     getWarehousesWithKPIs: async (): Promise<WarehousesData> => {
-      if (!isElectron) {
-        return { kpis: { totalWarehouses: 0, activeWarehouses: 0, totalSurface: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0, trackedPickers: 0 }, warehouses: [] }
-      }
-      return await (window as any).electronAPI.getWarehousesWithKPIs()
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getWarehousesWithKPIs(),
+        { kpis: { totalWarehouses: 0, activeWarehouses: 0, totalSurface: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0, trackedPickers: 0 }, warehouses: [] },
+        'getWarehousesWithKPIs'
+      )
     },
 
     createWarehouse: async (warehouse: {
@@ -96,24 +131,27 @@ export function useBackend() {
       email?: string
       phone?: string
     }): Promise<Warehouse> => {
-      if (!isElectron) {
-        console.warn('createWarehouse: Not in Electron environment, returning mock')
-        return {
-          ...warehouse,
-          surface: warehouse.surface ?? 0,
-          capacity: warehouse.capacity ?? 0,
-          usedCapacity: 0,
-          zoneCount: 0,
-          pickerCount: 0,
-          manager: warehouse.manager ?? '',
-          email: warehouse.email ?? '',
-          phone: warehouse.phone ?? '',
-          status: 'active',
-          openingDate: new Date().toISOString(),
-          lastUpdated: new Date().toISOString(),
-        }
+      const fallbackWarehouse: Warehouse = {
+        ...warehouse,
+        surface: warehouse.surface ?? 0,
+        capacity: warehouse.capacity ?? 0,
+        usedCapacity: 0,
+        zoneCount: 0,
+        pickerCount: 0,
+        manager: warehouse.manager ?? '',
+        email: warehouse.email ?? '',
+        phone: warehouse.phone ?? '',
+        status: 'active',
+        openingDate: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
       }
-      return await (window as any).electronAPI.createWarehouse(warehouse)
+
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.createWarehouse(warehouse),
+        fallbackWarehouse,
+        'createWarehouse'
+      )
     },
 
     // ==========================================================================
@@ -124,8 +162,12 @@ export function useBackend() {
       filePath: string,
       pluginId: string
     ): Promise<ImportValidationResult> => {
-      if (!isElectron) return { valid: false, errors: [] }
-      return await (window as any).electronAPI.validateFile(filePath, pluginId)
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.validateFile(filePath, pluginId),
+        { valid: false, errors: [] },
+        'validateFile'
+      )
     },
 
     executeImport: async (
@@ -134,31 +176,38 @@ export function useBackend() {
       pluginId: string,
       onProgress?: (progress: number, message: string) => void
     ): Promise<ImportResult> => {
-      if (!isElectron) {
-        console.warn('executeImport: Not in Electron environment, returning mock')
-        onProgress?.(100, 'Import completed (web mode)')
-        return {
-          status: 'success',
-          warehouseId,
-          stats: {
-            productsImported: 50,
-            inventoryImported: 100,
-            movementsImported: 200,
-            zonesImported: 5,
-            sectorsImported: 10,
-            locationsImported: 50,
-          },
-          duration: 1000,
-          errors: [],
-          warnings: [],
-        }
-      }
-      return await (window as any).electronAPI.executeImport(
-        filePath,
+      const fallbackResult: ImportResult = {
+        status: 'success',
         warehouseId,
-        pluginId,
-        onProgress
-      )
+        stats: {
+          productsImported: 50,
+          inventoryImported: 100,
+          movementsImported: 200,
+          zonesImported: 5,
+          sectorsImported: 10,
+          locationsImported: 50,
+        },
+        duration: 1000,
+        errors: [],
+        warnings: [],
+      }
+
+      if (!isElectron) {
+        onProgress?.(100, 'Import completed (web mode)')
+        return fallbackResult
+      }
+
+      try {
+        return await (window as any).electronAPI.executeImport(
+          filePath,
+          warehouseId,
+          pluginId,
+          onProgress
+        )
+      } catch (error) {
+        console.error('IPC call failed [executeImport]:', error)
+        throw error
+      }
     },
 
     // ==========================================================================
@@ -169,67 +218,78 @@ export function useBackend() {
       warehouseId: string,
       onProgress?: (progress: number, message: string) => void
     ): Promise<ImportResult> => {
-      if (!isElectron) {
-        console.warn('generateMockData: Not in Electron environment, returning mock')
-        onProgress?.(100, 'Mock data generated (web mode)')
-        return {
-          status: 'success',
-          warehouseId,
-          stats: {
-            productsImported: 50,
-            inventoryImported: 100,
-            movementsImported: 200,
-            zonesImported: 5,
-            sectorsImported: 10,
-            locationsImported: 50,
-          },
-          duration: 1000,
-          errors: [],
-          warnings: [],
-        }
+      const fallbackResult: ImportResult = {
+        status: 'success',
+        warehouseId,
+        stats: {
+          productsImported: 50,
+          inventoryImported: 100,
+          movementsImported: 200,
+          zonesImported: 5,
+          sectorsImported: 10,
+          locationsImported: 50,
+        },
+        duration: 1000,
+        errors: [],
+        warnings: [],
       }
 
-      // Generate mock data using dedicated endpoint
-      return await (window as any).electronAPI.generateMockData(
-        warehouseId,
-        onProgress
-      )
+      if (!isElectron) {
+        onProgress?.(100, 'Mock data generated (web mode)')
+        return fallbackResult
+      }
+
+      try {
+        return await (window as any).electronAPI.generateMockData(
+          warehouseId,
+          onProgress
+        )
+      } catch (error) {
+        console.error('IPC call failed [generateMockData]:', error)
+        throw error
+      }
     },
 
     getLocations: async (filters: {
       warehouseId: string
     }): Promise<LocationsData> => {
-      if (!isElectron) {
-        return {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getLocations(filters),
+        {
           kpis: { totalLocations: 0, availableLocations: 0, occupiedLocations: 0, blockedLocations: 0, reservedLocations: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0 },
           locations: []
-        }
-      }
-      return await (window as any).electronAPI.getLocations(filters)
+        },
+        'getLocations'
+      )
     },
 
     getZones: async (filters: {
       warehouseId: string
     }): Promise<ZonesData> => {
-      if (!isElectron) {
-        return {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getZones(filters),
+        {
           kpis: { totalZones: 0, activeZones: 0, totalSurface: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0, zoneTypes: { storage: 0, receiving: 0, shipping: 0, picking: 0, packing: 0, cold_storage: 0, hazardous: 0 } },
           zones: []
-        }
-      }
-      return await (window as any).electronAPI.getZones(filters)
+        },
+        'getZones'
+      )
     },
 
     getSectors: async (filters: {
       warehouseId: string
     }): Promise<SectorsData> => {
-      if (!isElectron) {
-        return {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getSectors(filters),
+        {
           kpis: { totalSectors: 0, activeSectors: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0, sectorTypes: { rack: 0, shelf: 0, floor: 0, bin: 0, mezzanine: 0 } },
           sectors: []
-        }
-      }
-      return await (window as any).electronAPI.getSectors(filters)
+        },
+        'getSectors'
+      )
     },
 
     // ==========================================================================
@@ -243,13 +303,15 @@ export function useBackend() {
         dateTo?: string
       }
     ): Promise<ABCAnalysisResult> => {
-      if (!isElectron) {
-        return {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.runABCAnalysis(params),
+        {
           products: [],
           summary: { totalProducts: 0, A: 0, B: 0, C: 0 },
-        } as ABCAnalysisResult
-      }
-      return await (window as any).electronAPI.runABCAnalysis(params)
+        } as ABCAnalysisResult,
+        'runABCAnalysis'
+      )
     },
 
     runDeadStockAnalysis: async (
@@ -260,13 +322,15 @@ export function useBackend() {
         warningThreshold?: number
       }
     ): Promise<DeadStockAnalysisResult> => {
-      if (!isElectron) {
-        return {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.runDeadStockAnalysis(params),
+        {
           products: [],
           summary: { totalProducts: 0, critical: 0, warning: 0, healthy: 0 },
-        } as DeadStockAnalysisResult
-      }
-      return await (window as any).electronAPI.runDeadStockAnalysis(params)
+        } as DeadStockAnalysisResult,
+        'runDeadStockAnalysis'
+      )
     },
 
     // ==========================================================================
@@ -274,22 +338,28 @@ export function useBackend() {
     // ==========================================================================
 
     getDatabaseStats: async (): Promise<DatabaseStats> => {
-      if (!isElectron) {
-        return { tables: 0, sizeBytes: 0, sizeMB: 0 }
-      }
-      return await (window as any).electronAPI.getDatabaseStats()
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getDatabaseStats(),
+        { tables: 0, sizeBytes: 0, sizeMB: 0 },
+        'getDatabaseStats'
+      )
     },
 
     getImportHistory: async (warehouseId?: string): Promise<readonly ImportHistoryEntry[]> => {
-      if (!isElectron) {
-        return []
-      }
-      return await (window as any).electronAPI.getImportHistory(warehouseId)
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getImportHistory(warehouseId),
+        [],
+        'getImportHistory'
+      )
     },
 
     getDashboardKPIs: async (warehouseId?: string): Promise<DashboardData> => {
-      if (!isElectron) {
-        return {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getDashboardKPIs(warehouseId),
+        {
           kpis: {
             totalProducts: 0,
             totalLocations: 0,
@@ -302,9 +372,9 @@ export function useBackend() {
           topProducts: [],
           lowStockAlerts: [],
           recentMovements: [],
-        }
-      }
-      return await (window as any).electronAPI.getDashboardKPIs(warehouseId)
+        },
+        'getDashboardKPIs'
+      )
     },
   }
 }
