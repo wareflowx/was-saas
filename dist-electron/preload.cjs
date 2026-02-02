@@ -19,6 +19,7 @@ function requirePreload() {
     // WAREHOUSE MANAGEMENT
     // ==========================================================================
     getWarehouses: () => ipcRenderer.invoke("warehouse:getAll"),
+    getWarehousesWithKPIs: () => ipcRenderer.invoke("warehouse:getAllWithKPIs"),
     createWarehouse: (warehouse) => ipcRenderer.invoke("warehouse:create", warehouse),
     // ==========================================================================
     // IMPORT WORKFLOW
@@ -44,6 +45,8 @@ function requirePreload() {
     getMovements: (filters) => ipcRenderer.invoke("db:get-movements", filters),
     getOrders: (filters) => ipcRenderer.invoke("db:get-orders", filters),
     getDatabaseStats: () => ipcRenderer.invoke("db:get-stats"),
+    getImportHistory: (warehouseId) => ipcRenderer.invoke("db:get-import-history", warehouseId),
+    getDashboardKPIs: (warehouseId) => ipcRenderer.invoke("db:get-dashboard-kpis", warehouseId),
     // ==========================================================================
     // ANALYTICS
     // ==========================================================================

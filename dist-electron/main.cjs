@@ -1562,101 +1562,13 @@ function requireDatabase$1() {
   return database$2;
 }
 var queries$1 = {};
-var database = {};
-var hasRequiredDatabase;
-function requireDatabase() {
-  if (hasRequiredDatabase) return database;
-  hasRequiredDatabase = 1;
-  (function(exports$1) {
-    var __importDefault = database && database.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
-    Object.defineProperty(exports$1, "__esModule", { value: true });
-    exports$1.createWarehouse = exports$1.getAllWarehouses = exports$1.warehouseExists = exports$1.getDatabaseStats = exports$1.vacuumDatabase = exports$1.getDatabaseFilePath = exports$1.closeDatabase = exports$1.initializeDatabase = exports$1.getDatabase = void 0;
-    const better_sqlite3_1 = __importDefault(requireLib());
-    const electron_1 = require$$1$1;
-    const schema_1 = requireSchema();
-    let db = null;
-    const getDatabase = () => {
-      if (db) {
-        return db;
-      }
-      const userDataPath = electron_1.app.getPath("userData");
-      const dbPath = (0, schema_1.getDatabasePath)(userDataPath);
-      db = new better_sqlite3_1.default(dbPath);
-      db.pragma("foreign_keys = ON");
-      db.pragma("journal_mode = WAL");
-      return db;
-    };
-    exports$1.getDatabase = getDatabase;
-    const initializeDatabase = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      database2.exec(schema_1.DATABASE_SCHEMA);
-      const schemaVersion = database2.prepare("PRAGMA schema_version").get();
-      console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${schema_1.SCHEMA_VERSION}`);
-    };
-    exports$1.initializeDatabase = initializeDatabase;
-    const closeDatabase = () => {
-      if (db) {
-        db.close();
-        db = null;
-      }
-    };
-    exports$1.closeDatabase = closeDatabase;
-    const getDatabaseFilePath = () => {
-      const userDataPath = electron_1.app.getPath("userData");
-      return (0, schema_1.getDatabasePath)(userDataPath);
-    };
-    exports$1.getDatabaseFilePath = getDatabaseFilePath;
-    const vacuumDatabase = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      database2.exec("VACUUM");
-    };
-    exports$1.vacuumDatabase = vacuumDatabase;
-    const getDatabaseStats = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      const tableCount = database2.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'").get();
-      const databaseSize = database2.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get();
-      return {
-        tables: tableCount.count,
-        sizeBytes: databaseSize.size,
-        sizeMB: Math.round(databaseSize.size / 1024 / 1024 * 100) / 100
-      };
-    };
-    exports$1.getDatabaseStats = getDatabaseStats;
-    const warehouseExists = (warehouseId) => {
-      const database2 = (0, exports$1.getDatabase)();
-      const result = database2.prepare("SELECT COUNT(*) as count FROM warehouses WHERE id = ?").get(warehouseId);
-      return result.count > 0;
-    };
-    exports$1.warehouseExists = warehouseExists;
-    const getAllWarehouses = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      return database2.prepare("SELECT * FROM warehouses ORDER BY name").all();
-    };
-    exports$1.getAllWarehouses = getAllWarehouses;
-    const createWarehouse = (warehouse) => {
-      const database2 = (0, exports$1.getDatabase)();
-      const stmt = database2.prepare(`
-    INSERT INTO warehouses (
-      id, code, name, city, country, surface, capacity,
-      manager, email, phone, status, opening_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-  `);
-      stmt.run(warehouse.id, warehouse.code, warehouse.name, warehouse.city, warehouse.country, warehouse.surface || null, warehouse.capacity || null, warehouse.manager || null, warehouse.email || null, warehouse.phone || null, "active");
-      return database2.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
-    };
-    exports$1.createWarehouse = createWarehouse;
-  })(database);
-  return database;
-}
 var hasRequiredQueries$1;
 function requireQueries$1() {
   if (hasRequiredQueries$1) return queries$1;
   hasRequiredQueries$1 = 1;
   Object.defineProperty(queries$1, "__esModule", { value: true });
-  queries$1.getSectorsByWarehouse = queries$1.getZonesByWarehouse = queries$1.getLocationsByWarehouse = queries$1.getDeadStock = queries$1.getProductMovementTotals = queries$1.getOrdersByWarehouse = queries$1.getLastMovementDate = queries$1.getMovementsByWarehouse = queries$1.getInventoryByWarehouse = queries$1.getProductBySku = queries$1.getProductById = queries$1.getProductsByWarehouse = void 0;
-  const index_1 = requireDatabase();
+  queries$1.getDashboardKPIs = queries$1.getImportHistory = queries$1.getWarehousesWithKPIs = queries$1.getSectorsByWarehouse = queries$1.getZonesByWarehouse = queries$1.getLocationsByWarehouse = queries$1.getDeadStock = queries$1.getProductMovementTotals = queries$1.getOrdersByWarehouse = queries$1.getLastMovementDate = queries$1.getMovementsByWarehouse = queries$1.getInventoryByWarehouse = queries$1.getProductBySku = queries$1.getProductById = queries$1.getProductsByWarehouse = void 0;
+  const index_1 = requireDatabase$1();
   const getProductsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -2019,6 +1931,242 @@ function requireQueries$1() {
     };
   };
   queries$1.getSectorsByWarehouse = getSectorsByWarehouse;
+  const getWarehousesWithKPIs = () => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT
+      w.id,
+      w.code,
+      w.name,
+      w.city,
+      w.country,
+      w.surface,
+      w.capacity,
+      w.used_capacity as usedCapacity,
+      w.zone_count as zoneCount,
+      w.picker_count as pickerCount,
+      w.manager,
+      w.email,
+      w.phone,
+      w.status,
+      w.opening_date as openingDate,
+      w.updated_at as lastUpdated
+    FROM warehouses w
+    ORDER BY w.name
+  `);
+    const rows = stmt.all();
+    const totalWarehouses = rows.length;
+    const activeWarehouses = rows.filter((r) => r.status === "active").length;
+    const totalSurface = rows.reduce((sum, r) => sum + (r.surface || 0), 0);
+    const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0);
+    const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0);
+    const averageOccupancy = totalCapacity > 0 ? usedCapacity / totalCapacity * 100 : 0;
+    const trackedPickers = rows.reduce((sum, r) => sum + (r.pickerCount || 0), 0);
+    return {
+      kpis: {
+        totalWarehouses,
+        activeWarehouses,
+        totalSurface,
+        totalCapacity,
+        usedCapacity,
+        averageOccupancy,
+        trackedPickers
+      },
+      warehouses: rows
+    };
+  };
+  queries$1.getWarehousesWithKPIs = getWarehousesWithKPIs;
+  const getImportHistory = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    let stmt;
+    if (warehouseId) {
+      stmt = db.prepare(`
+      SELECT
+        ih.id,
+        ih.warehouse_id as warehouseId,
+        ih.plugin_id as pluginId,
+        ih.plugin_version as pluginVersion,
+        ih.imported_at as importedAt,
+        ih.rows_processed as rowsProcessed,
+        ih.status,
+        ih.file_name as fileName,
+        ih.file_size as fileSize,
+        ih.duration_ms as durationMs,
+        ih.error_message as errorMessage,
+        w.name as warehouseName,
+        w.code as warehouseCode
+      FROM import_history ih
+      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
+      WHERE ih.warehouse_id = ?
+      ORDER BY ih.imported_at DESC
+      LIMIT 50
+    `);
+      return stmt.all(warehouseId);
+    } else {
+      stmt = db.prepare(`
+      SELECT
+        ih.id,
+        ih.warehouse_id as warehouseId,
+        ih.plugin_id as pluginId,
+        ih.plugin_version as pluginVersion,
+        ih.imported_at as importedAt,
+        ih.rows_processed as rowsProcessed,
+        ih.status,
+        ih.file_name as fileName,
+        ih.file_size as fileSize,
+        ih.duration_ms as durationMs,
+        ih.error_message as errorMessage,
+        w.name as warehouseName,
+        w.code as warehouseCode
+      FROM import_history ih
+      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
+      ORDER BY ih.imported_at DESC
+      LIMIT 50
+    `);
+      return stmt.all();
+    }
+  };
+  queries$1.getImportHistory = getImportHistory;
+  const getDashboardKPIs = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    let whereParams = warehouseId ? [warehouseId] : [];
+    const productsStmt = db.prepare(`SELECT COUNT(*) as count FROM products`);
+    const totalProducts = productsStmt.get().count;
+    const locationsStmt = db.prepare(`SELECT COUNT(*) as count FROM locations ${warehouseId ? "WHERE warehouse_id = ?" : ""}`);
+    const totalLocations = locationsStmt.get(...whereParams).count;
+    const lowStockStmt = db.prepare(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM products p
+    INNER JOIN inventory i ON p.id = i.product_id
+    ${warehouseId ? "WHERE i.warehouse_id = ? AND" : "WHERE"}
+      i.quantity < p.min_stock
+  `);
+    const lowStockItems = lowStockStmt.get(...whereParams).count;
+    const ordersStmt = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM orders
+    ${warehouseId ? "WHERE warehouse_id = ? AND" : "WHERE"}
+      status IN ('pending', 'processing', 'picked')
+  `);
+    const activeOrders = ordersStmt.get(...whereParams).count;
+    const movementsStmt = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ? AND" : "WHERE"}
+      movement_date >= datetime('now', '-7 days')
+  `);
+    const movementsThisWeek = movementsStmt.get(...whereParams).count;
+    const stockEvolutionStmt = db.prepare(`
+    SELECT
+      date(movement_date) as date,
+      SUM(CASE WHEN type IN ('in', 'receipt') THEN quantity ELSE -quantity END) as stock
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
+      AND movement_date >= datetime('now', '-7 days')
+    GROUP BY date(movement_date)
+    ORDER BY date
+  `);
+    const stockEvolutionRows = stockEvolutionStmt.all(...whereParams);
+    let runningStock = 0;
+    const stockEvolution = stockEvolutionRows.map((row) => {
+      runningStock += row.stock;
+      return {
+        date: new Date(row.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        stock: runningStock
+      };
+    });
+    const movementsByTypeStmt = db.prepare(`
+    SELECT
+      type as movementType,
+      COUNT(*) as movements
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
+      AND movement_date >= datetime('now', '-7 days')
+    GROUP BY type
+  `);
+    const movementsByTypeRows = movementsByTypeStmt.all(...whereParams);
+    const typeColors = {
+      in: "hsl(var(--chart))",
+      inbound: "hsl(var(--chart))",
+      receipt: "hsl(var(--chart))",
+      out: "hsl(142, 76%, 36%)",
+      outbound: "hsl(142, 76%, 36%)",
+      shipment: "hsl(142, 76%, 36%)",
+      transfer: "hsl(25, 95%, 53%)",
+      adjustment: "hsl(25, 95%, 53%)"
+    };
+    const movementsByType = movementsByTypeRows.map((row) => ({
+      movementType: row.movementType,
+      movements: row.movements,
+      fill: typeColors[row.movementType] || "hsl(var(--muted))"
+    }));
+    const topProductsStmt = db.prepare(`
+    SELECT
+      product_name as product,
+      COUNT(*) as movements
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
+      AND movement_date >= datetime('now', '-30 days')
+    GROUP BY product_name
+    ORDER BY movements DESC
+    LIMIT 5
+  `);
+    const topProducts = topProductsStmt.all(...whereParams);
+    const lowStockAlertsStmt = db.prepare(`
+    SELECT
+      p.id,
+      p.name as product,
+      i.quantity as currentStock,
+      p.min_stock as minStock,
+      l.code as location,
+      CASE
+        WHEN i.quantity = 0 THEN 'critical'
+        WHEN i.quantity < p.min_stock * 0.5 THEN 'critical'
+        ELSE 'warning'
+      END as severity
+    FROM products p
+    INNER JOIN inventory i ON p.id = i.product_id
+    LEFT JOIN locations l ON i.location_id = l.id
+    ${warehouseId ? "WHERE i.warehouse_id = ? AND" : "WHERE"}
+      i.quantity < p.min_stock
+    ORDER BY i.quantity ASC
+    LIMIT 10
+  `);
+    const lowStockAlerts = lowStockAlertsStmt.all(...whereParams);
+    const recentMovementsStmt = db.prepare(`
+    SELECT
+      id,
+      date(movement_date) as date,
+      product_name as product,
+      type,
+      quantity as quantity,
+      destination_location_code as "to",
+      source_location_code as "from"
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
+    ORDER BY movement_date DESC
+    LIMIT 10
+  `);
+    const recentMovements = recentMovementsStmt.all(...whereParams).map((row) => ({
+      ...row,
+      type: row.type.toLowerCase()
+    }));
+    return {
+      kpis: {
+        totalProducts,
+        totalLocations,
+        lowStockItems,
+        activeOrders,
+        movementsThisWeek
+      },
+      stockEvolution,
+      movementsByType,
+      topProducts,
+      lowStockAlerts,
+      recentMovements
+    };
+  };
+  queries$1.getDashboardKPIs = getDashboardKPIs;
   return queries$1;
 }
 var registry$1 = {};
@@ -34578,6 +34726,94 @@ function requireParser() {
   return parser;
 }
 var loader = {};
+var database = {};
+var hasRequiredDatabase;
+function requireDatabase() {
+  if (hasRequiredDatabase) return database;
+  hasRequiredDatabase = 1;
+  (function(exports$1) {
+    var __importDefault = database && database.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    Object.defineProperty(exports$1, "__esModule", { value: true });
+    exports$1.createWarehouse = exports$1.getAllWarehouses = exports$1.warehouseExists = exports$1.getDatabaseStats = exports$1.vacuumDatabase = exports$1.getDatabaseFilePath = exports$1.closeDatabase = exports$1.initializeDatabase = exports$1.getDatabase = void 0;
+    const better_sqlite3_1 = __importDefault(requireLib());
+    const electron_1 = require$$1$1;
+    const schema_1 = requireSchema();
+    let db = null;
+    const getDatabase = () => {
+      if (db) {
+        return db;
+      }
+      const userDataPath = electron_1.app.getPath("userData");
+      const dbPath = (0, schema_1.getDatabasePath)(userDataPath);
+      db = new better_sqlite3_1.default(dbPath);
+      db.pragma("foreign_keys = ON");
+      db.pragma("journal_mode = WAL");
+      return db;
+    };
+    exports$1.getDatabase = getDatabase;
+    const initializeDatabase = () => {
+      const database2 = (0, exports$1.getDatabase)();
+      database2.exec(schema_1.DATABASE_SCHEMA);
+      const schemaVersion = database2.prepare("PRAGMA schema_version").get();
+      console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${schema_1.SCHEMA_VERSION}`);
+    };
+    exports$1.initializeDatabase = initializeDatabase;
+    const closeDatabase = () => {
+      if (db) {
+        db.close();
+        db = null;
+      }
+    };
+    exports$1.closeDatabase = closeDatabase;
+    const getDatabaseFilePath = () => {
+      const userDataPath = electron_1.app.getPath("userData");
+      return (0, schema_1.getDatabasePath)(userDataPath);
+    };
+    exports$1.getDatabaseFilePath = getDatabaseFilePath;
+    const vacuumDatabase = () => {
+      const database2 = (0, exports$1.getDatabase)();
+      database2.exec("VACUUM");
+    };
+    exports$1.vacuumDatabase = vacuumDatabase;
+    const getDatabaseStats = () => {
+      const database2 = (0, exports$1.getDatabase)();
+      const tableCount = database2.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'").get();
+      const databaseSize = database2.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get();
+      return {
+        tables: tableCount.count,
+        sizeBytes: databaseSize.size,
+        sizeMB: Math.round(databaseSize.size / 1024 / 1024 * 100) / 100
+      };
+    };
+    exports$1.getDatabaseStats = getDatabaseStats;
+    const warehouseExists = (warehouseId) => {
+      const database2 = (0, exports$1.getDatabase)();
+      const result = database2.prepare("SELECT COUNT(*) as count FROM warehouses WHERE id = ?").get(warehouseId);
+      return result.count > 0;
+    };
+    exports$1.warehouseExists = warehouseExists;
+    const getAllWarehouses = () => {
+      const database2 = (0, exports$1.getDatabase)();
+      return database2.prepare("SELECT * FROM warehouses ORDER BY name").all();
+    };
+    exports$1.getAllWarehouses = getAllWarehouses;
+    const createWarehouse = (warehouse) => {
+      const database2 = (0, exports$1.getDatabase)();
+      const stmt = database2.prepare(`
+    INSERT INTO warehouses (
+      id, code, name, city, country, surface, capacity,
+      manager, email, phone, status, opening_date
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `);
+      stmt.run(warehouse.id, warehouse.code, warehouse.name, warehouse.city, warehouse.country, warehouse.surface || null, warehouse.capacity || null, warehouse.manager || null, warehouse.email || null, warehouse.phone || null, "active");
+      return database2.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
+    };
+    exports$1.createWarehouse = createWarehouse;
+  })(database);
+  return database;
+}
 var hasRequiredLoader;
 function requireLoader() {
   if (hasRequiredLoader) return loader;
@@ -35101,8 +35337,8 @@ function requireQueries() {
   if (hasRequiredQueries) return queries;
   hasRequiredQueries = 1;
   Object.defineProperty(queries, "__esModule", { value: true });
-  queries.getSectorsByWarehouse = queries.getZonesByWarehouse = queries.getLocationsByWarehouse = queries.getDeadStock = queries.getProductMovementTotals = queries.getOrdersByWarehouse = queries.getLastMovementDate = queries.getMovementsByWarehouse = queries.getInventoryByWarehouse = queries.getProductBySku = queries.getProductById = queries.getProductsByWarehouse = void 0;
-  const index_1 = requireDatabase();
+  queries.getDashboardKPIs = queries.getImportHistory = queries.getWarehousesWithKPIs = queries.getSectorsByWarehouse = queries.getZonesByWarehouse = queries.getLocationsByWarehouse = queries.getDeadStock = queries.getProductMovementTotals = queries.getOrdersByWarehouse = queries.getLastMovementDate = queries.getMovementsByWarehouse = queries.getInventoryByWarehouse = queries.getProductBySku = queries.getProductById = queries.getProductsByWarehouse = void 0;
+  const index_1 = requireDatabase$1();
   const getProductsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -35465,6 +35701,242 @@ function requireQueries() {
     };
   };
   queries.getSectorsByWarehouse = getSectorsByWarehouse;
+  const getWarehousesWithKPIs = () => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT
+      w.id,
+      w.code,
+      w.name,
+      w.city,
+      w.country,
+      w.surface,
+      w.capacity,
+      w.used_capacity as usedCapacity,
+      w.zone_count as zoneCount,
+      w.picker_count as pickerCount,
+      w.manager,
+      w.email,
+      w.phone,
+      w.status,
+      w.opening_date as openingDate,
+      w.updated_at as lastUpdated
+    FROM warehouses w
+    ORDER BY w.name
+  `);
+    const rows = stmt.all();
+    const totalWarehouses = rows.length;
+    const activeWarehouses = rows.filter((r) => r.status === "active").length;
+    const totalSurface = rows.reduce((sum, r) => sum + (r.surface || 0), 0);
+    const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0);
+    const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0);
+    const averageOccupancy = totalCapacity > 0 ? usedCapacity / totalCapacity * 100 : 0;
+    const trackedPickers = rows.reduce((sum, r) => sum + (r.pickerCount || 0), 0);
+    return {
+      kpis: {
+        totalWarehouses,
+        activeWarehouses,
+        totalSurface,
+        totalCapacity,
+        usedCapacity,
+        averageOccupancy,
+        trackedPickers
+      },
+      warehouses: rows
+    };
+  };
+  queries.getWarehousesWithKPIs = getWarehousesWithKPIs;
+  const getImportHistory = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    let stmt;
+    if (warehouseId) {
+      stmt = db.prepare(`
+      SELECT
+        ih.id,
+        ih.warehouse_id as warehouseId,
+        ih.plugin_id as pluginId,
+        ih.plugin_version as pluginVersion,
+        ih.imported_at as importedAt,
+        ih.rows_processed as rowsProcessed,
+        ih.status,
+        ih.file_name as fileName,
+        ih.file_size as fileSize,
+        ih.duration_ms as durationMs,
+        ih.error_message as errorMessage,
+        w.name as warehouseName,
+        w.code as warehouseCode
+      FROM import_history ih
+      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
+      WHERE ih.warehouse_id = ?
+      ORDER BY ih.imported_at DESC
+      LIMIT 50
+    `);
+      return stmt.all(warehouseId);
+    } else {
+      stmt = db.prepare(`
+      SELECT
+        ih.id,
+        ih.warehouse_id as warehouseId,
+        ih.plugin_id as pluginId,
+        ih.plugin_version as pluginVersion,
+        ih.imported_at as importedAt,
+        ih.rows_processed as rowsProcessed,
+        ih.status,
+        ih.file_name as fileName,
+        ih.file_size as fileSize,
+        ih.duration_ms as durationMs,
+        ih.error_message as errorMessage,
+        w.name as warehouseName,
+        w.code as warehouseCode
+      FROM import_history ih
+      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
+      ORDER BY ih.imported_at DESC
+      LIMIT 50
+    `);
+      return stmt.all();
+    }
+  };
+  queries.getImportHistory = getImportHistory;
+  const getDashboardKPIs = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    let whereParams = warehouseId ? [warehouseId] : [];
+    const productsStmt = db.prepare(`SELECT COUNT(*) as count FROM products`);
+    const totalProducts = productsStmt.get().count;
+    const locationsStmt = db.prepare(`SELECT COUNT(*) as count FROM locations ${warehouseId ? "WHERE warehouse_id = ?" : ""}`);
+    const totalLocations = locationsStmt.get(...whereParams).count;
+    const lowStockStmt = db.prepare(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM products p
+    INNER JOIN inventory i ON p.id = i.product_id
+    ${warehouseId ? "WHERE i.warehouse_id = ? AND" : "WHERE"}
+      i.quantity < p.min_stock
+  `);
+    const lowStockItems = lowStockStmt.get(...whereParams).count;
+    const ordersStmt = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM orders
+    ${warehouseId ? "WHERE warehouse_id = ? AND" : "WHERE"}
+      status IN ('pending', 'processing', 'picked')
+  `);
+    const activeOrders = ordersStmt.get(...whereParams).count;
+    const movementsStmt = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ? AND" : "WHERE"}
+      movement_date >= datetime('now', '-7 days')
+  `);
+    const movementsThisWeek = movementsStmt.get(...whereParams).count;
+    const stockEvolutionStmt = db.prepare(`
+    SELECT
+      date(movement_date) as date,
+      SUM(CASE WHEN type IN ('in', 'receipt') THEN quantity ELSE -quantity END) as stock
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
+      AND movement_date >= datetime('now', '-7 days')
+    GROUP BY date(movement_date)
+    ORDER BY date
+  `);
+    const stockEvolutionRows = stockEvolutionStmt.all(...whereParams);
+    let runningStock = 0;
+    const stockEvolution = stockEvolutionRows.map((row) => {
+      runningStock += row.stock;
+      return {
+        date: new Date(row.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        stock: runningStock
+      };
+    });
+    const movementsByTypeStmt = db.prepare(`
+    SELECT
+      type as movementType,
+      COUNT(*) as movements
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
+      AND movement_date >= datetime('now', '-7 days')
+    GROUP BY type
+  `);
+    const movementsByTypeRows = movementsByTypeStmt.all(...whereParams);
+    const typeColors = {
+      in: "hsl(var(--chart))",
+      inbound: "hsl(var(--chart))",
+      receipt: "hsl(var(--chart))",
+      out: "hsl(142, 76%, 36%)",
+      outbound: "hsl(142, 76%, 36%)",
+      shipment: "hsl(142, 76%, 36%)",
+      transfer: "hsl(25, 95%, 53%)",
+      adjustment: "hsl(25, 95%, 53%)"
+    };
+    const movementsByType = movementsByTypeRows.map((row) => ({
+      movementType: row.movementType,
+      movements: row.movements,
+      fill: typeColors[row.movementType] || "hsl(var(--muted))"
+    }));
+    const topProductsStmt = db.prepare(`
+    SELECT
+      product_name as product,
+      COUNT(*) as movements
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
+      AND movement_date >= datetime('now', '-30 days')
+    GROUP BY product_name
+    ORDER BY movements DESC
+    LIMIT 5
+  `);
+    const topProducts = topProductsStmt.all(...whereParams);
+    const lowStockAlertsStmt = db.prepare(`
+    SELECT
+      p.id,
+      p.name as product,
+      i.quantity as currentStock,
+      p.min_stock as minStock,
+      l.code as location,
+      CASE
+        WHEN i.quantity = 0 THEN 'critical'
+        WHEN i.quantity < p.min_stock * 0.5 THEN 'critical'
+        ELSE 'warning'
+      END as severity
+    FROM products p
+    INNER JOIN inventory i ON p.id = i.product_id
+    LEFT JOIN locations l ON i.location_id = l.id
+    ${warehouseId ? "WHERE i.warehouse_id = ? AND" : "WHERE"}
+      i.quantity < p.min_stock
+    ORDER BY i.quantity ASC
+    LIMIT 10
+  `);
+    const lowStockAlerts = lowStockAlertsStmt.all(...whereParams);
+    const recentMovementsStmt = db.prepare(`
+    SELECT
+      id,
+      date(movement_date) as date,
+      product_name as product,
+      type,
+      quantity as quantity,
+      destination_location_code as "to",
+      source_location_code as "from"
+    FROM movements
+    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
+    ORDER BY movement_date DESC
+    LIMIT 10
+  `);
+    const recentMovements = recentMovementsStmt.all(...whereParams).map((row) => ({
+      ...row,
+      type: row.type.toLowerCase()
+    }));
+    return {
+      kpis: {
+        totalProducts,
+        totalLocations,
+        lowStockItems,
+        activeOrders,
+        movementsThisWeek
+      },
+      stockEvolution,
+      movementsByType,
+      topProducts,
+      lowStockAlerts,
+      recentMovements
+    };
+  };
+  queries.getDashboardKPIs = getDashboardKPIs;
   return queries;
 }
 var hasRequiredAbcAnalysis;
@@ -35758,6 +36230,10 @@ function requireMain() {
     console.log("getAllWarehouses returned:", warehouses);
     return warehouses;
   });
+  ipcMain.handle("warehouse:getAllWithKPIs", async () => {
+    initializeDatabase();
+    return queries2.getWarehousesWithKPIs();
+  });
   ipcMain.handle("warehouse:create", async (event, warehouse) => {
     initializeDatabase();
     console.log("Creating warehouse:", warehouse);
@@ -35769,6 +36245,14 @@ function requireMain() {
     const result = createWarehouse(warehouse);
     console.log("Warehouse created:", result);
     return result;
+  });
+  ipcMain.handle("db:get-import-history", async (event, warehouseId) => {
+    initializeDatabase();
+    return queries2.getImportHistory(warehouseId);
+  });
+  ipcMain.handle("db:get-dashboard-kpis", async (event, warehouseId) => {
+    initializeDatabase();
+    return queries2.getDashboardKPIs(warehouseId);
   });
   ipcMain.handle("analysis:abc", async (event, params) => {
     initializeDatabase();

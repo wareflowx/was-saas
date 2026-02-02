@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateMockData = exports.executeImport = exports.validateImportFile = void 0;
 const fs = __importStar(require("fs"));
-const parser_1 = require("../import/parser");
+const parser_1 = require("../import/parser.cjs");
 /**
  * Validate file with selected plugin
  * @param filePath - Path to Excel file
@@ -116,7 +116,7 @@ const executeImport = async (filePath, warehouseId, plugin, onProgress) => {
         const normalizedData = plugin.transform(inputData, context);
         onProgress?.(80, 'Loading data into database...');
         // Import loader function
-        const { loadToDatabase } = await Promise.resolve().then(() => __importStar(require('../import/loader')));
+        const { loadToDatabase } = await Promise.resolve().then(() => __importStar(require('../import/loader.cjs')));
         // Step 3: Load to database
         const stats = loadToDatabase(normalizedData);
         onProgress?.(100, 'Import completed!');
@@ -200,7 +200,7 @@ const generateMockData = async (warehouseId, plugin, onProgress) => {
         const normalizedData = plugin.transform(emptyInput, context);
         onProgress?.(80, 'Loading data into database...');
         // Import loader function
-        const { loadToDatabase } = await Promise.resolve().then(() => __importStar(require('../import/loader')));
+        const { loadToDatabase } = await Promise.resolve().then(() => __importStar(require('../import/loader.cjs')));
         // Step 2: Load to database
         const stats = loadToDatabase(normalizedData);
         onProgress?.(100, 'Mock data generated successfully!');

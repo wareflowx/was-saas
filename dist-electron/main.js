@@ -1562,101 +1562,13 @@ function requireDatabase$1() {
   return database$2;
 }
 var queries$1 = {};
-var database = {};
-var hasRequiredDatabase;
-function requireDatabase() {
-  if (hasRequiredDatabase) return database;
-  hasRequiredDatabase = 1;
-  (function(exports$1) {
-    var __importDefault = database && database.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
-    Object.defineProperty(exports$1, "__esModule", { value: true });
-    exports$1.createWarehouse = exports$1.getAllWarehouses = exports$1.warehouseExists = exports$1.getDatabaseStats = exports$1.vacuumDatabase = exports$1.getDatabaseFilePath = exports$1.closeDatabase = exports$1.initializeDatabase = exports$1.getDatabase = void 0;
-    const better_sqlite3_1 = __importDefault(requireLib());
-    const electron_1 = require$$1$1;
-    const schema_1 = requireSchema();
-    let db = null;
-    const getDatabase = () => {
-      if (db) {
-        return db;
-      }
-      const userDataPath = electron_1.app.getPath("userData");
-      const dbPath = (0, schema_1.getDatabasePath)(userDataPath);
-      db = new better_sqlite3_1.default(dbPath);
-      db.pragma("foreign_keys = ON");
-      db.pragma("journal_mode = WAL");
-      return db;
-    };
-    exports$1.getDatabase = getDatabase;
-    const initializeDatabase = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      database2.exec(schema_1.DATABASE_SCHEMA);
-      const schemaVersion = database2.prepare("PRAGMA schema_version").get();
-      console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${schema_1.SCHEMA_VERSION}`);
-    };
-    exports$1.initializeDatabase = initializeDatabase;
-    const closeDatabase = () => {
-      if (db) {
-        db.close();
-        db = null;
-      }
-    };
-    exports$1.closeDatabase = closeDatabase;
-    const getDatabaseFilePath = () => {
-      const userDataPath = electron_1.app.getPath("userData");
-      return (0, schema_1.getDatabasePath)(userDataPath);
-    };
-    exports$1.getDatabaseFilePath = getDatabaseFilePath;
-    const vacuumDatabase = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      database2.exec("VACUUM");
-    };
-    exports$1.vacuumDatabase = vacuumDatabase;
-    const getDatabaseStats = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      const tableCount = database2.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'").get();
-      const databaseSize = database2.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get();
-      return {
-        tables: tableCount.count,
-        sizeBytes: databaseSize.size,
-        sizeMB: Math.round(databaseSize.size / 1024 / 1024 * 100) / 100
-      };
-    };
-    exports$1.getDatabaseStats = getDatabaseStats;
-    const warehouseExists = (warehouseId) => {
-      const database2 = (0, exports$1.getDatabase)();
-      const result = database2.prepare("SELECT COUNT(*) as count FROM warehouses WHERE id = ?").get(warehouseId);
-      return result.count > 0;
-    };
-    exports$1.warehouseExists = warehouseExists;
-    const getAllWarehouses = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      return database2.prepare("SELECT * FROM warehouses ORDER BY name").all();
-    };
-    exports$1.getAllWarehouses = getAllWarehouses;
-    const createWarehouse = (warehouse) => {
-      const database2 = (0, exports$1.getDatabase)();
-      const stmt = database2.prepare(`
-    INSERT INTO warehouses (
-      id, code, name, city, country, surface, capacity,
-      manager, email, phone, status, opening_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-  `);
-      stmt.run(warehouse.id, warehouse.code, warehouse.name, warehouse.city, warehouse.country, warehouse.surface || null, warehouse.capacity || null, warehouse.manager || null, warehouse.email || null, warehouse.phone || null, "active");
-      return database2.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
-    };
-    exports$1.createWarehouse = createWarehouse;
-  })(database);
-  return database;
-}
 var hasRequiredQueries$1;
 function requireQueries$1() {
   if (hasRequiredQueries$1) return queries$1;
   hasRequiredQueries$1 = 1;
   Object.defineProperty(queries$1, "__esModule", { value: true });
   queries$1.getDashboardKPIs = queries$1.getImportHistory = queries$1.getWarehousesWithKPIs = queries$1.getSectorsByWarehouse = queries$1.getZonesByWarehouse = queries$1.getLocationsByWarehouse = queries$1.getDeadStock = queries$1.getProductMovementTotals = queries$1.getOrdersByWarehouse = queries$1.getLastMovementDate = queries$1.getMovementsByWarehouse = queries$1.getInventoryByWarehouse = queries$1.getProductBySku = queries$1.getProductById = queries$1.getProductsByWarehouse = void 0;
-  const index_1 = requireDatabase();
+  const index_1 = requireDatabase$1();
   const getProductsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -34814,6 +34726,94 @@ function requireParser() {
   return parser;
 }
 var loader = {};
+var database = {};
+var hasRequiredDatabase;
+function requireDatabase() {
+  if (hasRequiredDatabase) return database;
+  hasRequiredDatabase = 1;
+  (function(exports$1) {
+    var __importDefault = database && database.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    Object.defineProperty(exports$1, "__esModule", { value: true });
+    exports$1.createWarehouse = exports$1.getAllWarehouses = exports$1.warehouseExists = exports$1.getDatabaseStats = exports$1.vacuumDatabase = exports$1.getDatabaseFilePath = exports$1.closeDatabase = exports$1.initializeDatabase = exports$1.getDatabase = void 0;
+    const better_sqlite3_1 = __importDefault(requireLib());
+    const electron_1 = require$$1$1;
+    const schema_1 = requireSchema();
+    let db = null;
+    const getDatabase = () => {
+      if (db) {
+        return db;
+      }
+      const userDataPath = electron_1.app.getPath("userData");
+      const dbPath = (0, schema_1.getDatabasePath)(userDataPath);
+      db = new better_sqlite3_1.default(dbPath);
+      db.pragma("foreign_keys = ON");
+      db.pragma("journal_mode = WAL");
+      return db;
+    };
+    exports$1.getDatabase = getDatabase;
+    const initializeDatabase = () => {
+      const database2 = (0, exports$1.getDatabase)();
+      database2.exec(schema_1.DATABASE_SCHEMA);
+      const schemaVersion = database2.prepare("PRAGMA schema_version").get();
+      console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${schema_1.SCHEMA_VERSION}`);
+    };
+    exports$1.initializeDatabase = initializeDatabase;
+    const closeDatabase = () => {
+      if (db) {
+        db.close();
+        db = null;
+      }
+    };
+    exports$1.closeDatabase = closeDatabase;
+    const getDatabaseFilePath = () => {
+      const userDataPath = electron_1.app.getPath("userData");
+      return (0, schema_1.getDatabasePath)(userDataPath);
+    };
+    exports$1.getDatabaseFilePath = getDatabaseFilePath;
+    const vacuumDatabase = () => {
+      const database2 = (0, exports$1.getDatabase)();
+      database2.exec("VACUUM");
+    };
+    exports$1.vacuumDatabase = vacuumDatabase;
+    const getDatabaseStats = () => {
+      const database2 = (0, exports$1.getDatabase)();
+      const tableCount = database2.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'").get();
+      const databaseSize = database2.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get();
+      return {
+        tables: tableCount.count,
+        sizeBytes: databaseSize.size,
+        sizeMB: Math.round(databaseSize.size / 1024 / 1024 * 100) / 100
+      };
+    };
+    exports$1.getDatabaseStats = getDatabaseStats;
+    const warehouseExists = (warehouseId) => {
+      const database2 = (0, exports$1.getDatabase)();
+      const result = database2.prepare("SELECT COUNT(*) as count FROM warehouses WHERE id = ?").get(warehouseId);
+      return result.count > 0;
+    };
+    exports$1.warehouseExists = warehouseExists;
+    const getAllWarehouses = () => {
+      const database2 = (0, exports$1.getDatabase)();
+      return database2.prepare("SELECT * FROM warehouses ORDER BY name").all();
+    };
+    exports$1.getAllWarehouses = getAllWarehouses;
+    const createWarehouse = (warehouse) => {
+      const database2 = (0, exports$1.getDatabase)();
+      const stmt = database2.prepare(`
+    INSERT INTO warehouses (
+      id, code, name, city, country, surface, capacity,
+      manager, email, phone, status, opening_date
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `);
+      stmt.run(warehouse.id, warehouse.code, warehouse.name, warehouse.city, warehouse.country, warehouse.surface || null, warehouse.capacity || null, warehouse.manager || null, warehouse.email || null, warehouse.phone || null, "active");
+      return database2.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
+    };
+    exports$1.createWarehouse = createWarehouse;
+  })(database);
+  return database;
+}
 var hasRequiredLoader;
 function requireLoader() {
   if (hasRequiredLoader) return loader;
@@ -35338,7 +35338,7 @@ function requireQueries() {
   hasRequiredQueries = 1;
   Object.defineProperty(queries, "__esModule", { value: true });
   queries.getDashboardKPIs = queries.getImportHistory = queries.getWarehousesWithKPIs = queries.getSectorsByWarehouse = queries.getZonesByWarehouse = queries.getLocationsByWarehouse = queries.getDeadStock = queries.getProductMovementTotals = queries.getOrdersByWarehouse = queries.getLastMovementDate = queries.getMovementsByWarehouse = queries.getInventoryByWarehouse = queries.getProductBySku = queries.getProductById = queries.getProductsByWarehouse = void 0;
-  const index_1 = requireDatabase();
+  const index_1 = requireDatabase$1();
   const getProductsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
