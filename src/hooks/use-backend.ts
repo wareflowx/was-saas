@@ -205,5 +205,12 @@ export function useBackend() {
       }
       return await (window as any).electronAPI.getDatabaseStats()
     },
+
+    getImportHistory: async (warehouseId?: string): Promise<unknown> => {
+      if (!isElectron) {
+        throw new Error('Not in Electron environment')
+      }
+      return await (window as any).electronAPI.getImportHistory(warehouseId)
+    },
   }
 }

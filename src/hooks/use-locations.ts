@@ -162,3 +162,17 @@ export function useSectors(warehouseId?: string) {
     enabled: !!warehouseId,
   })
 }
+
+/**
+ * Fetch import history
+ * @param warehouseId - Warehouse ID (optional, if not provided returns all imports)
+ * @returns Query result with import history data
+ */
+export function useImportHistory(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['import-history', warehouseId],
+    queryFn: () => backend.getImportHistory(warehouseId),
+  })
+}
