@@ -141,6 +141,24 @@ export function useBackend() {
       return await (window as any).electronAPI.getLocations(filters)
     },
 
+    getZones: async (filters: {
+      warehouseId: string
+    }): Promise<unknown> => {
+      if (!isElectron) {
+        throw new Error('Not in Electron environment')
+      }
+      return await (window as any).electronAPI.getZones(filters)
+    },
+
+    getSectors: async (filters: {
+      warehouseId: string
+    }): Promise<unknown> => {
+      if (!isElectron) {
+        throw new Error('Not in Electron environment')
+      }
+      return await (window as any).electronAPI.getSectors(filters)
+    },
+
     // ==========================================================================
     // ANALYTICS
     // ==========================================================================
