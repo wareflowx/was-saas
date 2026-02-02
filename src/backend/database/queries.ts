@@ -1,6 +1,14 @@
 import { getDatabase } from './index'
 
 // ============================================================================
+// TYPES
+// ============================================================================
+
+type DbValue = string | number | null | Buffer
+type DbRow = Record<string, DbValue>
+type QueryParam = string | number | null | undefined
+
+// ============================================================================
 // PRODUCTS
 // ============================================================================
 
@@ -103,7 +111,7 @@ export const getInventoryByWarehouse = (filters: {
     WHERE i.warehouse_id = ?
   `
 
-  const params: any[] = [filters.warehouseId]
+  const params: QueryParam[] = [filters.warehouseId]
 
   if (filters.productId) {
     sql += ' AND i.product_id = ?'
@@ -141,7 +149,7 @@ export const getMovementsByWarehouse = (filters: {
   const db = getDatabase()
 
   let sql = 'SELECT * FROM movements WHERE warehouse_id = ?'
-  const params: any[] = [filters.warehouseId]
+  const params: QueryParam[] = [filters.warehouseId]
 
   if (filters.productId) {
     sql += ' AND product_id = ?'
@@ -209,7 +217,7 @@ export const getOrdersByWarehouse = (filters: {
   const db = getDatabase()
 
   let sql = 'SELECT * FROM orders WHERE warehouse_id = ?'
-  const params: any[] = [filters.warehouseId]
+  const params: QueryParam[] = [filters.warehouseId]
 
   if (filters.status) {
     sql += ' AND status = ?'
@@ -259,7 +267,7 @@ export const getProductMovementTotals = (
     WHERE m.warehouse_id = ? AND m.type = ?
   `
 
-  const params: any[] = [warehouseId, type]
+  const params: QueryParam[] = [warehouseId, type]
 
   if (dateFrom) {
     sql += ' AND m.movement_date >= ?'
@@ -371,7 +379,7 @@ export const getLocationsByWarehouse = (warehouseId: string) => {
   const rows = stmt.all(warehouseId, warehouseId)
 
   // Parse products_json and calculate KPIs
-  const locations = rows.map((row: any) => ({
+  const locations = rows.map((row: DbRow) => ({
     ...row,
     products: row.products_json
       ? row.products_json.split('|').map((jsonStr: string) => JSON.parse(jsonStr))
@@ -380,13 +388,13 @@ export const getLocationsByWarehouse = (warehouseId: string) => {
 
   // Calculate KPIs
   const totalLocations = locations.length
-  const availableLocations = locations.filter((l: any) => l.status === 'available').length
-  const occupiedLocations = locations.filter((l: any) => l.status === 'occupied').length
-  const blockedLocations = locations.filter((l: any) => l.status === 'blocked').length
-  const reservedLocations = locations.filter((l: any) => l.status === 'reserved').length
+  const availableLocations = locations.filter((l: DbRow) => l.status === 'available').length
+  const occupiedLocations = locations.filter((l: DbRow) => l.status === 'occupied').length
+  const blockedLocations = locations.filter((l: DbRow) => l.status === 'blocked').length
+  const reservedLocations = locations.filter((l: DbRow) => l.status === 'reserved').length
 
-  const totalCapacity = locations.reduce((sum: number, l: any) => sum + (l.capacity || 0), 0)
-  const usedCapacity = locations.reduce((sum: number, l: any) => sum + (l.usedCapacity || 0), 0)
+  const totalCapacity = locations.reduce((sum: number, l: DbRow) => sum + ((l.capacity as number) || 0), 0)
+  const usedCapacity = locations.reduce((sum: number, l: DbRow) => sum + ((l.usedCapacity as number) || 0), 0)
 
   return {
     kpis: {
@@ -444,15 +452,15 @@ export const getZonesByWarehouse = (warehouseId: string) => {
 
   // Calculate KPIs
   const totalZones = rows.length
-  const activeZones = rows.filter((r: any) => r.status === 'active').length
-  const totalSurface = rows.reduce((sum: number, r: any) => sum + (r.surface || 0), 0)
-  const totalCapacity = rows.reduce((sum: number, r: any) => sum + (r.capacity || 0), 0)
-  const usedCapacity = rows.reduce((sum: number, r: any) => sum + (r.usedCapacity || 0), 0)
+  const activeZones = rows.filter((r: DbRow) => r.status === 'active').length
+  const totalSurface = rows.reduce((sum: number, r: DbRow) => sum + ((r.surface as number) || 0), 0)
+  const totalCapacity = rows.reduce((sum: number, r: DbRow) => sum + ((r.capacity as number) || 0), 0)
+  const usedCapacity = rows.reduce((sum: number, r: DbRow) => sum + ((r.usedCapacity as number) || 0), 0)
   const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
 
   // Count zones by type
   const zoneTypes: Record<string, number> = {}
-  rows.forEach((r: any) => {
+  rows.forEach((r: DbRow) => {
     zoneTypes[r.type] = (zoneTypes[r.type] || 0) + 1
   })
 
@@ -514,14 +522,14 @@ export const getSectorsByWarehouse = (warehouseId: string) => {
 
   // Calculate KPIs
   const totalSectors = rows.length
-  const activeSectors = rows.filter((r: any) => r.status === 'active').length
-  const totalCapacity = rows.reduce((sum: number, r: any) => sum + (r.capacity || 0), 0)
-  const usedCapacity = rows.reduce((sum: number, r: any) => sum + (r.usedCapacity || 0), 0)
+  const activeSectors = rows.filter((r: DbRow) => r.status === 'active').length
+  const totalCapacity = rows.reduce((sum: number, r: DbRow) => sum + ((r.capacity as number) || 0), 0)
+  const usedCapacity = rows.reduce((sum: number, r: DbRow) => sum + ((r.usedCapacity as number) || 0), 0)
   const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
 
   // Count sectors by type
   const sectorTypes: Record<string, number> = {}
-  rows.forEach((r: any) => {
+  rows.forEach((r: DbRow) => {
     sectorTypes[r.type] = (sectorTypes[r.type] || 0) + 1
   })
 
@@ -575,12 +583,12 @@ export const getWarehousesWithKPIs = () => {
 
   // Calculate KPIs
   const totalWarehouses = rows.length
-  const activeWarehouses = rows.filter((r: any) => r.status === 'active').length
-  const totalSurface = rows.reduce((sum: number, r: any) => sum + (r.surface || 0), 0)
-  const totalCapacity = rows.reduce((sum: number, r: any) => sum + (r.capacity || 0), 0)
-  const usedCapacity = rows.reduce((sum: number, r: any) => sum + (r.usedCapacity || 0), 0)
+  const activeWarehouses = rows.filter((r: DbRow) => r.status === 'active').length
+  const totalSurface = rows.reduce((sum: number, r: DbRow) => sum + ((r.surface as number) || 0), 0)
+  const totalCapacity = rows.reduce((sum: number, r: DbRow) => sum + ((r.capacity as number) || 0), 0)
+  const usedCapacity = rows.reduce((sum: number, r: DbRow) => sum + ((r.usedCapacity as number) || 0), 0)
   const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
-  const trackedPickers = rows.reduce((sum: number, r: any) => sum + (r.pickerCount || 0), 0)
+  const trackedPickers = rows.reduce((sum: number, r: DbRow) => sum + ((r.pickerCount as number) || 0), 0)
 
   return {
     kpis: {
@@ -718,7 +726,7 @@ export const getDashboardKPIs = (warehouseId?: string) => {
 
   // Calculate running stock total
   let runningStock = 0
-  const stockEvolution = stockEvolutionRows.map((row: any) => {
+  const stockEvolution = stockEvolutionRows.map((row: DbRow) => {
     runningStock += row.stock
     return {
       date: new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -749,7 +757,7 @@ export const getDashboardKPIs = (warehouseId?: string) => {
     adjustment: 'hsl(25, 95%, 53%)',
   }
 
-  const movementsByType = movementsByTypeRows.map((row: any) => ({
+  const movementsByType = movementsByTypeRows.map((row: DbRow) => ({
     movementType: row.movementType,
     movements: row.movements,
     fill: typeColors[row.movementType] || 'hsl(var(--muted))',
@@ -807,7 +815,7 @@ export const getDashboardKPIs = (warehouseId?: string) => {
     ORDER BY movement_date DESC
     LIMIT 10
   `)
-  const recentMovements = recentMovementsStmt.all(...whereParams).map((row: any) => ({
+  const recentMovements = recentMovementsStmt.all(...whereParams).map((row: DbRow) => ({
     ...row,
     type: row.type.toLowerCase() as 'in' | 'out' | 'transfer',
   }))
