@@ -653,3 +653,178 @@ export const getImportHistory = (warehouseId?: string) => {
   }
 }
 
+/**
+ * Get dashboard KPIs and summary data
+ * @param warehouseId - Warehouse ID (optional, if not provided uses all warehouses)
+ * @returns Dashboard data with KPIs, stock evolution, movements by type, top products, low stock alerts, and recent movements
+ */
+export const getDashboardKPIs = (warehouseId?: string) => {
+  const db = getDatabase()
+
+  // KPIs
+  let whereClause = warehouseId ? 'WHERE warehouse_id = ?' : ''
+  let whereParams = warehouseId ? [warehouseId] : []
+
+  // Total products
+  const productsStmt = db.prepare(`SELECT COUNT(*) as count FROM products`)
+  const totalProducts = productsStmt.get().count
+
+  // Total locations
+  const locationsStmt = db.prepare(
+    `SELECT COUNT(*) as count FROM locations ${warehouseId ? 'WHERE warehouse_id = ?' : ''}`
+  )
+  const totalLocations = locationsStmt.get(...whereParams).count
+
+  // Low stock items (quantity < min_stock)
+  const lowStockStmt = db.prepare(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM products p
+    INNER JOIN inventory i ON p.id = i.product_id
+    ${warehouseId ? 'WHERE i.warehouse_id = ? AND' : 'WHERE'}
+      i.quantity < p.min_stock
+  `)
+  const lowStockItems = lowStockStmt.get(...whereParams).count
+
+  // Active orders
+  const ordersStmt = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM orders
+    ${warehouseId ? 'WHERE warehouse_id = ? AND' : 'WHERE'}
+      status IN ('pending', 'processing', 'picked')
+  `)
+  const activeOrders = ordersStmt.get(...whereParams).count
+
+  // Movements this week (last 7 days)
+  const movementsStmt = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM movements
+    ${warehouseId ? 'WHERE warehouse_id = ? AND' : 'WHERE'}
+      movement_date >= datetime('now', '-7 days')
+  `)
+  const movementsThisWeek = movementsStmt.get(...whereParams).count
+
+  // Stock evolution (last 7 days)
+  const stockEvolutionStmt = db.prepare(`
+    SELECT
+      date(movement_date) as date,
+      SUM(CASE WHEN type IN ('in', 'receipt') THEN quantity ELSE -quantity END) as stock
+    FROM movements
+    ${warehouseId ? 'WHERE warehouse_id = ?' : 'WHERE 1=1'}
+      AND movement_date >= datetime('now', '-7 days')
+    GROUP BY date(movement_date)
+    ORDER BY date
+  `)
+  const stockEvolutionRows = stockEvolutionStmt.all(...whereParams)
+
+  // Calculate running stock total
+  let runningStock = 0
+  const stockEvolution = stockEvolutionRows.map((row: any) => {
+    runningStock += row.stock
+    return {
+      date: new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      stock: runningStock,
+    }
+  })
+
+  // Movements by type
+  const movementsByTypeStmt = db.prepare(`
+    SELECT
+      type as movementType,
+      COUNT(*) as movements
+    FROM movements
+    ${warehouseId ? 'WHERE warehouse_id = ?' : 'WHERE 1=1'}
+      AND movement_date >= datetime('now', '-7 days')
+    GROUP BY type
+  `)
+  const movementsByTypeRows = movementsByTypeStmt.all(...whereParams)
+
+  const typeColors: Record<string, string> = {
+    in: 'hsl(var(--chart))',
+    inbound: 'hsl(var(--chart))',
+    receipt: 'hsl(var(--chart))',
+    out: 'hsl(142, 76%, 36%)',
+    outbound: 'hsl(142, 76%, 36%)',
+    shipment: 'hsl(142, 76%, 36%)',
+    transfer: 'hsl(25, 95%, 53%)',
+    adjustment: 'hsl(25, 95%, 53%)',
+  }
+
+  const movementsByType = movementsByTypeRows.map((row: any) => ({
+    movementType: row.movementType,
+    movements: row.movements,
+    fill: typeColors[row.movementType] || 'hsl(var(--muted))',
+  }))
+
+  // Top products by movements
+  const topProductsStmt = db.prepare(`
+    SELECT
+      product_name as product,
+      COUNT(*) as movements
+    FROM movements
+    ${warehouseId ? 'WHERE warehouse_id = ?' : 'WHERE 1=1'}
+      AND movement_date >= datetime('now', '-30 days')
+    GROUP BY product_name
+    ORDER BY movements DESC
+    LIMIT 5
+  `)
+  const topProducts = topProductsStmt.all(...whereParams)
+
+  // Low stock alerts
+  const lowStockAlertsStmt = db.prepare(`
+    SELECT
+      p.id,
+      p.name as product,
+      i.quantity as currentStock,
+      p.min_stock as minStock,
+      l.code as location,
+      CASE
+        WHEN i.quantity = 0 THEN 'critical'
+        WHEN i.quantity < p.min_stock * 0.5 THEN 'critical'
+        ELSE 'warning'
+      END as severity
+    FROM products p
+    INNER JOIN inventory i ON p.id = i.product_id
+    LEFT JOIN locations l ON i.location_id = l.id
+    ${warehouseId ? 'WHERE i.warehouse_id = ? AND' : 'WHERE'}
+      i.quantity < p.min_stock
+    ORDER BY i.quantity ASC
+    LIMIT 10
+  `)
+  const lowStockAlerts = lowStockAlertsStmt.all(...whereParams)
+
+  // Recent movements
+  const recentMovementsStmt = db.prepare(`
+    SELECT
+      id,
+      date(movement_date) as date,
+      product_name as product,
+      type,
+      quantity as quantity,
+      destination_location_code as "to",
+      source_location_code as "from"
+    FROM movements
+    ${warehouseId ? 'WHERE warehouse_id = ?' : 'WHERE 1=1'}
+    ORDER BY movement_date DESC
+    LIMIT 10
+  `)
+  const recentMovements = recentMovementsStmt.all(...whereParams).map((row: any) => ({
+    ...row,
+    type: row.type.toLowerCase() as 'in' | 'out' | 'transfer',
+  }))
+
+  return {
+    kpis: {
+      totalProducts,
+      totalLocations,
+      lowStockItems,
+      activeOrders,
+      movementsThisWeek,
+    },
+    stockEvolution,
+    movementsByType,
+    topProducts,
+    lowStockAlerts,
+    recentMovements,
+  }
+}
+
