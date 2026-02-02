@@ -25,17 +25,30 @@ export function ZonesPage({ data }: ZonesPageProps) {
 
   // Calculate capacity utilization by zone
   const capacityByZone = useMemo(() => {
+    const colors = [
+      "hsl(221, 83%, 53%)",
+      "hsl(280, 65%, 60%)",
+      "hsl(160, 60%, 45%)",
+      "hsl(30, 80%, 55%)",
+      "hsl(142, 76%, 36%)",
+    ]
+
     const zonesWithOccupancy = data.zones.map((zone) => ({
       zone: zone.name.length > 20 ? zone.name.substring(0, 20) + "..." : zone.name,
       occupancy: zone.capacity > 0 ? (zone.usedCapacity / zone.capacity) * 100 : 0,
+      fill: "hsl(221, 83%, 53%)",
     }))
 
     // Sort by occupancy and take top 3 highest and bottom 2 lowest
     zonesWithOccupancy.sort((a, b) => b.occupancy - a.occupancy)
-    return [
+    const result = [
       ...zonesWithOccupancy.slice(0, 3),
       ...zonesWithOccupancy.slice(-2).reverse(),
     ]
+    return result.map((item, index) => ({
+      ...item,
+      fill: colors[index % colors.length],
+    }))
   }, [data.zones])
 
   // Calculate zone types distribution

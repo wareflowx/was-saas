@@ -42,7 +42,7 @@ const statusConfig: Record<string, { color: string; label: string }> = {
   partial: { color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", label: "Partiel" },
 
   // Picking Status
-  completed: { color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200", label: "Complété" },
+  picking_completed: { color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200", label: "Complété" },
 
   // Return Status
   received: { color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", label: "Reçu" },

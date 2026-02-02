@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ZonesRouteImport } from './routes/zones'
 import { Route as WarehousesRouteImport } from './routes/warehouses'
 import { Route as TestRouteImport } from './routes/test'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SectorsRouteImport } from './routes/sectors'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as RestockingsRouteImport } from './routes/restockings'
@@ -45,6 +46,11 @@ const WarehousesRoute = WarehousesRouteImport.update({
 const TestRoute = TestRouteImport.update({
   id: '/test',
   path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SectorsRoute = SectorsRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/restockings': typeof RestockingsRoute
   '/returns': typeof ReturnsRoute
   '/sectors': typeof SectorsRoute
+  '/settings': typeof SettingsRoute
   '/test': typeof TestRoute
   '/warehouses': typeof WarehousesRoute
   '/zones': typeof ZonesRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/restockings': typeof RestockingsRoute
   '/returns': typeof ReturnsRoute
   '/sectors': typeof SectorsRoute
+  '/settings': typeof SettingsRoute
   '/test': typeof TestRoute
   '/warehouses': typeof WarehousesRoute
   '/zones': typeof ZonesRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/restockings': typeof RestockingsRoute
   '/returns': typeof ReturnsRoute
   '/sectors': typeof SectorsRoute
+  '/settings': typeof SettingsRoute
   '/test': typeof TestRoute
   '/warehouses': typeof WarehousesRoute
   '/zones': typeof ZonesRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/restockings'
     | '/returns'
     | '/sectors'
+    | '/settings'
     | '/test'
     | '/warehouses'
     | '/zones'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/restockings'
     | '/returns'
     | '/sectors'
+    | '/settings'
     | '/test'
     | '/warehouses'
     | '/zones'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/restockings'
     | '/returns'
     | '/sectors'
+    | '/settings'
     | '/test'
     | '/warehouses'
     | '/zones'
@@ -303,6 +315,7 @@ export interface RootRouteChildren {
   RestockingsRoute: typeof RestockingsRoute
   ReturnsRoute: typeof ReturnsRoute
   SectorsRoute: typeof SectorsRoute
+  SettingsRoute: typeof SettingsRoute
   TestRoute: typeof TestRoute
   WarehousesRoute: typeof WarehousesRoute
   ZonesRoute: typeof ZonesRoute
@@ -333,6 +346,13 @@ declare module '@tanstack/react-router' {
       path: '/test'
       fullPath: '/test'
       preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sectors': {
@@ -498,6 +518,7 @@ const rootRouteChildren: RootRouteChildren = {
   RestockingsRoute: RestockingsRoute,
   ReturnsRoute: ReturnsRoute,
   SectorsRoute: SectorsRoute,
+  SettingsRoute: SettingsRoute,
   TestRoute: TestRoute,
   WarehousesRoute: WarehousesRoute,
   ZonesRoute: ZonesRoute,

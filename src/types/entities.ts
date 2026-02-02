@@ -513,6 +513,7 @@ export interface Return {
   reasonLabel: string
   lines: ReturnLine[]
   totalQuantity: number
+  returnedQuantity: number
   totalAmount: number
   refundedAmount: number
   processor?: string

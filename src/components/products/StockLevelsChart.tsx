@@ -82,7 +82,7 @@ export function StockLevelsChart({
               radius={4}
               fill="var(--color-desktop)"
             >
-              {data.map((item, index) => {
+              {data.map((_item, index) => {
                 const colors = [
                   "hsl(221, 83%, 53%)",
                   "hsl(280, 65%, 60%)",

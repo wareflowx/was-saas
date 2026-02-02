@@ -1,9 +1,8 @@
-import { useState } from 'react'
-import { ArrowRight, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { ColumnMapping } from '@/backend/import/mapping-service'
@@ -108,9 +107,9 @@ export function ColumnMapping({
   const isValid = unmappedRequiredFields.length === 0
 
   // Update validation state
-  useState(() => {
+  useEffect(() => {
     onValidationChange(isValid)
-  })()
+  }, [isValid, onValidationChange])
 
   const handleMappingChange = (targetField: string, sourceColumn: string) => {
     // Remove existing mapping for this target field

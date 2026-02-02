@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { Sparkles, Info, Undo2 } from "lucide-react"
+import { Sparkles, Info } from "lucide-react"
 import {
   Dialog,
   DialogContent,

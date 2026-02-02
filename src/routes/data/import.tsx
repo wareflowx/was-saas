@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
-import { ArrowLeft, Upload, FileSpreadsheet, Loader2, CheckCircle2, FlaskConical, Database, Clock, FileText, AlertCircle } from "lucide-react"
+import { Upload, FileSpreadsheet, Loader2, CheckCircle2, FlaskConical, Database, Clock, FileText, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useBackend } from "@/hooks/use-backend"
 import { useWarehouses } from "@/hooks/use-locations"

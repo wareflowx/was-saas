@@ -34,16 +34,10 @@ export function PickingPage({ data }: PickingPageProps) {
       "hsl(142, 76%, 36%)", // completed - green
     ]
 
-    const labels: Record<string, string> = {
-      pending: "Pending",
-      in_progress: "In Progress",
-      completed: "Completed",
-    }
-
     return Object.entries(statusCounts)
       .filter(([_, count]) => count > 0)
       .map(([status, count], index) => ({
-        status: labels[status] || status,
+        status: status as "pending" | "in_progress" | "completed",
         count,
         fill: colors[index % colors.length],
       }))
@@ -75,6 +69,7 @@ export function PickingPage({ data }: PickingPageProps) {
       .map(([priority, count]) => ({
         priority: labels[priority] || priority,
         count,
+        avgDuration: 0,
         fill: colors[priority] || "hsl(0, 0%, 50%)",
       }))
       .sort((a, b) => b.count - a.count)

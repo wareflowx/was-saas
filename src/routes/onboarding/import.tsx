@@ -18,7 +18,6 @@ function DataImport() {
   const backend = useBackend()
   const [isLoading, setIsLoading] = useState(false)
   const [useMockData, setUseMockData] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
 
   const steps: LoadingStep[] = [
     { id: "warehouse", label: "Creating warehouse...", status: "pending" },
@@ -237,7 +236,7 @@ function DataImport() {
             </div>
 
             <div className="space-y-4">
-              {loadingSteps.map((step, index) => (
+              {loadingSteps.map((step) => (
                 <div key={step.id} className="flex items-start gap-3">
                   {step.status === "pending" && (
                     <div className="w-5 h-5 mt-0.5 rounded-full border-2 border-muted" />

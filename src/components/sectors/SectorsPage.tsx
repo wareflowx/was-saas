@@ -11,7 +11,7 @@ import { SectorsKPICards } from "./SectorsKPICards"
 import { SectorsTable } from "./SectorsTable"
 import { SectorCapacityChart } from "./SectorCapacityChart"
 import { SectorTypesDistributionChart } from "./SectorTypesDistributionChart"
-import type { SectorsData, Sector } from "@/types/entities"
+import type { SectorsData } from "@/types/entities"
 
 interface SectorsPageProps {
   data: SectorsData
@@ -25,17 +25,30 @@ export function SectorsPage({ data }: SectorsPageProps) {
 
   // Calculate capacity utilization by sector
   const capacityBySector = useMemo(() => {
+    const colors = [
+      "hsl(221, 83%, 53%)",
+      "hsl(280, 65%, 60%)",
+      "hsl(160, 60%, 45%)",
+      "hsl(30, 80%, 55%)",
+      "hsl(142, 76%, 36%)",
+    ]
+
     const sectorsWithOccupancy = data.sectors.map((sector) => ({
       sector: sector.name.length > 20 ? sector.name.substring(0, 20) + "..." : sector.name,
       occupancy: sector.capacity > 0 ? (sector.usedCapacity / sector.capacity) * 100 : 0,
+      fill: "hsl(221, 83%, 53%)",
     }))
 
     // Sort by occupancy and take top 3 highest and bottom 2 lowest
     sectorsWithOccupancy.sort((a, b) => b.occupancy - a.occupancy)
-    return [
+    const result = [
       ...sectorsWithOccupancy.slice(0, 3),
       ...sectorsWithOccupancy.slice(-2).reverse(),
     ]
+    return result.map((item, index) => ({
+      ...item,
+      fill: colors[index % colors.length],
+    }))
   }, [data.sectors])
 
   // Calculate sector types distribution

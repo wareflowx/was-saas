@@ -3,8 +3,6 @@
  * Handles dynamic column mapping from Excel files to expected schema
  */
 
-import type { ImportPlugin } from './types'
-
 // ============================================================================
 // TYPES
 // ============================================================================
