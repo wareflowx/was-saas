@@ -99,6 +99,16 @@ ipcMain.handle('db:get-locations', async (event, filters) => {
   return queries.getLocationsByWarehouse(filters.warehouseId)
 })
 
+ipcMain.handle('db:get-zones', async (event, filters) => {
+  initializeDatabase()
+  return queries.getZonesByWarehouse(filters.warehouseId)
+})
+
+ipcMain.handle('db:get-sectors', async (event, filters) => {
+  initializeDatabase()
+  return queries.getSectorsByWarehouse(filters.warehouseId)
+})
+
 ipcMain.handle('db:get-stats', async () => {
   initializeDatabase()
   return queries.getDatabaseStats()
@@ -121,6 +131,14 @@ ipcMain.handle('warehouse:getAll', async () => {
 ipcMain.handle('warehouse:create', async (event, warehouse) => {
   initializeDatabase()
   console.log('Creating warehouse:', warehouse)
+
+  // Check if warehouse already exists
+  if (warehouseExists(warehouse.id)) {
+    console.log('Warehouse already exists, returning existing warehouse')
+    const db = getDatabase()
+    return db.prepare('SELECT * FROM warehouses WHERE id = ?').get(warehouse.id)
+  }
+
   const result = createWarehouse(warehouse)
   console.log('Warehouse created:', result)
   return result
