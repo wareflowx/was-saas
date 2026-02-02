@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useEffect } from "react"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { LocationsPage } from "@/components/locations/LocationsPage"
@@ -23,9 +24,11 @@ function LocationsRoute() {
   } = useLocations(defaultWarehouseId)
 
   // Redirect to onboarding if no warehouses exist
-  if (!isLoadingWarehouses && warehouses?.length === 0) {
-    navigate({ to: "/onboarding/welcome" })
-  }
+  useEffect(() => {
+    if (!isLoadingWarehouses && warehouses?.length === 0) {
+      navigate({ to: "/onboarding/welcome" })
+    }
+  }, [isLoadingWarehouses, warehouses, navigate])
 
   // Loading state
   if (isLoadingWarehouses || isLoadingLocations) {

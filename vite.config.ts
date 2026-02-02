@@ -20,22 +20,21 @@ export default defineConfig({
     electron([
       {
         // Main process
-        entry: 'electron/main.mjs',
-        onstart(options) {
-          options.reload()
-        },
+        entry: 'electron/main.cjs',
         vite: {
           build: {
             outDir: 'dist-electron',
           }
+        },
+        // Disable automatic Electron launching - we launch it manually with wait-on
+        onstart: () => {
+          // Empty function prevents automatic Electron startup
+          // We launch Electron manually via pnpm dev:electron with wait-on
         }
       },
       {
         // Preload script
         entry: 'electron/preload.cjs',
-        onstart(options) {
-          options.reload()
-        },
         vite: {
           build: {
             outDir: 'dist-electron',

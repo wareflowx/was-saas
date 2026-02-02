@@ -30,6 +30,7 @@ import { Route as OrdersOrderIdRouteImport } from './routes/orders/$orderId'
 import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding/welcome'
 import { Route as OnboardingWarehouseRouteImport } from './routes/onboarding/warehouse'
 import { Route as OnboardingImportRouteImport } from './routes/onboarding/import'
+import { Route as DataImportRouteImport } from './routes/data/import'
 
 const ZonesRoute = ZonesRouteImport.update({
   id: '/zones',
@@ -136,6 +137,11 @@ const OnboardingImportRoute = OnboardingImportRouteImport.update({
   path: '/onboarding/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DataImportRoute = DataImportRouteImport.update({
+  id: '/data/import',
+  path: '/data/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/test': typeof TestRoute
   '/warehouses': typeof WarehousesRoute
   '/zones': typeof ZonesRoute
+  '/data/import': typeof DataImportRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/test': typeof TestRoute
   '/warehouses': typeof WarehousesRoute
   '/zones': typeof ZonesRoute
+  '/data/import': typeof DataImportRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/test': typeof TestRoute
   '/warehouses': typeof WarehousesRoute
   '/zones': typeof ZonesRoute
+  '/data/import': typeof DataImportRoute
   '/onboarding/import': typeof OnboardingImportRoute
   '/onboarding/warehouse': typeof OnboardingWarehouseRoute
   '/onboarding/welcome': typeof OnboardingWelcomeRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/test'
     | '/warehouses'
     | '/zones'
+    | '/data/import'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/test'
     | '/warehouses'
     | '/zones'
+    | '/data/import'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/test'
     | '/warehouses'
     | '/zones'
+    | '/data/import'
     | '/onboarding/import'
     | '/onboarding/warehouse'
     | '/onboarding/welcome'
@@ -294,6 +306,7 @@ export interface RootRouteChildren {
   TestRoute: typeof TestRoute
   WarehousesRoute: typeof WarehousesRoute
   ZonesRoute: typeof ZonesRoute
+  DataImportRoute: typeof DataImportRoute
   OnboardingImportRoute: typeof OnboardingImportRoute
   OnboardingWarehouseRoute: typeof OnboardingWarehouseRoute
   OnboardingWelcomeRoute: typeof OnboardingWelcomeRoute
@@ -448,6 +461,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/data/import': {
+      id: '/data/import'
+      path: '/data/import'
+      fullPath: '/data/import'
+      preLoaderRoute: typeof DataImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -481,6 +501,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestRoute: TestRoute,
   WarehousesRoute: WarehousesRoute,
   ZonesRoute: ZonesRoute,
+  DataImportRoute: DataImportRoute,
   OnboardingImportRoute: OnboardingImportRoute,
   OnboardingWarehouseRoute: OnboardingWarehouseRoute,
   OnboardingWelcomeRoute: OnboardingWelcomeRoute,

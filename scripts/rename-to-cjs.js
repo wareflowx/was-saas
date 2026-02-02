@@ -46,17 +46,31 @@ function fixRequires(dir) {
       // Check if the path without .cjs is a directory
       const lines = content.split('\n')
       for (let i = 0; i < lines.length; i++) {
+        // Fix directory imports to point to index.cjs
         lines[i] = lines[i].replace(
-          /require\(['"]((?!\.\.\/)[^'"]+)\.cjs['"]\)/g,
-          (match, pathWithoutExt) => {
-            const relativeDir = join(dir, pathWithoutExt)
+          /require\(['"]((?!\.\.\/|\.\.\\)[^'"]+)['"]\)/g,
+          (match, importPath) => {
+            // Skip if already has extension
+            if (importPath.endsWith('.cjs') || importPath.endsWith('.js')) {
+              return match
+            }
+
+            const relativeDir = join(dir, importPath)
             try {
               if (statSync(relativeDir).isDirectory()) {
-                // It's a directory, remove the .cjs extension
-                return `require('${pathWithoutExt}')`
+                // It's a directory, check if index.cjs exists inside
+                const indexCjsPath = join(relativeDir, 'index.cjs')
+                try {
+                  if (statSync(indexCjsPath).isFile()) {
+                    // Directory has index.cjs, use it
+                    return `require('${importPath}/index.cjs')`
+                  }
+                } catch (err) {
+                  // No index.cjs, keep original
+                }
               }
             } catch (err) {
-              // Not a directory or doesn't exist, keep .cjs
+              // Not a directory or doesn't exist, keep original
             }
             return match
           }

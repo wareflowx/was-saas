@@ -27,6 +27,9 @@ export function LocationsPage({ data }: LocationsPageProps) {
     const zoneMap = new Map<string, { total: number; used: number }>()
 
     data.locations.forEach((location) => {
+      // Skip locations without a zone
+      if (!location.zoneName) return
+
       const existing = zoneMap.get(location.zoneName) || { total: 0, used: 0 }
       zoneMap.set(location.zoneName, {
         total: existing.total + location.capacity,

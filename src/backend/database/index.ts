@@ -40,14 +40,12 @@ export const initializeDatabase = (): void => {
   // Execute schema
   database.exec(DATABASE_SCHEMA)
 
-  // Store schema version
+  // Log schema version (for debugging)
   const schemaVersion = database
-    .prepare('SELECT version FROM pragma_schema_version()')
-    .get() as { version: string }
+    .prepare('PRAGMA schema_version')
+    .get() as { schema_version: number }
 
-  if (schemaVersion.version !== SCHEMA_VERSION) {
-    console.log(`Database schema version: ${schemaVersion.version}, expected: ${SCHEMA_VERSION}`)
-  }
+  console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${SCHEMA_VERSION}`)
 }
 
 /**
