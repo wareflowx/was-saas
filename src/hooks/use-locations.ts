@@ -97,3 +97,55 @@ export function useDeadStockAnalysis(
     enabled: !!warehouseId,
   })
 }
+
+/**
+ * Fetch zones for a warehouse
+ * @param warehouseId - Warehouse ID (optional, uses first warehouse if not provided)
+ * @returns Query result with zones data
+ */
+export function useZones(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['zones', warehouseId],
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+      const firstWarehouse = warehouses[0] as any
+
+      if (!firstWarehouse) {
+        throw new Error('No warehouse found')
+      }
+
+      return await backend.getZones({
+        warehouseId: warehouseId || firstWarehouse.id
+      })
+    },
+    enabled: !!warehouseId,
+  })
+}
+
+/**
+ * Fetch sectors for a warehouse
+ * @param warehouseId - Warehouse ID (optional, uses first warehouse if not provided)
+ * @returns Query result with sectors data
+ */
+export function useSectors(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['sectors', warehouseId],
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+      const firstWarehouse = warehouses[0] as any
+
+      if (!firstWarehouse) {
+        throw new Error('No warehouse found')
+      }
+
+      return await backend.getSectors({
+        warehouseId: warehouseId || firstWarehouse.id
+      })
+    },
+    enabled: !!warehouseId,
+  })
+}
