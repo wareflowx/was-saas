@@ -17,6 +17,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getWarehouses: () => ipcRenderer.invoke('warehouse:getAll'),
 
+  getWarehousesWithKPIs: () => ipcRenderer.invoke('warehouse:getAllWithKPIs'),
+
   createWarehouse: (warehouse) => ipcRenderer.invoke('warehouse:create', warehouse),
 
   // ==========================================================================

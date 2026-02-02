@@ -128,6 +128,11 @@ ipcMain.handle('warehouse:getAll', async () => {
   return warehouses
 })
 
+ipcMain.handle('warehouse:getAllWithKPIs', async () => {
+  initializeDatabase()
+  return queries.getWarehousesWithKPIs()
+})
+
 ipcMain.handle('warehouse:create', async (event, warehouse) => {
   initializeDatabase()
   console.log('Creating warehouse:', warehouse)

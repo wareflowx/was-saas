@@ -538,3 +538,61 @@ export const getSectorsByWarehouse = (warehouseId: string) => {
   }
 }
 
+// ============================================================================
+// WAREHOUSES
+// ============================================================================
+
+/**
+ * Get all warehouses with KPIs calculated
+ * @returns Warehouses data with KPIs calculated
+ */
+export const getWarehousesWithKPIs = () => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT
+      w.id,
+      w.code,
+      w.name,
+      w.city,
+      w.country,
+      w.surface,
+      w.capacity,
+      w.used_capacity as usedCapacity,
+      w.zone_count as zoneCount,
+      w.picker_count as pickerCount,
+      w.manager,
+      w.email,
+      w.phone,
+      w.status,
+      w.opening_date as openingDate,
+      w.updated_at as lastUpdated
+    FROM warehouses w
+    ORDER BY w.name
+  `)
+
+  const rows = stmt.all()
+
+  // Calculate KPIs
+  const totalWarehouses = rows.length
+  const activeWarehouses = rows.filter((r: any) => r.status === 'active').length
+  const totalSurface = rows.reduce((sum: number, r: any) => sum + (r.surface || 0), 0)
+  const totalCapacity = rows.reduce((sum: number, r: any) => sum + (r.capacity || 0), 0)
+  const usedCapacity = rows.reduce((sum: number, r: any) => sum + (r.usedCapacity || 0), 0)
+  const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
+  const trackedPickers = rows.reduce((sum: number, r: any) => sum + (r.pickerCount || 0), 0)
+
+  return {
+    kpis: {
+      totalWarehouses,
+      activeWarehouses,
+      totalSurface,
+      totalCapacity,
+      usedCapacity,
+      averageOccupancy,
+      trackedPickers,
+    },
+    warehouses: rows,
+  }
+}
+

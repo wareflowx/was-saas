@@ -54,6 +54,19 @@ export function useWarehouses() {
 }
 
 /**
+ * Fetch warehouses with KPIs
+ * @returns Query result with warehouses data and calculated KPIs
+ */
+export function useWarehousesWithKPIs() {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['warehouses', 'kpis'],
+    queryFn: () => backend.getWarehousesWithKPIs(),
+  })
+}
+
+/**
  * Fetch ABC analysis for a warehouse
  * @param warehouseId - Warehouse ID
  * @param params - Optional date range parameters

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSectorsByWarehouse = exports.getZonesByWarehouse = exports.getLocationsByWarehouse = exports.getDeadStock = exports.getProductMovementTotals = exports.getOrdersByWarehouse = exports.getLastMovementDate = exports.getMovementsByWarehouse = exports.getInventoryByWarehouse = exports.getProductBySku = exports.getProductById = exports.getProductsByWarehouse = void 0;
+exports.getWarehousesWithKPIs = exports.getSectorsByWarehouse = exports.getZonesByWarehouse = exports.getLocationsByWarehouse = exports.getDeadStock = exports.getProductMovementTotals = exports.getOrdersByWarehouse = exports.getLastMovementDate = exports.getMovementsByWarehouse = exports.getInventoryByWarehouse = exports.getProductBySku = exports.getProductById = exports.getProductsByWarehouse = void 0;
 const index_1 = require("./index");
 // ============================================================================
 // PRODUCTS
@@ -463,3 +463,56 @@ const getSectorsByWarehouse = (warehouseId) => {
     };
 };
 exports.getSectorsByWarehouse = getSectorsByWarehouse;
+// ============================================================================
+// WAREHOUSES
+// ============================================================================
+/**
+ * Get all warehouses with KPIs calculated
+ * @returns Warehouses data with KPIs calculated
+ */
+const getWarehousesWithKPIs = () => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT
+      w.id,
+      w.code,
+      w.name,
+      w.city,
+      w.country,
+      w.surface,
+      w.capacity,
+      w.used_capacity as usedCapacity,
+      w.zone_count as zoneCount,
+      w.picker_count as pickerCount,
+      w.manager,
+      w.email,
+      w.phone,
+      w.status,
+      w.opening_date as openingDate,
+      w.updated_at as lastUpdated
+    FROM warehouses w
+    ORDER BY w.name
+  `);
+    const rows = stmt.all();
+    // Calculate KPIs
+    const totalWarehouses = rows.length;
+    const activeWarehouses = rows.filter((r) => r.status === 'active').length;
+    const totalSurface = rows.reduce((sum, r) => sum + (r.surface || 0), 0);
+    const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0);
+    const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0);
+    const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0;
+    const trackedPickers = rows.reduce((sum, r) => sum + (r.pickerCount || 0), 0);
+    return {
+        kpis: {
+            totalWarehouses,
+            activeWarehouses,
+            totalSurface,
+            totalCapacity,
+            usedCapacity,
+            averageOccupancy,
+            trackedPickers,
+        },
+        warehouses: rows,
+    };
+};
+exports.getWarehousesWithKPIs = getWarehousesWithKPIs;

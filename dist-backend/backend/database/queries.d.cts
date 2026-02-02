@@ -123,3 +123,19 @@ export declare const getSectorsByWarehouse: (warehouseId: string) => {
     };
     sectors: any;
 };
+/**
+ * Get all warehouses with KPIs calculated
+ * @returns Warehouses data with KPIs calculated
+ */
+export declare const getWarehousesWithKPIs: () => {
+    kpis: {
+        totalWarehouses: any;
+        activeWarehouses: any;
+        totalSurface: any;
+        totalCapacity: any;
+        usedCapacity: any;
+        averageOccupancy: number;
+        trackedPickers: any;
+    };
+    warehouses: any;
+};

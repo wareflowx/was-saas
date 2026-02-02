@@ -68,6 +68,11 @@ export function useBackend() {
       return await (window as any).electronAPI.getWarehouses()
     },
 
+    getWarehousesWithKPIs: async (): Promise<unknown> => {
+      if (!isElectron) throw new Error('Not in Electron environment')
+      return await (window as any).electronAPI.getWarehousesWithKPIs()
+    },
+
     createWarehouse: async (warehouse: {
       id: string
       code: string
