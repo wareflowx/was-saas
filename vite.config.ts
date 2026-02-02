@@ -27,14 +27,7 @@ export default defineConfig({
           }
         },
         onstart: () => {
-          // Copy preload on start
-          const fs = require('fs')
-          const path = require('path')
-          const source = path.join(process.cwd(), 'electron', 'preload.cjs')
-          const target = path.join(process.cwd(), 'dist-electron', 'preload.cjs')
-          fs.mkdirSync(path.dirname(target), { recursive: true })
-          fs.copyFileSync(source, target)
-          console.log('✓ Copied preload.cjs to dist-electron/')
+          // Empty function - we copy preload via npm script
         }
       }
     ])
