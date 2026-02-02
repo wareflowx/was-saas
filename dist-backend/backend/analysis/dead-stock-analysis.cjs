@@ -13,7 +13,7 @@ exports.runDeadStockAnalysis = void 0;
  * @returns Dead stock analysis result
  */
 const runDeadStockAnalysis = (warehouseId, thresholdDays = 90, criticalThreshold = 180, warningThreshold = 90) => {
-    const { getDeadStock } = require('../database/queries');
+    const { getDeadStock } = require('../database/queries.cjs');
     // Get dead stock data
     const deadStockData = getDeadStock(warehouseId);
     if (deadStockData.length === 0) {

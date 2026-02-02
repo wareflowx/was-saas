@@ -1,35 +1,11 @@
-import { renameSync, readdirSync, statSync, readFileSync, writeFileSync } from 'fs'
+import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const directories = [
-  'dist-backend',
-  'dist-electron'
-]
-
-function renameToCjs(dir) {
-  const files = readdirSync(dir)
-
-  for (const file of files) {
-    const fullPath = join(dir, file)
-    const stat = statSync(fullPath)
-
-    if (stat.isDirectory()) {
-      renameToCjs(fullPath)
-    } else if (file.endsWith('.js') && !file.endsWith('.cjs')) {
-      const newPath = join(dir, file.slice(0, -3) + '.cjs')
-      renameSync(fullPath, newPath)
-      console.log(`Renamed: ${fullPath} -> ${newPath}`)
-    } else if (file.endsWith('.d.ts') && !file.endsWith('.d.cts')) {
-      const newPath = join(dir, file.slice(0, -5) + '.d.cts')
-      renameSync(fullPath, newPath)
-      console.log(`Renamed: ${fullPath} -> ${newPath}`)
-    }
-  }
-}
+const backendDir = join(__dirname, '..', 'dist-backend', 'backend')
 
 function fixRequirePaths(dir) {
   const files = readdirSync(dir)
@@ -70,7 +46,7 @@ function fixRequirePaths(dir) {
         for (const possiblePath of possiblePaths) {
           try {
             if (statSync(possiblePath).isFile()) {
-              const relativePath = importPath + '.cjs'
+              const relativePath = importPath.endsWith('.cjs') ? importPath : importPath + '.cjs'
               return `require('${relativePath}')`
             }
           } catch (err) {
@@ -97,27 +73,11 @@ function fixRequirePaths(dir) {
 
     if (content !== originalContent) {
       writeFileSync(fullPath, content)
-      console.log(`Fixed requires in: ${fullPath.replace(process.cwd(), '')}`)
+      console.log(`Fixed: ${fullPath.replace(process.cwd(), '')}`)
     }
   }
 }
 
-console.log('Renaming .js to .cjs and .d.ts to .d.cts...')
-for (const dir of directories) {
-  try {
-    renameToCjs(dir)
-  } catch (error) {
-    // Directory doesn't exist, skip
-  }
-}
-
-console.log('Fixing require paths...')
-for (const dir of directories) {
-  try {
-    fixRequirePaths(dir)
-  } catch (error) {
-    // Directory doesn't exist, skip
-  }
-}
-
+console.log('Fixing all require paths in dist-backend/backend...')
+fixRequirePaths(backendDir)
 console.log('Done!')

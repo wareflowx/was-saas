@@ -9,7 +9,7 @@ exports.runABCAnalysis = void 0;
  * @returns ABC analysis result
  */
 const runABCAnalysis = (warehouseId, dateFrom, dateTo) => {
-    const { getProductMovementTotals } = require('../database/queries');
+    const { getProductMovementTotals } = require('../database/queries.cjs');
     // Get product movement totals (outbound = sales/picking)
     const movements = getProductMovementTotals(warehouseId, 'outbound', dateFrom, dateTo);
     if (movements.length === 0) {

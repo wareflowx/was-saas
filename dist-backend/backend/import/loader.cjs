@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadToDatabase = exports.insertMovements = exports.insertInventory = exports.insertLocations = exports.insertSectors = exports.insertZones = exports.insertProducts = void 0;
-const index_1 = require("../database/index");
+const index_1 = require('../database/index.cjs');
 /**
  * Insert products into database
  * @param products - Array of products to insert

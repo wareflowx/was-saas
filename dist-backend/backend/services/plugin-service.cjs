@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSupportedFormats = exports.hasPlugin = exports.getPlugin = exports.listPlugins = void 0;
-const registry_1 = require("../import/plugins/registry");
+const registry_1 = require('../import/plugins/registry.cjs');
 /**
  * List all available plugins
  * @returns Array of plugin info

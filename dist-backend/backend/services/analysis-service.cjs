@@ -7,8 +7,8 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.performDeadStockAnalysis = exports.performABCAnalysis = void 0;
-const abc_analysis_1 = require("../analysis/abc-analysis");
-const dead_stock_analysis_1 = require("../analysis/dead-stock-analysis");
+const abc_analysis_1 = require('../analysis/abc-analysis.cjs');
+const dead_stock_analysis_1 = require('../analysis/dead-stock-analysis.cjs');
 // ============================================================================
 // ABC ANALYSIS
 // ============================================================================
