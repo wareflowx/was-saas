@@ -176,3 +176,17 @@ export function useImportHistory(warehouseId?: string) {
     queryFn: () => backend.getImportHistory(warehouseId),
   })
 }
+
+/**
+ * Fetch dashboard KPIs and metrics
+ * @param warehouseId - Warehouse ID (optional, if not provided returns aggregate data)
+ * @returns Query result with dashboard KPIs and summary data
+ */
+export function useDashboardKPIs(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['dashboard', 'kpis', warehouseId],
+    queryFn: () => backend.getDashboardKPIs(warehouseId),
+  })
+}

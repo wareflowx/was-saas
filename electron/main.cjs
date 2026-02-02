@@ -154,6 +154,11 @@ ipcMain.handle('db:get-import-history', async (event, warehouseId) => {
   return queries.getImportHistory(warehouseId)
 })
 
+ipcMain.handle('db:get-dashboard-kpis', async (event, warehouseId) => {
+  initializeDatabase()
+  return queries.getDashboardKPIs(warehouseId)
+})
+
 // ==========================================================================
 // ANALYTICS
 // ==========================================================================

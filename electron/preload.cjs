@@ -61,6 +61,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getImportHistory: (warehouseId) => ipcRenderer.invoke('db:get-import-history', warehouseId),
 
+  getDashboardKPIs: (warehouseId) => ipcRenderer.invoke('db:get-dashboard-kpis', warehouseId),
+
   // ==========================================================================
   // ANALYTICS
   // ==========================================================================
