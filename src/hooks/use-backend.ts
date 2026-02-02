@@ -5,6 +5,15 @@
 
 import type { ABCAnalysisResult, DeadStockAnalysisResult } from '@/backend/analysis/types'
 import type { ImportPlugin, ImportResult, ValidationResult } from '@/backend/import/types'
+import type {
+  DashboardData,
+  ImportHistoryEntry,
+  Warehouse,
+  WarehousesData,
+  LocationsData,
+  ZonesData,
+  SectorsData,
+} from '@/types/entities'
 
 // ============================================================================
 // TYPES
@@ -63,14 +72,14 @@ export function useBackend() {
     // WAREHOUSE MANAGEMENT
     // ==========================================================================
 
-    getAllWarehouses: async (): Promise<readonly unknown[]> => {
+    getAllWarehouses: async (): Promise<readonly Warehouse[]> => {
       if (!isElectron) return []
       return await (window as any).electronAPI.getWarehouses()
     },
 
-    getWarehousesWithKPIs: async (): Promise<unknown> => {
+    getWarehousesWithKPIs: async (): Promise<WarehousesData> => {
       if (!isElectron) {
-        return { kpis: {}, warehouses: [] }
+        return { kpis: { totalWarehouses: 0, activeWarehouses: 0, totalSurface: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0, trackedPickers: 0 }, warehouses: [] }
       }
       return await (window as any).electronAPI.getWarehousesWithKPIs()
     },
@@ -86,10 +95,23 @@ export function useBackend() {
       manager?: string
       email?: string
       phone?: string
-    }): Promise<unknown> => {
+    }): Promise<Warehouse> => {
       if (!isElectron) {
         console.warn('createWarehouse: Not in Electron environment, returning mock')
-        return { ...warehouse, status: 'active' }
+        return {
+          ...warehouse,
+          surface: warehouse.surface ?? 0,
+          capacity: warehouse.capacity ?? 0,
+          usedCapacity: 0,
+          zoneCount: 0,
+          pickerCount: 0,
+          manager: warehouse.manager ?? '',
+          email: warehouse.email ?? '',
+          phone: warehouse.phone ?? '',
+          status: 'active',
+          openingDate: new Date().toISOString(),
+          lastUpdated: new Date().toISOString(),
+        }
       }
       return await (window as any).electronAPI.createWarehouse(warehouse)
     },
@@ -176,27 +198,36 @@ export function useBackend() {
 
     getLocations: async (filters: {
       warehouseId: string
-    }): Promise<unknown> => {
+    }): Promise<LocationsData> => {
       if (!isElectron) {
-        return { kpis: {}, locations: [] }
+        return {
+          kpis: { totalLocations: 0, availableLocations: 0, occupiedLocations: 0, blockedLocations: 0, reservedLocations: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0 },
+          locations: []
+        }
       }
       return await (window as any).electronAPI.getLocations(filters)
     },
 
     getZones: async (filters: {
       warehouseId: string
-    }): Promise<unknown> => {
+    }): Promise<ZonesData> => {
       if (!isElectron) {
-        return { kpis: {}, zones: [] }
+        return {
+          kpis: { totalZones: 0, activeZones: 0, totalSurface: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0, zoneTypes: { storage: 0, receiving: 0, shipping: 0, picking: 0, packing: 0, cold_storage: 0, hazardous: 0 } },
+          zones: []
+        }
       }
       return await (window as any).electronAPI.getZones(filters)
     },
 
     getSectors: async (filters: {
       warehouseId: string
-    }): Promise<unknown> => {
+    }): Promise<SectorsData> => {
       if (!isElectron) {
-        return { kpis: {}, sectors: [] }
+        return {
+          kpis: { totalSectors: 0, activeSectors: 0, totalCapacity: 0, usedCapacity: 0, averageOccupancy: 0, sectorTypes: { rack: 0, shelf: 0, floor: 0, bin: 0, mezzanine: 0 } },
+          sectors: []
+        }
       }
       return await (window as any).electronAPI.getSectors(filters)
     },
@@ -249,14 +280,14 @@ export function useBackend() {
       return await (window as any).electronAPI.getDatabaseStats()
     },
 
-    getImportHistory: async (warehouseId?: string): Promise<unknown> => {
+    getImportHistory: async (warehouseId?: string): Promise<readonly ImportHistoryEntry[]> => {
       if (!isElectron) {
         return []
       }
       return await (window as any).electronAPI.getImportHistory(warehouseId)
     },
 
-    getDashboardKPIs: async (warehouseId?: string): Promise<unknown> => {
+    getDashboardKPIs: async (warehouseId?: string): Promise<DashboardData> => {
       if (!isElectron) {
         return {
           kpis: {
