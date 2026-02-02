@@ -201,7 +201,7 @@ function createWindow() {
   console.log('Creating window...')
   console.log('__dirname:', __dirname)
 
-  const preloadPath = path.join(__dirname, '..', 'dist-electron', 'preload', 'index.cjs')
+  const preloadPath = path.join(__dirname, '..', 'dist-electron', 'preload.js')
   console.log('Preload path:', preloadPath)
 
   const win = new BrowserWindow({

@@ -35,7 +35,7 @@ function getAugmentedNamespace(n) {
   return a;
 }
 var main$1 = {};
-var database$2 = {};
+var database$1 = {};
 var lib = { exports: {} };
 function commonjsRequire(path) {
   throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
@@ -725,11 +725,11 @@ function requireInspect() {
   };
   return inspect;
 }
-var database$1;
-var hasRequiredDatabase$2;
-function requireDatabase$2() {
-  if (hasRequiredDatabase$2) return database$1;
-  hasRequiredDatabase$2 = 1;
+var database;
+var hasRequiredDatabase$1;
+function requireDatabase$1() {
+  if (hasRequiredDatabase$1) return database;
+  hasRequiredDatabase$1 = 1;
   const fs = require$$0$1;
   const path = require$$1;
   const util2 = requireUtil();
@@ -798,14 +798,14 @@ function requireDatabase$2() {
   Database.prototype.defaultSafeIntegers = wrappers2.defaultSafeIntegers;
   Database.prototype.unsafeMode = wrappers2.unsafeMode;
   Database.prototype[util2.inspect] = requireInspect();
-  database$1 = Database;
-  return database$1;
+  database = Database;
+  return database;
 }
 var hasRequiredLib;
 function requireLib() {
   if (hasRequiredLib) return lib.exports;
   hasRequiredLib = 1;
-  lib.exports = requireDatabase$2();
+  lib.exports = requireDatabase$1();
   lib.exports.SqliteError = requireSqliteError();
   return lib.exports;
 }
@@ -1474,12 +1474,12 @@ CREATE INDEX IF NOT EXISTS idx_import_history_date ON import_history(imported_at
   schema.DEFAULT_WAREHOUSE_ID = "default";
   return schema;
 }
-var hasRequiredDatabase$1;
-function requireDatabase$1() {
-  if (hasRequiredDatabase$1) return database$2;
-  hasRequiredDatabase$1 = 1;
+var hasRequiredDatabase;
+function requireDatabase() {
+  if (hasRequiredDatabase) return database$1;
+  hasRequiredDatabase = 1;
   (function(exports$1) {
-    var __importDefault = database$2 && database$2.__importDefault || function(mod) {
+    var __importDefault = database$1 && database$1.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
     };
     Object.defineProperty(exports$1, "__esModule", { value: true });
@@ -1501,9 +1501,9 @@ function requireDatabase$1() {
     };
     exports$1.getDatabase = getDatabase;
     const initializeDatabase = () => {
-      const database = (0, exports$1.getDatabase)();
-      database.exec(schema_1.DATABASE_SCHEMA);
-      const schemaVersion = database.prepare("PRAGMA schema_version").get();
+      const database2 = (0, exports$1.getDatabase)();
+      database2.exec(schema_1.DATABASE_SCHEMA);
+      const schemaVersion = database2.prepare("PRAGMA schema_version").get();
       console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${schema_1.SCHEMA_VERSION}`);
     };
     exports$1.initializeDatabase = initializeDatabase;
@@ -1520,14 +1520,14 @@ function requireDatabase$1() {
     };
     exports$1.getDatabaseFilePath = getDatabaseFilePath;
     const vacuumDatabase = () => {
-      const database = (0, exports$1.getDatabase)();
-      database.exec("VACUUM");
+      const database2 = (0, exports$1.getDatabase)();
+      database2.exec("VACUUM");
     };
     exports$1.vacuumDatabase = vacuumDatabase;
     const getDatabaseStats = () => {
-      const database = (0, exports$1.getDatabase)();
-      const tableCount = database.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'").get();
-      const databaseSize = database.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get();
+      const database2 = (0, exports$1.getDatabase)();
+      const tableCount = database2.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'").get();
+      const databaseSize = database2.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get();
       return {
         tables: tableCount.count,
         sizeBytes: databaseSize.size,
@@ -1536,39 +1536,39 @@ function requireDatabase$1() {
     };
     exports$1.getDatabaseStats = getDatabaseStats;
     const warehouseExists = (warehouseId) => {
-      const database = (0, exports$1.getDatabase)();
-      const result = database.prepare("SELECT COUNT(*) as count FROM warehouses WHERE id = ?").get(warehouseId);
+      const database2 = (0, exports$1.getDatabase)();
+      const result = database2.prepare("SELECT COUNT(*) as count FROM warehouses WHERE id = ?").get(warehouseId);
       return result.count > 0;
     };
     exports$1.warehouseExists = warehouseExists;
     const getAllWarehouses = () => {
-      const database = (0, exports$1.getDatabase)();
-      return database.prepare("SELECT * FROM warehouses ORDER BY name").all();
+      const database2 = (0, exports$1.getDatabase)();
+      return database2.prepare("SELECT * FROM warehouses ORDER BY name").all();
     };
     exports$1.getAllWarehouses = getAllWarehouses;
     const createWarehouse = (warehouse) => {
-      const database = (0, exports$1.getDatabase)();
-      const stmt = database.prepare(`
+      const database2 = (0, exports$1.getDatabase)();
+      const stmt = database2.prepare(`
     INSERT INTO warehouses (
       id, code, name, city, country, surface, capacity,
       manager, email, phone, status, opening_date
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   `);
       stmt.run(warehouse.id, warehouse.code, warehouse.name, warehouse.city, warehouse.country, warehouse.surface || null, warehouse.capacity || null, warehouse.manager || null, warehouse.email || null, warehouse.phone || null, "active");
-      return database.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
+      return database2.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
     };
     exports$1.createWarehouse = createWarehouse;
-  })(database$2);
-  return database$2;
+  })(database$1);
+  return database$1;
 }
-var queries$1 = {};
-var hasRequiredQueries$1;
-function requireQueries$1() {
-  if (hasRequiredQueries$1) return queries$1;
-  hasRequiredQueries$1 = 1;
-  Object.defineProperty(queries$1, "__esModule", { value: true });
-  queries$1.getDashboardKPIs = queries$1.getImportHistory = queries$1.getWarehousesWithKPIs = queries$1.getSectorsByWarehouse = queries$1.getZonesByWarehouse = queries$1.getLocationsByWarehouse = queries$1.getDeadStock = queries$1.getProductMovementTotals = queries$1.getOrdersByWarehouse = queries$1.getLastMovementDate = queries$1.getMovementsByWarehouse = queries$1.getInventoryByWarehouse = queries$1.getProductBySku = queries$1.getProductById = queries$1.getProductsByWarehouse = void 0;
-  const index_1 = requireDatabase$1();
+var queries = {};
+var hasRequiredQueries;
+function requireQueries() {
+  if (hasRequiredQueries) return queries;
+  hasRequiredQueries = 1;
+  Object.defineProperty(queries, "__esModule", { value: true });
+  queries.getDashboardKPIs = queries.getImportHistory = queries.getWarehousesWithKPIs = queries.getSectorsByWarehouse = queries.getZonesByWarehouse = queries.getLocationsByWarehouse = queries.getDeadStock = queries.getProductMovementTotals = queries.getOrdersByWarehouse = queries.getLastMovementDate = queries.getMovementsByWarehouse = queries.getInventoryByWarehouse = queries.getProductBySku = queries.getProductById = queries.getProductsByWarehouse = void 0;
+  const index_1 = requireDatabase();
   const getProductsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1604,17 +1604,17 @@ function requireQueries$1() {
   `);
     return stmt.all(warehouseId, warehouseId);
   };
-  queries$1.getProductsByWarehouse = getProductsByWarehouse;
+  queries.getProductsByWarehouse = getProductsByWarehouse;
   const getProductById = (productId) => {
     const db = (0, index_1.getDatabase)();
     return db.prepare("SELECT * FROM products WHERE id = ?").get(productId);
   };
-  queries$1.getProductById = getProductById;
+  queries.getProductById = getProductById;
   const getProductBySku = (sku) => {
     const db = (0, index_1.getDatabase)();
     return db.prepare("SELECT * FROM products WHERE sku = ?").get(sku);
   };
-  queries$1.getProductBySku = getProductBySku;
+  queries.getProductBySku = getProductBySku;
   const getInventoryByWarehouse = (filters) => {
     const db = (0, index_1.getDatabase)();
     let sql = `
@@ -1649,7 +1649,7 @@ function requireQueries$1() {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
   };
-  queries$1.getInventoryByWarehouse = getInventoryByWarehouse;
+  queries.getInventoryByWarehouse = getInventoryByWarehouse;
   const getMovementsByWarehouse = (filters) => {
     const db = (0, index_1.getDatabase)();
     let sql = "SELECT * FROM movements WHERE warehouse_id = ?";
@@ -1678,13 +1678,13 @@ function requireQueries$1() {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
   };
-  queries$1.getMovementsByWarehouse = getMovementsByWarehouse;
+  queries.getMovementsByWarehouse = getMovementsByWarehouse;
   const getLastMovementDate = (warehouseId, productId) => {
     const db = (0, index_1.getDatabase)();
     const result = db.prepare("SELECT MAX(movement_date) as last_date FROM movements WHERE warehouse_id = ? AND product_id = ?").get(warehouseId, productId);
     return result.last_date;
   };
-  queries$1.getLastMovementDate = getLastMovementDate;
+  queries.getLastMovementDate = getLastMovementDate;
   const getOrdersByWarehouse = (filters) => {
     const db = (0, index_1.getDatabase)();
     let sql = "SELECT * FROM orders WHERE warehouse_id = ?";
@@ -1701,7 +1701,7 @@ function requireQueries$1() {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
   };
-  queries$1.getOrdersByWarehouse = getOrdersByWarehouse;
+  queries.getOrdersByWarehouse = getOrdersByWarehouse;
   const getProductMovementTotals = (warehouseId, type, dateFrom, dateTo) => {
     const db = (0, index_1.getDatabase)();
     let sql = `
@@ -1728,7 +1728,7 @@ function requireQueries$1() {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
   };
-  queries$1.getProductMovementTotals = getProductMovementTotals;
+  queries.getProductMovementTotals = getProductMovementTotals;
   const getDeadStock = (warehouseId, thresholdDays = 90) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1752,7 +1752,7 @@ function requireQueries$1() {
   `);
     return stmt.all(warehouseId, thresholdDays);
   };
-  queries$1.getDeadStock = getDeadStock;
+  queries.getDeadStock = getDeadStock;
   const getLocationsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1827,7 +1827,7 @@ function requireQueries$1() {
       locations
     };
   };
-  queries$1.getLocationsByWarehouse = getLocationsByWarehouse;
+  queries.getLocationsByWarehouse = getLocationsByWarehouse;
   const getZonesByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1878,7 +1878,7 @@ function requireQueries$1() {
       zones: rows
     };
   };
-  queries$1.getZonesByWarehouse = getZonesByWarehouse;
+  queries.getZonesByWarehouse = getZonesByWarehouse;
   const getSectorsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1930,7 +1930,7 @@ function requireQueries$1() {
       sectors: rows
     };
   };
-  queries$1.getSectorsByWarehouse = getSectorsByWarehouse;
+  queries.getSectorsByWarehouse = getSectorsByWarehouse;
   const getWarehousesWithKPIs = () => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1975,7 +1975,7 @@ function requireQueries$1() {
       warehouses: rows
     };
   };
-  queries$1.getWarehousesWithKPIs = getWarehousesWithKPIs;
+  queries.getWarehousesWithKPIs = getWarehousesWithKPIs;
   const getImportHistory = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     let stmt;
@@ -2026,7 +2026,7 @@ function requireQueries$1() {
       return stmt.all();
     }
   };
-  queries$1.getImportHistory = getImportHistory;
+  queries.getImportHistory = getImportHistory;
   const getDashboardKPIs = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     let whereParams = warehouseId ? [warehouseId] : [];
@@ -2166,10 +2166,10 @@ function requireQueries$1() {
       recentMovements
     };
   };
-  queries$1.getDashboardKPIs = getDashboardKPIs;
-  return queries$1;
+  queries.getDashboardKPIs = getDashboardKPIs;
+  return queries;
 }
-var registry$1 = {};
+var registry = {};
 var genericExcel = {};
 var hasRequiredGenericExcel;
 function requireGenericExcel() {
@@ -2755,10 +2755,10 @@ function requireMockDataGenerator() {
   }
   return mockDataGenerator;
 }
-var hasRequiredRegistry$1;
-function requireRegistry$1() {
-  if (hasRequiredRegistry$1) return registry$1;
-  hasRequiredRegistry$1 = 1;
+var hasRequiredRegistry;
+function requireRegistry() {
+  if (hasRequiredRegistry) return registry;
+  hasRequiredRegistry = 1;
   (function(exports$1) {
     Object.defineProperty(exports$1, "__esModule", { value: true });
     exports$1.initializeDefaultPlugins = exports$1.pluginExists = exports$1.unregisterPlugin = exports$1.registerPlugin = exports$1.listPlugins = exports$1.getPlugin = exports$1.registry = void 0;
@@ -2790,8 +2790,8 @@ function requireRegistry$1() {
       (0, exports$1.registerPlugin)(mock_data_generator_1.mockDataGeneratorPlugin);
     };
     exports$1.initializeDefaultPlugins = initializeDefaultPlugins;
-  })(registry$1);
-  return registry$1;
+  })(registry);
+  return registry;
 }
 var importService = {};
 var parser = {};
@@ -34733,7 +34733,7 @@ function requireLoader() {
   (function(exports$1) {
     Object.defineProperty(exports$1, "__esModule", { value: true });
     exports$1.loadToDatabase = exports$1.insertMovements = exports$1.insertInventory = exports$1.insertLocations = exports$1.insertSectors = exports$1.insertZones = exports$1.insertProducts = void 0;
-    const index_1 = requireDatabase$1();
+    const index_1 = requireDatabase();
     const insertProducts = (products) => {
       const db = (0, index_1.getDatabase)();
       const stmt = db.prepare(`
@@ -35174,7 +35174,7 @@ function requirePluginService() {
   hasRequiredPluginService = 1;
   Object.defineProperty(pluginService, "__esModule", { value: true });
   pluginService.getSupportedFormats = pluginService.hasPlugin = pluginService.getPlugin = pluginService.listPlugins = void 0;
-  const registry_1 = requireRegistry$1();
+  const registry_1 = requireRegistry();
   const listPlugins = () => {
     return Object.values(registry_1.registry).map((plugin) => ({
       id: plugin.id,
@@ -35211,7 +35211,7 @@ function requireAbcAnalysis() {
   Object.defineProperty(abcAnalysis, "__esModule", { value: true });
   abcAnalysis.runABCAnalysis = void 0;
   const runABCAnalysis = (warehouseId, dateFrom, dateTo) => {
-    const { getProductMovementTotals } = requireQueries$1();
+    const { getProductMovementTotals } = requireQueries();
     const movements = getProductMovementTotals(warehouseId, "outbound", dateFrom, dateTo);
     if (movements.length === 0) {
       return {
@@ -35294,7 +35294,7 @@ function requireDeadStockAnalysis() {
   Object.defineProperty(deadStockAnalysis, "__esModule", { value: true });
   deadStockAnalysis.runDeadStockAnalysis = void 0;
   const runDeadStockAnalysis = (warehouseId, thresholdDays = 90, criticalThreshold = 180, warningThreshold = 90) => {
-    const { getDeadStock } = requireQueries$1();
+    const { getDeadStock } = requireQueries();
     const deadStockData = getDeadStock(warehouseId);
     if (deadStockData.length === 0) {
       return {
@@ -35413,9 +35413,9 @@ function requireMain() {
   hasRequiredMain = 1;
   const { app, BrowserWindow, dialog, ipcMain } = require$$1$1;
   const path = require$$1;
-  const { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } = requireDatabase$1();
-  const queries = requireQueries$1();
-  const { registry, initializeDefaultPlugins } = requireRegistry$1();
+  const { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } = requireDatabase();
+  const queries2 = requireQueries();
+  const { registry: registry2, initializeDefaultPlugins } = requireRegistry();
   const importService2 = requireImportService();
   const pluginService2 = requirePluginService();
   const analysis2 = requireAnalysis();
@@ -35456,35 +35456,35 @@ function requireMain() {
   });
   ipcMain.handle("db:get-products", async (event, filters) => {
     initializeDatabase();
-    return queries.getProductsByWarehouse(filters.warehouseId);
+    return queries2.getProductsByWarehouse(filters.warehouseId);
   });
   ipcMain.handle("db:get-inventory", async (event, filters) => {
     initializeDatabase();
-    return queries.getInventoryByWarehouse(filters);
+    return queries2.getInventoryByWarehouse(filters);
   });
   ipcMain.handle("db:get-movements", async (event, filters) => {
     initializeDatabase();
-    return queries.getMovementsByWarehouse(filters);
+    return queries2.getMovementsByWarehouse(filters);
   });
   ipcMain.handle("db:get-orders", async (event, filters) => {
     initializeDatabase();
-    return queries.getOrdersByWarehouse(filters);
+    return queries2.getOrdersByWarehouse(filters);
   });
   ipcMain.handle("db:get-locations", async (event, filters) => {
     initializeDatabase();
-    return queries.getLocationsByWarehouse(filters.warehouseId);
+    return queries2.getLocationsByWarehouse(filters.warehouseId);
   });
   ipcMain.handle("db:get-zones", async (event, filters) => {
     initializeDatabase();
-    return queries.getZonesByWarehouse(filters.warehouseId);
+    return queries2.getZonesByWarehouse(filters.warehouseId);
   });
   ipcMain.handle("db:get-sectors", async (event, filters) => {
     initializeDatabase();
-    return queries.getSectorsByWarehouse(filters.warehouseId);
+    return queries2.getSectorsByWarehouse(filters.warehouseId);
   });
   ipcMain.handle("db:get-stats", async () => {
     initializeDatabase();
-    return queries.getDatabaseStats();
+    return queries2.getDatabaseStats();
   });
   ipcMain.handle("warehouse:getAll", async () => {
     initializeDatabase();
@@ -35497,7 +35497,7 @@ function requireMain() {
   });
   ipcMain.handle("warehouse:getAllWithKPIs", async () => {
     initializeDatabase();
-    return queries.getWarehousesWithKPIs();
+    return queries2.getWarehousesWithKPIs();
   });
   ipcMain.handle("warehouse:create", async (event, warehouse) => {
     initializeDatabase();
@@ -35513,11 +35513,11 @@ function requireMain() {
   });
   ipcMain.handle("db:get-import-history", async (event, warehouseId) => {
     initializeDatabase();
-    return queries.getImportHistory(warehouseId);
+    return queries2.getImportHistory(warehouseId);
   });
   ipcMain.handle("db:get-dashboard-kpis", async (event, warehouseId) => {
     initializeDatabase();
-    return queries.getDashboardKPIs(warehouseId);
+    return queries2.getDashboardKPIs(warehouseId);
   });
   ipcMain.handle("analysis:abc", async (event, params) => {
     initializeDatabase();
@@ -35544,7 +35544,7 @@ function requireMain() {
   function createWindow() {
     console.log("Creating window...");
     console.log("__dirname:", __dirname);
-    const preloadPath = path.join(__dirname, "..", "dist-electron", "preload", "index.cjs");
+    const preloadPath = path.join(__dirname, "..", "dist-electron", "preload.js");
     console.log("Preload path:", preloadPath);
     const win = new BrowserWindow({
       width: 1200,
