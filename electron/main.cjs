@@ -149,6 +149,11 @@ ipcMain.handle('warehouse:create', async (event, warehouse) => {
   return result
 })
 
+ipcMain.handle('db:get-import-history', async (event, warehouseId) => {
+  initializeDatabase()
+  return queries.getImportHistory(warehouseId)
+})
+
 // ==========================================================================
 // ANALYTICS
 // ==========================================================================

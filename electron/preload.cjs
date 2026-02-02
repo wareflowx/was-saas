@@ -59,6 +59,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getDatabaseStats: () => ipcRenderer.invoke('db:get-stats'),
 
+  getImportHistory: (warehouseId) => ipcRenderer.invoke('db:get-import-history', warehouseId),
+
   // ==========================================================================
   // ANALYTICS
   // ==========================================================================
