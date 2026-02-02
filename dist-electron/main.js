@@ -35544,7 +35544,7 @@ function requireMain() {
   function createWindow() {
     console.log("Creating window...");
     console.log("__dirname:", __dirname);
-    const preloadPath = path.join(__dirname, "..", "dist-electron", "preload.js");
+    const preloadPath = path.join(__dirname, "..", "dist-electron", "preload.cjs");
     console.log("Preload path:", preloadPath);
     const win = new BrowserWindow({
       width: 1200,
