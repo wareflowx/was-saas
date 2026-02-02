@@ -90,3 +90,36 @@ export declare const getLocationsByWarehouse: (warehouseId: string) => {
     };
     locations: any;
 };
+/**
+ * Get all zones for a specific warehouse
+ * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * @returns Zones data with KPIs calculated
+ */
+export declare const getZonesByWarehouse: (warehouseId: string) => {
+    kpis: {
+        totalZones: any;
+        activeZones: any;
+        totalSurface: any;
+        totalCapacity: any;
+        usedCapacity: any;
+        averageOccupancy: number;
+        zoneTypes: Record<string, number>;
+    };
+    zones: any;
+};
+/**
+ * Get all sectors for a specific warehouse
+ * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * @returns Sectors data with KPIs calculated
+ */
+export declare const getSectorsByWarehouse: (warehouseId: string) => {
+    kpis: {
+        totalSectors: any;
+        activeSectors: any;
+        totalCapacity: any;
+        usedCapacity: any;
+        averageOccupancy: number;
+        sectorTypes: Record<string, number>;
+    };
+    sectors: any;
+};

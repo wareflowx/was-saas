@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createWarehouse = exports.getAllWarehouses = exports.warehouseExists = exports.getDatabaseStats = exports.vacuumDatabase = exports.getDatabaseFilePath = exports.closeDatabase = exports.initializeDatabase = exports.getDatabase = void 0;
 const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
 const electron_1 = require("electron");
-const schema_1 = require('./schema.cjs');
+const schema_1 = require("./schema");
 // Database state
 let db = null;
 /**
@@ -37,13 +37,11 @@ const initializeDatabase = () => {
     const database = (0, exports.getDatabase)();
     // Execute schema
     database.exec(schema_1.DATABASE_SCHEMA);
-    // Store schema version
+    // Log schema version (for debugging)
     const schemaVersion = database
-        .prepare('SELECT version FROM pragma_schema_version()')
+        .prepare('PRAGMA schema_version')
         .get();
-    if (schemaVersion.version !== schema_1.SCHEMA_VERSION) {
-        console.log(`Database schema version: ${schemaVersion.version}, expected: ${schema_1.SCHEMA_VERSION}`);
-    }
+    console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${schema_1.SCHEMA_VERSION}`);
 };
 exports.initializeDatabase = initializeDatabase;
 /**
