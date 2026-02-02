@@ -38,6 +38,8 @@ import {
   Layers,
   Building,
   Grid3x3,
+  Upload,
+  Database,
 } from "lucide-react"
 
 export function AppSidebar() {
@@ -201,6 +203,22 @@ export function AppSidebar() {
                   <Link to="/returns">
                     <Undo2 />
                     <span>Returns</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Data Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="text-muted-foreground">
+                  <Link to="/data/import">
+                    <Upload />
+                    <span>Import Data</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
