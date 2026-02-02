@@ -764,11 +764,14 @@ export const getDashboardKPIs = (warehouseId?: string) => {
     adjustment: 'hsl(25, 95%, 53%)',
   }
 
-  const movementsByType = movementsByTypeRows.map((row: DbRow) => ({
-    movementType: row.movementType,
-    movements: row.movements,
-    fill: typeColors[row.movementType] || 'hsl(var(--muted))',
-  }))
+  const movementsByType = movementsByTypeRows.map((row: DbRow) => {
+    const movementType = row.movementType as string
+    return {
+      movementType,
+      movements: row.movements,
+      fill: typeColors[movementType] || 'hsl(var(--muted))',
+    }
+  })
 
   // Top products by movements
   const topProductsStmt = db.prepare(`
