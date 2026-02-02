@@ -627,8 +627,8 @@ export interface RecentMovement {
   product: string
   type: MovementType
   quantity: number
-  to: string | null
-  from: string | null
+  to?: string
+  from?: string
 }
 
 export interface DashboardData {

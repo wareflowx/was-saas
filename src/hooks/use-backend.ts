@@ -180,6 +180,7 @@ export function useBackend() {
         status: 'success',
         warehouseId,
         stats: {
+          rowsProcessed: 415,
           productsImported: 50,
           inventoryImported: 100,
           movementsImported: 200,
@@ -222,6 +223,7 @@ export function useBackend() {
         status: 'success',
         warehouseId,
         stats: {
+          rowsProcessed: 415,
           productsImported: 50,
           inventoryImported: 100,
           movementsImported: 200,
@@ -309,7 +311,10 @@ export function useBackend() {
         {
           products: [],
           summary: { totalProducts: 0, A: 0, B: 0, C: 0 },
-        } as ABCAnalysisResult,
+          totalQuantity: 0,
+          analysisDate: new Date().toISOString(),
+          parameters: { warehouseId: params.warehouseId, dateFrom: params.dateFrom || '', dateTo: params.dateTo || '' },
+        },
         'runABCAnalysis'
       )
     },
@@ -328,7 +333,9 @@ export function useBackend() {
         {
           products: [],
           summary: { totalProducts: 0, critical: 0, warning: 0, healthy: 0 },
-        } as DeadStockAnalysisResult,
+          analysisDate: new Date().toISOString(),
+          parameters: { warehouseId: params.warehouseId, thresholdDays: params.thresholdDays || 90 },
+        },
         'runDeadStockAnalysis'
       )
     },

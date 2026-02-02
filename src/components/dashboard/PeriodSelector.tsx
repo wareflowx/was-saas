@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-type Period = "today" | "week" | "month" | "custom"
+export type Period = "today" | "week" | "month" | "custom"
 
 interface PeriodSelectorProps {
   value: Period

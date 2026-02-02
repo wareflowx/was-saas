@@ -381,8 +381,8 @@ export const getLocationsByWarehouse = (warehouseId: string) => {
   // Parse products_json and calculate KPIs
   const locations = rows.map((row: DbRow) => ({
     ...row,
-    products: row.products_json
-      ? row.products_json.split('|').map((jsonStr: string) => JSON.parse(jsonStr))
+    products: (row.products_json as string | undefined)
+      ? (row.products_json as string).split('|').map((jsonStr: string) => JSON.parse(jsonStr))
       : [],
   }))
 
@@ -461,7 +461,10 @@ export const getZonesByWarehouse = (warehouseId: string) => {
   // Count zones by type
   const zoneTypes: Record<string, number> = {}
   rows.forEach((r: DbRow) => {
-    zoneTypes[r.type] = (zoneTypes[r.type] || 0) + 1
+    const type = r.type as string
+    if (type) {
+      zoneTypes[type] = (zoneTypes[type] || 0) + 1
+    }
   })
 
   return {
@@ -530,7 +533,10 @@ export const getSectorsByWarehouse = (warehouseId: string) => {
   // Count sectors by type
   const sectorTypes: Record<string, number> = {}
   rows.forEach((r: DbRow) => {
-    sectorTypes[r.type] = (sectorTypes[r.type] || 0) + 1
+    const type = r.type as string
+    if (type) {
+      sectorTypes[type] = (sectorTypes[type] || 0) + 1
+    }
   })
 
   return {
@@ -670,7 +676,6 @@ export const getDashboardKPIs = (warehouseId?: string) => {
   const db = getDatabase()
 
   // KPIs
-  let whereClause = warehouseId ? 'WHERE warehouse_id = ?' : ''
   let whereParams = warehouseId ? [warehouseId] : []
 
   // Total products
@@ -727,9 +732,11 @@ export const getDashboardKPIs = (warehouseId?: string) => {
   // Calculate running stock total
   let runningStock = 0
   const stockEvolution = stockEvolutionRows.map((row: DbRow) => {
-    runningStock += row.stock
+    const stock = (row.stock as number) || 0
+    runningStock += stock
+    const dateStr = row.date as string
     return {
-      date: new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       stock: runningStock,
     }
   })
@@ -817,7 +824,7 @@ export const getDashboardKPIs = (warehouseId?: string) => {
   `)
   const recentMovements = recentMovementsStmt.all(...whereParams).map((row: DbRow) => ({
     ...row,
-    type: row.type.toLowerCase() as 'in' | 'out' | 'transfer',
+    type: ((row.type as string) || '').toLowerCase() as 'in' | 'out' | 'transfer',
   }))
 
   return {
