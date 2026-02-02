@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getWarehousesWithKPIs = exports.getSectorsByWarehouse = exports.getZonesByWarehouse = exports.getLocationsByWarehouse = exports.getDeadStock = exports.getProductMovementTotals = exports.getOrdersByWarehouse = exports.getLastMovementDate = exports.getMovementsByWarehouse = exports.getInventoryByWarehouse = exports.getProductBySku = exports.getProductById = exports.getProductsByWarehouse = void 0;
+exports.getImportHistory = exports.getWarehousesWithKPIs = exports.getSectorsByWarehouse = exports.getZonesByWarehouse = exports.getLocationsByWarehouse = exports.getDeadStock = exports.getProductMovementTotals = exports.getOrdersByWarehouse = exports.getLastMovementDate = exports.getMovementsByWarehouse = exports.getInventoryByWarehouse = exports.getProductBySku = exports.getProductById = exports.getProductsByWarehouse = void 0;
 const index_1 = require("./index");
 // ============================================================================
 // PRODUCTS
@@ -516,3 +516,60 @@ const getWarehousesWithKPIs = () => {
     };
 };
 exports.getWarehousesWithKPIs = getWarehousesWithKPIs;
+/**
+ * Get import history for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Import history records
+ */
+const getImportHistory = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    let stmt;
+    if (warehouseId) {
+        stmt = db.prepare(`
+      SELECT
+        ih.id,
+        ih.warehouse_id as warehouseId,
+        ih.plugin_id as pluginId,
+        ih.plugin_version as pluginVersion,
+        ih.imported_at as importedAt,
+        ih.rows_processed as rowsProcessed,
+        ih.status,
+        ih.file_name as fileName,
+        ih.file_size as fileSize,
+        ih.duration_ms as durationMs,
+        ih.error_message as errorMessage,
+        w.name as warehouseName,
+        w.code as warehouseCode
+      FROM import_history ih
+      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
+      WHERE ih.warehouse_id = ?
+      ORDER BY ih.imported_at DESC
+      LIMIT 50
+    `);
+        return stmt.all(warehouseId);
+    }
+    else {
+        stmt = db.prepare(`
+      SELECT
+        ih.id,
+        ih.warehouse_id as warehouseId,
+        ih.plugin_id as pluginId,
+        ih.plugin_version as pluginVersion,
+        ih.imported_at as importedAt,
+        ih.rows_processed as rowsProcessed,
+        ih.status,
+        ih.file_name as fileName,
+        ih.file_size as fileSize,
+        ih.duration_ms as durationMs,
+        ih.error_message as errorMessage,
+        w.name as warehouseName,
+        w.code as warehouseCode
+      FROM import_history ih
+      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
+      ORDER BY ih.imported_at DESC
+      LIMIT 50
+    `);
+        return stmt.all();
+    }
+};
+exports.getImportHistory = getImportHistory;

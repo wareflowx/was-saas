@@ -596,3 +596,60 @@ export const getWarehousesWithKPIs = () => {
   }
 }
 
+/**
+ * Get import history for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Import history records
+ */
+export const getImportHistory = (warehouseId?: string) => {
+  const db = getDatabase()
+
+  let stmt
+  if (warehouseId) {
+    stmt = db.prepare(`
+      SELECT
+        ih.id,
+        ih.warehouse_id as warehouseId,
+        ih.plugin_id as pluginId,
+        ih.plugin_version as pluginVersion,
+        ih.imported_at as importedAt,
+        ih.rows_processed as rowsProcessed,
+        ih.status,
+        ih.file_name as fileName,
+        ih.file_size as fileSize,
+        ih.duration_ms as durationMs,
+        ih.error_message as errorMessage,
+        w.name as warehouseName,
+        w.code as warehouseCode
+      FROM import_history ih
+      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
+      WHERE ih.warehouse_id = ?
+      ORDER BY ih.imported_at DESC
+      LIMIT 50
+    `)
+    return stmt.all(warehouseId)
+  } else {
+    stmt = db.prepare(`
+      SELECT
+        ih.id,
+        ih.warehouse_id as warehouseId,
+        ih.plugin_id as pluginId,
+        ih.plugin_version as pluginVersion,
+        ih.imported_at as importedAt,
+        ih.rows_processed as rowsProcessed,
+        ih.status,
+        ih.file_name as fileName,
+        ih.file_size as fileSize,
+        ih.duration_ms as durationMs,
+        ih.error_message as errorMessage,
+        w.name as warehouseName,
+        w.code as warehouseCode
+      FROM import_history ih
+      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
+      ORDER BY ih.imported_at DESC
+      LIMIT 50
+    `)
+    return stmt.all()
+  }
+}
+
