@@ -33,17 +33,26 @@ export default defineConfig({
         }
       },
       {
-        // Preload script
+        // Preload script - disabled, we copy it directly
         entry: 'electron/preload.cjs',
         vite: {
           build: {
             outDir: 'dist-electron',
             rollupOptions: {
               output: {
+                entryFileNames: '[name].cjs',
                 format: 'cjs',
               }
             }
           }
+        },
+        onstart() {
+          // Copy preload.cjs directly to avoid Vite transformation
+          const fs = require('fs')
+          const source = 'electron/preload.cjs'
+          const target = 'dist-electron/preload.cjs'
+          fs.copyFileSync(source, target)
+          console.log('Copied preload.cjs to dist-electron/')
         }
       }
     ])
