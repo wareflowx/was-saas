@@ -57,13 +57,13 @@ ipcMain.handle('import:validate', async (event, filePath, pluginId) => {
   return importService.validateImportFile(filePath, plugin)
 })
 
-ipcMain.handle('import:execute', async (event, filePath, warehouseId, pluginId) => {
+ipcMain.handle('import:execute', async (event, filePath, warehouseId, pluginId, onProgress) => {
   const plugin = pluginService.getPlugin(pluginId)
   if (!plugin) {
     throw new Error(`Plugin not found: ${pluginId}`)
   }
 
-  return importService.executeImport(filePath, warehouseId, plugin)
+  return importService.executeImport(filePath, warehouseId, plugin, onProgress)
 })
 
 // ==========================================================================
