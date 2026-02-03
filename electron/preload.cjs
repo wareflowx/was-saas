@@ -15,9 +15,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // WAREHOUSE MANAGEMENT
   // ==========================================================================
 
-  getWarehouses: () => ipcRenderer.invoke('warehouse:get-all'),
+  getWarehouses: () => ipcRenderer.invoke('warehouse:getAll'),
 
-  getWarehousesWithKPIs: () => ipcRenderer.invoke('warehouse:get-all-with-kpis'),
+  getWarehousesWithKPIs: () => ipcRenderer.invoke('warehouse:getAllWithKPIs'),
+
+  warehouseExists: (warehouseId) => ipcRenderer.invoke('warehouse:exists', warehouseId),
 
   createWarehouse: (warehouse) => ipcRenderer.invoke('warehouse:create', warehouse),
 
@@ -56,6 +58,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getMovements: (filters) => ipcRenderer.invoke('db:get-movements', filters),
 
   getOrders: (filters) => ipcRenderer.invoke('db:get-orders', filters),
+
+  getReceptions: (filters) => ipcRenderer.invoke('db:get-receptions', filters),
+
+  getReceptionLines: (receptionId) => ipcRenderer.invoke('db:get-reception-lines', receptionId),
+
+  getPickings: (filters) => ipcRenderer.invoke('db:get-pickings', filters),
+
+  getPickingLines: (pickingId) => ipcRenderer.invoke('db:get-picking-lines', pickingId),
+
+  getReturns: (filters) => ipcRenderer.invoke('db:get-returns', filters),
+
+  getReturnLines: (returnId) => ipcRenderer.invoke('db:get-return-lines', returnId),
+
+  getRestockings: (filters) => ipcRenderer.invoke('db:get-restockings', filters),
+
+  getRestockingLines: (restockingId) => ipcRenderer.invoke('db:get-restocking-lines', restockingId),
+
+  getOrdersWithLines: (filters) => ipcRenderer.invoke('db:get-orders-with-lines', filters),
 
   getDatabaseStats: () => ipcRenderer.invoke('db:get-stats'),
 
