@@ -208,7 +208,7 @@ export function PickingTable({ pickings }: PickingTableProps) {
                   <TableCell>{picking.orderNumber}</TableCell>
                   <TableCell>{picking.customerName}</TableCell>
                   <TableCell className="text-muted-foreground">{picking.warehouseName}</TableCell>
-                  <TableCell className="text-right">{picking.lines.length}</TableCell>
+                  <TableCell className="text-right">{picking.lines?.length ?? 0}</TableCell>
                   <TableCell className="text-right">{picking.totalQuantity.toLocaleString()}</TableCell>
                   <TableCell className="text-right">{picking.pickedQuantity.toLocaleString()}</TableCell>
                   <TableCell className="text-right">{picking.remainingQuantity.toLocaleString()}</TableCell>

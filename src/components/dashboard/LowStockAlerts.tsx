@@ -41,9 +41,9 @@ export function LowStockAlerts({ alerts, className }: LowStockAlertsProps) {
               No low stock alerts
             </p>
           ) : (
-            alerts.map((alert) => (
+            alerts.map((alert, index) => (
               <div
-                key={alert.id}
+                key={`${alert.id}-${alert.location}-${index}`}
                 className="flex items-center justify-between border-b last:border-0 pb-3 last:pb-0"
               >
                 <div className="flex-1">

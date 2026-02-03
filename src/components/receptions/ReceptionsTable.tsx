@@ -207,7 +207,7 @@ export function ReceptionsTable({ receptions }: ReceptionsTableProps) {
                   <TableCell>{reception.supplierName}</TableCell>
                   <TableCell>{new Date(reception.expectedDate).toLocaleDateString()}</TableCell>
                   <TableCell className="text-muted-foreground">{reception.warehouseName}</TableCell>
-                  <TableCell className="text-right">{reception.lines.length}</TableCell>
+                  <TableCell className="text-right">{reception.lines?.length ?? 0}</TableCell>
                   <TableCell className="text-right">{reception.totalQuantity.toLocaleString()}</TableCell>
                   <TableCell className="text-right">{reception.receivedQuantity.toLocaleString()}</TableCell>
                   <TableCell>{getPriorityBadge(reception.priority)}</TableCell>
