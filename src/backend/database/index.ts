@@ -12,15 +12,16 @@ import { DATABASE_SCHEMA, getDatabasePath, SCHEMA_VERSION } from './schema'
 // SINGLETON DATABASE INSTANCE
 // ============================================================================
 
-let db: ReturnType<typeof drizzle<typeof schema>> | null = null
-let sqliteDb: Database.Database | null = null
+let sqliteDb: any | null = null
 
 /**
  * Get or create database instance
  * @returns Drizzle database instance
  */
 export const getDatabase = () => {
-  if (db) return db
+  if (sqliteDb) {
+    return drizzle(sqliteDb, { schema })
+  }
 
   // Get user data path from Electron
   const userDataPath = app.getPath('userData')
@@ -39,16 +40,14 @@ export const getDatabase = () => {
   initializeSchema(sqliteDb)
 
   // Create Drizzle ORM instance
-  db = drizzle(sqliteDb, { schema })
-
-  return db
+  return drizzle(sqliteDb, { schema })
 }
 
 /**
  * Initialize database schema
  * Creates all tables if they don't exist
  */
-function initializeSchema(sqlite: Database.Database) {
+function initializeSchema(sqlite: any) {
   // Check if warehouses table exists
   const tableExists = sqlite
     .prepare(
@@ -69,7 +68,6 @@ function initializeSchema(sqlite: Database.Database) {
 export const closeDatabase = () => {
   if (sqliteDb) {
     sqliteDb.close()
-    db = null
     sqliteDb = null
   }
 }
@@ -125,6 +123,7 @@ export const getDbRaw = () => {
     sqliteDb = new Database(dbPath)
     sqliteDb.pragma('foreign_keys = ON')
     sqliteDb.pragma('journal_mode = WAL')
+    initializeSchema(sqliteDb)
   }
   return sqliteDb
 }
@@ -163,14 +162,12 @@ export const initializeDatabase = (): void => {
  * @returns True if warehouse exists
  */
 export const warehouseExists = (warehouseId: string): boolean => {
-  const database = getDatabase()
-  const result = database
-    .select({ count: schema.warehouses.id })
-    .from(schema.warehouses)
-    .where(eq(schema.warehouses.id, warehouseId))
-    .get()
+  const db = getDbRaw()
+  const result = db
+    .prepare('SELECT COUNT(*) as count FROM warehouses WHERE id = ?')
+    .get(warehouseId) as { count: number }
 
-  return result !== undefined
+  return result.count > 0
 }
 
 /**
@@ -178,11 +175,9 @@ export const warehouseExists = (warehouseId: string): boolean => {
  * @returns Array of all warehouses
  */
 export const getAllWarehouses = () => {
-  const database = getDatabase()
-  return database
-    .select()
-    .from(schema.warehouses)
-    .orderBy(schema.warehouses.name)
+  const db = getDbRaw()
+  return db
+    .prepare('SELECT * FROM warehouses ORDER BY name')
     .all()
 }
 
@@ -203,31 +198,32 @@ export const createWarehouse = (warehouse: {
   email?: string
   phone?: string
 }) => {
-  const database = getDatabase()
+  const db = getDbRaw()
 
-  database
-    .insert(schema.warehouses)
-    .values({
-      id: warehouse.id,
-      code: warehouse.code,
-      name: warehouse.name,
-      city: warehouse.city,
-      country: warehouse.country,
-      surface: warehouse.surface,
-      capacity: warehouse.capacity,
-      manager: warehouse.manager,
-      email: warehouse.email,
-      phone: warehouse.phone,
-      status: 'active',
-      openingDate: new Date().toISOString(),
-    })
-    .run()
+  const stmt = db.prepare(`
+    INSERT INTO warehouses (
+      id, code, name, city, country, surface, capacity,
+      manager, email, phone, status, opening_date
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
 
-  return database
-    .select()
-    .from(schema.warehouses)
-    .where(eq(schema.warehouses.id, warehouse.id))
-    .get()
+  stmt.run(
+    warehouse.id,
+    warehouse.code,
+    warehouse.name,
+    warehouse.city,
+    warehouse.country,
+    warehouse.surface || null,
+    warehouse.capacity || null,
+    warehouse.manager || null,
+    warehouse.email || null,
+    warehouse.phone || null,
+    'active'
+  )
+
+  return db
+    .prepare('SELECT * FROM warehouses WHERE id = ?')
+    .get(warehouse.id)
 }
 
 // ============================================================================
@@ -236,6 +232,3 @@ export const createWarehouse = (warehouse: {
 
 export * from './drizzle-schema'
 export { DATABASE_SCHEMA, getDatabasePath, DEFAULT_WAREHOUSE_ID } from './schema'
-
-// Import eq helper for queries
-import { eq } from 'drizzle-orm'

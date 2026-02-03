@@ -1,17 +1,16 @@
-import Database from 'better-sqlite3';
 /**
- * Get or create database connection
- * @returns Database connection
+ * Database connection and initialization using Drizzle ORM
  */
-export declare const getDatabase: () => ReturnType<typeof Database>;
+import * as schema from './drizzle-schema';
 /**
- * Initialize database schema
- * Creates all tables and indexes if they don't exist
+ * Get or create database instance
+ * @returns Drizzle database instance
  */
-export declare const initializeDatabase: () => void;
+export declare const getDatabase: () => import("drizzle-orm/better-sqlite3").BetterSQLite3Database<typeof schema> & {
+    $client: Database;
+};
 /**
  * Close database connection
- * Called when app is shutting down
  */
 export declare const closeDatabase: () => void;
 /**
@@ -34,6 +33,16 @@ export declare const getDatabaseStats: () => {
     sizeMB: number;
 };
 /**
+ * Get raw SQLite database instance
+ * For direct SQL queries when needed
+ */
+export declare const getDbRaw: () => any;
+/**
+ * Initialize database schema
+ * Creates all tables and indexes if they don't exist
+ */
+export declare const initializeDatabase: () => void;
+/**
  * Check if warehouse exists
  * @param warehouseId - Warehouse ID to check
  * @returns True if warehouse exists
@@ -47,7 +56,7 @@ export declare const getAllWarehouses: () => any;
 /**
  * Create a new warehouse
  * @param warehouse - Warehouse data
- * @returns Created warehouse with generated ID
+ * @returns Created warehouse
  */
 export declare const createWarehouse: (warehouse: {
     id: string;
@@ -61,3 +70,5 @@ export declare const createWarehouse: (warehouse: {
     email?: string;
     phone?: string;
 }) => any;
+export * from './drizzle-schema';
+export { DATABASE_SCHEMA, getDatabasePath, DEFAULT_WAREHOUSE_ID } from './schema';

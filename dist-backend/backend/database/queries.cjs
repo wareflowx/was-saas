@@ -11,7 +11,7 @@ const index_1 = require('./index.cjs');
  * @returns Array of products with inventory for this warehouse
  */
 const getProductsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       p.id,
@@ -52,7 +52,7 @@ exports.getProductsByWarehouse = getProductsByWarehouse;
  * @returns Product or null
  */
 const getProductById = (productId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     return db.prepare('SELECT * FROM products WHERE id = ?').get(productId);
 };
 exports.getProductById = getProductById;
@@ -62,7 +62,7 @@ exports.getProductById = getProductById;
  * @returns Product or null
  */
 const getProductBySku = (sku) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     return db.prepare('SELECT * FROM products WHERE sku = ?').get(sku);
 };
 exports.getProductBySku = getProductBySku;
@@ -75,7 +75,7 @@ exports.getProductBySku = getProductBySku;
  * @returns Array of inventory records
  */
 const getInventoryByWarehouse = (filters) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     let sql = `
     SELECT
       i.id,
@@ -118,7 +118,7 @@ exports.getInventoryByWarehouse = getInventoryByWarehouse;
  * @returns Array of movements
  */
 const getMovementsByWarehouse = (filters) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     let sql = 'SELECT * FROM movements WHERE warehouse_id = ?';
     const params = [filters.warehouseId];
     if (filters.productId) {
@@ -153,7 +153,7 @@ exports.getMovementsByWarehouse = getMovementsByWarehouse;
  * @returns Last movement date or null
  */
 const getLastMovementDate = (warehouseId, productId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const result = db
         .prepare('SELECT MAX(movement_date) as last_date FROM movements WHERE warehouse_id = ? AND product_id = ?')
         .get(warehouseId, productId);
@@ -169,7 +169,7 @@ exports.getLastMovementDate = getLastMovementDate;
  * @returns Array of orders
  */
 const getOrdersByWarehouse = (filters) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     let sql = 'SELECT * FROM orders WHERE warehouse_id = ?';
     const params = [filters.warehouseId];
     if (filters.status) {
@@ -197,7 +197,7 @@ exports.getOrdersByWarehouse = getOrdersByWarehouse;
  * @returns Array of products with movement totals
  */
 const getProductMovementTotals = (warehouseId, type, dateFrom, dateTo) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     let sql = `
     SELECT
       m.product_id,
@@ -230,7 +230,7 @@ exports.getProductMovementTotals = getProductMovementTotals;
  * @returns Array of products with last movement date and tied capital
  */
 const getDeadStock = (warehouseId, thresholdDays = 90) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT
       p.id,
@@ -262,7 +262,7 @@ exports.getDeadStock = getDeadStock;
  * @returns Array of locations with zone, sector, warehouse info and products
  */
 const getLocationsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       l.id,
@@ -349,7 +349,7 @@ exports.getLocationsByWarehouse = getLocationsByWarehouse;
  * @returns Zones data with KPIs calculated
  */
 const getZonesByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       z.id,
@@ -413,7 +413,7 @@ exports.getZonesByWarehouse = getZonesByWarehouse;
  * @returns Sectors data with KPIs calculated
  */
 const getSectorsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       s.id,
@@ -477,7 +477,7 @@ exports.getSectorsByWarehouse = getSectorsByWarehouse;
  * @returns Warehouses data with KPIs calculated
  */
 const getWarehousesWithKPIs = () => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT
       w.id,
@@ -528,7 +528,7 @@ exports.getWarehousesWithKPIs = getWarehousesWithKPIs;
  * @returns Import history records
  */
 const getImportHistory = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     let stmt;
     if (warehouseId) {
         stmt = db.prepare(`
@@ -585,7 +585,7 @@ exports.getImportHistory = getImportHistory;
  * @returns Dashboard data with KPIs, stock evolution, movements by type, top products, low stock alerts, and recent movements
  */
 const getDashboardKPIs = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     // KPIs
     let whereParams = warehouseId ? [warehouseId] : [];
     // Total products
@@ -750,7 +750,7 @@ exports.getDashboardKPIs = getDashboardKPIs;
  * @returns Receptions data with KPIs calculated
  */
 const getReceptionsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     // Get receptions with supplier info
     const stmt = db.prepare(`
     SELECT DISTINCT
@@ -809,7 +809,7 @@ exports.getReceptionsByWarehouse = getReceptionsByWarehouse;
  * @returns Array of reception lines
  */
 const getReceptionLines = (receptionId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT
       rl.id,
@@ -841,7 +841,7 @@ exports.getReceptionLines = getReceptionLines;
  * @returns Pickings data with KPIs calculated
  */
 const getPickingsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       p.id,
@@ -900,7 +900,7 @@ exports.getPickingsByWarehouse = getPickingsByWarehouse;
  * @returns Array of picking lines
  */
 const getPickingLines = (pickingId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT
       pl.id,
@@ -935,7 +935,7 @@ exports.getPickingLines = getPickingLines;
  * @returns Returns data with KPIs calculated
  */
 const getReturnsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       r.id,
@@ -998,7 +998,7 @@ exports.getReturnsByWarehouse = getReturnsByWarehouse;
  * @returns Array of return lines
  */
 const getReturnLines = (returnId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT
       rl.id,
@@ -1033,7 +1033,7 @@ exports.getReturnLines = getReturnLines;
  * @returns Restockings data with KPIs calculated
  */
 const getRestockingsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       r.id,
@@ -1086,7 +1086,7 @@ exports.getRestockingsByWarehouse = getRestockingsByWarehouse;
  * @returns Array of restocking lines
  */
 const getRestockingLines = (restockingId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT
       rl.id,
@@ -1122,7 +1122,7 @@ exports.getRestockingLines = getRestockingLines;
  * @returns Orders data with KPIs calculated
  */
 const getOrdersByWarehouseWithLines = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
+    const db = (0, index_1.getDbRaw)();
     const stmt = db.prepare(`
     SELECT DISTINCT
       o.id,

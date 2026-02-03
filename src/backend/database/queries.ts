@@ -1,4 +1,4 @@
-import { getDatabase } from './index'
+import { getDbRaw } from './index'
 
 // ============================================================================
 // TYPES
@@ -18,7 +18,7 @@ type QueryParam = string | number | null | undefined
  * @returns Array of products with inventory for this warehouse
  */
 export const getProductsByWarehouse = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT DISTINCT
@@ -61,7 +61,7 @@ export const getProductsByWarehouse = (warehouseId: string) => {
  * @returns Product or null
  */
 export const getProductById = (productId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
   return db.prepare('SELECT * FROM products WHERE id = ?').get(productId)
 }
 
@@ -71,7 +71,7 @@ export const getProductById = (productId: string) => {
  * @returns Product or null
  */
 export const getProductBySku = (sku: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
   return db.prepare('SELECT * FROM products WHERE sku = ?').get(sku)
 }
 
@@ -89,7 +89,7 @@ export const getInventoryByWarehouse = (filters: {
   productId?: string
   locationId?: string
 }) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   let sql = `
     SELECT
@@ -146,7 +146,7 @@ export const getMovementsByWarehouse = (filters: {
   dateTo?: string
   limit?: number
 }) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   let sql = 'SELECT * FROM movements WHERE warehouse_id = ?'
   const params: QueryParam[] = [filters.warehouseId]
@@ -189,7 +189,7 @@ export const getMovementsByWarehouse = (filters: {
  * @returns Last movement date or null
  */
 export const getLastMovementDate = (warehouseId: string, productId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const result = db
     .prepare(
@@ -214,7 +214,7 @@ export const getOrdersByWarehouse = (filters: {
   status?: string
   limit?: number
 }) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   let sql = 'SELECT * FROM orders WHERE warehouse_id = ?'
   const params: QueryParam[] = [filters.warehouseId]
@@ -253,7 +253,7 @@ export const getProductMovementTotals = (
   dateFrom?: string,
   dateTo?: string
 ) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   let sql = `
     SELECT
@@ -292,7 +292,7 @@ export const getProductMovementTotals = (
  * @returns Array of products with last movement date and tied capital
  */
 export const getDeadStock = (warehouseId: string, thresholdDays: number = 90) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT
@@ -327,7 +327,7 @@ export const getDeadStock = (warehouseId: string, thresholdDays: number = 90) =>
  * @returns Array of locations with zone, sector, warehouse info and products
  */
 export const getLocationsByWarehouse = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT DISTINCT
@@ -421,7 +421,7 @@ export const getLocationsByWarehouse = (warehouseId: string) => {
  * @returns Zones data with KPIs calculated
  */
 export const getZonesByWarehouse = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT DISTINCT
@@ -491,7 +491,7 @@ export const getZonesByWarehouse = (warehouseId: string) => {
  * @returns Sectors data with KPIs calculated
  */
 export const getSectorsByWarehouse = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT DISTINCT
@@ -561,7 +561,7 @@ export const getSectorsByWarehouse = (warehouseId: string) => {
  * @returns Warehouses data with KPIs calculated
  */
 export const getWarehousesWithKPIs = () => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT
@@ -616,7 +616,7 @@ export const getWarehousesWithKPIs = () => {
  * @returns Import history records
  */
 export const getImportHistory = (warehouseId?: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   let stmt
   if (warehouseId) {
@@ -673,7 +673,7 @@ export const getImportHistory = (warehouseId?: string) => {
  * @returns Dashboard data with KPIs, stock evolution, movements by type, top products, low stock alerts, and recent movements
  */
 export const getDashboardKPIs = (warehouseId?: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   // KPIs
   let whereParams = warehouseId ? [warehouseId] : []
@@ -856,7 +856,7 @@ export const getDashboardKPIs = (warehouseId?: string) => {
  * @returns Receptions data with KPIs calculated
  */
 export const getReceptionsByWarehouse = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   // Get receptions with supplier info
   const stmt = db.prepare(`
@@ -920,7 +920,7 @@ export const getReceptionsByWarehouse = (warehouseId: string) => {
  * @returns Array of reception lines
  */
 export const getReceptionLines = (receptionId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT
@@ -955,7 +955,7 @@ export const getReceptionLines = (receptionId: string) => {
  * @returns Pickings data with KPIs calculated
  */
 export const getPickingsByWarehouse = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT DISTINCT
@@ -1019,7 +1019,7 @@ export const getPickingsByWarehouse = (warehouseId: string) => {
  * @returns Array of picking lines
  */
 export const getPickingLines = (pickingId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT
@@ -1057,7 +1057,7 @@ export const getPickingLines = (pickingId: string) => {
  * @returns Returns data with KPIs calculated
  */
 export const getReturnsByWarehouse = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT DISTINCT
@@ -1129,7 +1129,7 @@ export const getReturnsByWarehouse = (warehouseId: string) => {
  * @returns Array of return lines
  */
 export const getReturnLines = (returnId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT
@@ -1167,7 +1167,7 @@ export const getReturnLines = (returnId: string) => {
  * @returns Restockings data with KPIs calculated
  */
 export const getRestockingsByWarehouse = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT DISTINCT
@@ -1225,7 +1225,7 @@ export const getRestockingsByWarehouse = (warehouseId: string) => {
  * @returns Array of restocking lines
  */
 export const getRestockingLines = (restockingId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT
@@ -1264,7 +1264,7 @@ export const getRestockingLines = (restockingId: string) => {
  * @returns Orders data with KPIs calculated
  */
 export const getOrdersByWarehouseWithLines = (warehouseId: string) => {
-  const db = getDatabase()
+const db = getDbRaw()
 
   const stmt = db.prepare(`
     SELECT DISTINCT

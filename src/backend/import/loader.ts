@@ -4,8 +4,7 @@
  */
 
 import type { NormalizedData } from './types'
-import { getDatabase, warehouses as warehousesTable, users as usersTable, suppliers as suppliersTable, customers as customersTable, purchaseOrders as purchaseOrdersTable, purchaseOrderLines as purchaseOrderLinesTable, zones as zonesTable, sectors as sectorsTable, locations as locationsTable, products as productsTable, inventory as inventoryTable, movements as movementsTable, orders as ordersTable, orderLines as orderLinesTable, pickings as pickingsTable, pickingLines as pickingLinesTable, receptions as receptionsTable, receptionLines as receptionLinesTable, restockings as restockingsTable, restockingLines as restockingLinesTable, returns as returnsTable, returnLines as returnLinesTable, shipments as shipmentsTable, shipmentLines as shipmentLinesTable } from '../database/index'
-import { eq } from 'drizzle-orm'
+import { getDatabase, getDbRaw, warehouses as warehousesTable, users as usersTable, suppliers as suppliersTable, customers as customersTable, purchaseOrders as purchaseOrdersTable, purchaseOrderLines as purchaseOrderLinesTable, zones as zonesTable, sectors as sectorsTable, locations as locationsTable, products as productsTable, inventory as inventoryTable, movements as movementsTable, orders as ordersTable, orderLines as orderLinesTable, pickings as pickingsTable, pickingLines as pickingLinesTable, receptions as receptionsTable, receptionLines as receptionLinesTable, restockings as restockingsTable, restockingLines as restockingLinesTable, returns as returnsTable, returnLines as returnLinesTable, shipments as shipmentsTable, shipmentLines as shipmentLinesTable } from '../database/index'
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -30,9 +29,11 @@ function bulkInsert<T>(
   if (data.length === 0) return 0
 
   const db = getDatabase()
+  const sqlite = getDbRaw()
   let inserted = 0
 
-  const insertMany = db.transaction((items: readonly T[]) => {
+  // Use SQLite transaction for better performance
+  const insertMany = sqlite.transaction((items: readonly T[]) => {
     for (const item of items) {
       try {
         db.insert(table)
