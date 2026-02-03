@@ -11,6 +11,7 @@ import type {
   Warehouse,
   User,
   Supplier,
+  Customer,
 } from '../../types'
 
 // ============================================================================
@@ -92,6 +93,7 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
     const movements = generateMockMovements(effectiveWarehouseId, products, locations, 200)
     const users = generateMockUsers(effectiveWarehouseId)
     const suppliers = generateMockSuppliers()
+    const customers = generateMockCustomers()
 
     return {
       metadata: {
@@ -110,6 +112,7 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
       warehouses,
       users,
       suppliers,
+      customers,
     }
   },
 }
@@ -339,6 +342,191 @@ function generateMockSuppliers(): Supplier[] {
   }
 
   return suppliers
+}
+
+/**
+ * Generate mock customers
+ */
+function generateMockCustomers(): Customer[] {
+  const customers: Customer[] = []
+
+  const customerData = [
+    {
+      id: 'CUST-001',
+      customerCode: 'RET-001',
+      name: 'RetailMax Solutions',
+      email: 'orders@retailmax.com',
+      phone: '+1 555-0101',
+      billingAddress: '123 Commerce Street, Suite 100',
+      shippingAddress: '456 Warehouse Ave',
+      city: 'New York',
+      country: 'USA',
+      customerType: 'Wholesale',
+      creditLimit: 50000,
+    },
+    {
+      id: 'CUST-002',
+      customerCode: 'EU-DIST-002',
+      name: 'EuroDistributors GmbH',
+      email: ' procurement@eurodistributors.de',
+      phone: '+49 40 123456',
+      billingAddress: 'Messeplatz 1',
+      shippingAddress: 'Hafenstrasse 25',
+      city: 'Hamburg',
+      country: 'Germany',
+      customerType: 'Wholesale',
+      creditLimit: 75000,
+    },
+    {
+      id: 'CUST-003',
+      customerCode: 'SHOP-ONLINE',
+      name: 'ShopOnline E-commerce',
+      email: 'warehouse@shoponline.fr',
+      phone: '+33 4 12 34 56 78',
+      billingAddress: '15 Rue de la Paix',
+      shippingAddress: '8 Boulevard du Commerce',
+      city: 'Lyon',
+      country: 'France',
+      customerType: 'E-commerce',
+      creditLimit: 30000,
+    },
+    {
+      id: 'CUST-004',
+      customerCode: 'RETAIL-ES',
+      name: 'Tiendas Express SA',
+      email: 'compras@tiendasexpress.es',
+      phone: '+34 91 876 54 32',
+      billingAddress: 'Calle Mayor 45',
+      shippingAddress: 'Poligono Industrial, Nave 12',
+      city: 'Madrid',
+      country: 'Spain',
+      customerType: 'Retail Chain',
+      creditLimit: 100000,
+    },
+    {
+      id: 'CUST-005',
+      customerCode: 'TECH-RESELLER',
+      name: 'TechResellers Italia',
+      email: 'ordini@techresellers.it',
+      phone: '+39 02 1234 5678',
+      billingAddress: 'Via Roma 123',
+      shippingAddress: 'Ver dell\'Industria 45',
+      city: 'Milan',
+      country: 'Italy',
+      customerType: 'Wholesale',
+      creditLimit: 60000,
+    },
+    {
+      id: 'CUST-006',
+      customerCode: 'BENELUX-BV',
+      name: 'Benelux Trading BV',
+      email: 'info@beneluxtrading.nl',
+      phone: '+31 20 123 4567',
+      billingAddress: 'Keizersgracht 123',
+      shippingAddress: 'Havenweg 5',
+      city: 'Amsterdam',
+      country: 'Netherlands',
+      customerType: 'Distributor',
+      creditLimit: 80000,
+    },
+    {
+      id: 'CUST-007',
+      customerCode: 'SCAN-TRADE',
+      name: 'Scandinavian Trade AB',
+      email: 'orders@scantrade.se',
+      phone: '+46 8 654 32 10',
+      billingAddress: 'Box 12345',
+      shippingAddress: 'Hamngatan 15',
+      city: 'Gothenburg',
+      country: 'Sweden',
+      customerType: 'Wholesale',
+      creditLimit: 55000,
+    },
+    {
+      id: 'CUST-008',
+      customerCode: 'UK-RETAIL',
+      name: 'British Retail Partners Ltd',
+      email: 'sales@britishretail.co.uk',
+      phone: '+44 161 123 4567',
+      billingAddress: '123 Market Street',
+      shippingAddress: '456 Dock Road',
+      city: 'Manchester',
+      country: 'United Kingdom',
+      customerType: 'Retail Chain',
+      creditLimit: 120000,
+    },
+    {
+      id: 'CUST-009',
+      customerCode: 'PL-Retail',
+      name: 'Polska Detal SA',
+      email: 'zamowienia@polskadetal.pl',
+      phone: '+48 22 123 45 67',
+      billingAddress: 'ul. Handlowa 15',
+      shippingAddress: 'ul. Magazynowa 30',
+      city: 'Warsaw',
+      country: 'Poland',
+      customerType: 'Retail Chain',
+      creditLimit: 40000,
+    },
+    {
+      id: 'CUST-010',
+      customerCode: 'AT-LOGIST',
+      name: 'Logistik Austria GmbH',
+      email: 'bestellung@logistik-at.at',
+      phone: '+43 1 123 45 67',
+      billingAddress: 'Mariahilfer Strasse 123',
+      shippingAddress: 'Handelskai 50',
+      city: 'Vienna',
+      country: 'Austria',
+      customerType: 'Wholesale',
+      creditLimit: 45000,
+    },
+    {
+      id: 'CUST-011',
+      customerCode: 'CH-TRADING',
+      name: 'Suisse Trading Sarl',
+      email: 'commandes@suissetrading.ch',
+      phone: '+41 22 123 45 67',
+      billingAddress: 'Rue du Rhône 123',
+      shippingAddress: 'Zone Industrielle A',
+      city: 'Geneva',
+      country: 'Switzerland',
+      customerType: 'Distributor',
+      creditLimit: 70000,
+    },
+    {
+      id: 'CUST-012',
+      customerCode: 'CZ-DIST',
+      name: 'Czech Distribution sro',
+      email: 'objednavky@czechdistribution.cz',
+      phone: '+420 2 1234 5678',
+      billingAddress: 'Národní 123',
+      shippingAddress: 'Skladová 5',
+      city: 'Prague',
+      country: 'Czech Republic',
+      customerType: 'Wholesale',
+      creditLimit: 35000,
+    },
+  ]
+
+  for (const customer of customerData) {
+    customers.push({
+      id: customer.id,
+      customerCode: customer.customerCode,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      billingAddress: customer.billingAddress,
+      shippingAddress: customer.shippingAddress,
+      city: customer.city,
+      country: customer.country,
+      customerType: customer.customerType,
+      creditLimit: customer.creditLimit,
+      status: 'active',
+    })
+  }
+
+  return customers
 }
 
 /**
