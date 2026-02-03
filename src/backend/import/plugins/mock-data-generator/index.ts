@@ -12,6 +12,8 @@ import type {
   User,
   Supplier,
   Customer,
+  PurchaseOrder,
+  PurchaseOrderLine,
 } from '../../types'
 
 // ============================================================================
@@ -95,6 +97,9 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
     const suppliers = generateMockSuppliers()
     const customers = generateMockCustomers()
 
+    // Generate purchase orders and their lines
+    const purchaseOrdersResult = generateMockPurchaseOrdersAndLines(effectiveWarehouseId, suppliers, products)
+
     return {
       metadata: {
         warehouseId: effectiveWarehouseId,
@@ -113,6 +118,8 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
       users,
       suppliers,
       customers,
+      purchaseOrders: purchaseOrdersResult.orders,
+      purchaseOrderLines: purchaseOrdersResult.lines,
     }
   },
 }
@@ -527,6 +534,74 @@ function generateMockCustomers(): Customer[] {
   }
 
   return customers
+}
+
+/**
+ * Generate mock purchase orders and their lines
+ */
+function generateMockPurchaseOrdersAndLines(
+  warehouseId: string,
+  suppliers: readonly Supplier[],
+  products: readonly Product[]
+): { orders: PurchaseOrder[]; lines: PurchaseOrderLine[] } {
+  const purchaseOrders: PurchaseOrder[] = []
+  const purchaseOrderLines: PurchaseOrderLine[] = []
+
+  const statuses: Array<'DRAFT' | 'CONFIRMED' | 'RECEIVED' | 'CANCELLED'> = ['DRAFT', 'CONFIRMED', 'RECEIVED', 'CANCELLED']
+  const now = new Date()
+  const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+
+  // Generate 15-20 purchase orders
+  const orderCount = getRandomInt(15, 20)
+
+  for (let i = 0; i < orderCount; i++) {
+    const supplier = suppliers[getRandomInt(0, suppliers.length - 1)]
+    const orderDate = getRandomDate(ninetyDaysAgo, now)
+    const status = statuses[getRandomInt(0, statuses.length - 1)]
+    const expectedDate = new Date(orderDate.getTime() + getRandomInt(7, 30) * 24 * 60 * 60 * 1000)
+
+    const poId = `PO-${String(i + 1).padStart(4, '0')}`
+    const poNumber = `PO-${new Date(orderDate).getFullYear()}-${String(i + 1).padStart(4, '0')}`
+
+    // Generate 3-10 lines per purchase order
+    const lineCount = getRandomInt(3, 10)
+    let totalAmount = 0
+
+    for (let j = 0; j < lineCount; j++) {
+      const product = products[getRandomInt(0, products.length - 1)]
+      const quantity = getRandomInt(10, 500)
+      const unitPrice = product.costPrice || getRandomFloat(5, 100)
+      const totalPrice = quantity * unitPrice
+      totalAmount += totalPrice
+
+      const receivedQuantity = status === 'RECEIVED' ? quantity : (status === 'CONFIRMED' ? getRandomInt(0, quantity) : 0)
+
+      purchaseOrderLines.push({
+        id: `POL-${i + 1}-${j + 1}`,
+        purchaseOrderId: poId,
+        productId: product.id,
+        productSku: product.sku,
+        productName: product.name,
+        quantity,
+        receivedQuantity,
+        unitPrice,
+        totalPrice,
+      })
+    }
+
+    purchaseOrders.push({
+      id: poId,
+      warehouseId,
+      supplierId: supplier.id,
+      purchaseOrderNumber: poNumber,
+      orderDate,
+      expectedDate,
+      status,
+      totalAmount,
+    })
+  }
+
+  return { orders: purchaseOrders, lines: purchaseOrderLines }
 }
 
 /**

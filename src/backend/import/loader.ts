@@ -182,6 +182,86 @@ export const insertCustomers = (customers: readonly Customer[]): number => {
 }
 
 /**
+ * Insert purchase orders into database
+ * @param purchaseOrders - Array of purchase orders to insert
+ * @returns Number of purchase orders inserted
+ */
+export const insertPurchaseOrders = (purchaseOrders: readonly PurchaseOrder[]): number => {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO purchase_orders (
+      id, warehouse_id, supplier_id, purchase_order_number, order_date, expected_date,
+      status, total_amount,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `)
+
+  let inserted = 0
+
+  const insertMany = db.transaction((purchaseOrders: readonly PurchaseOrder[]) => {
+    for (const po of purchaseOrders) {
+      try {
+        stmt.run(
+          po.id,
+          po.warehouseId,
+          po.supplierId,
+          po.purchaseOrderNumber,
+          formatDate(po.orderDate),
+          po.expectedDate ? formatDate(po.expectedDate) : null,
+          po.status,
+          po.totalAmount
+        )
+        inserted++
+      } catch (error) {
+        console.error(`Error inserting purchase order ${po.purchaseOrderNumber}:`, error)
+      }
+    }
+  })
+
+  insertMany(purchaseOrders)
+  return inserted
+}
+
+/**
+ * Insert purchase order lines into database
+ * @param purchaseOrderLines - Array of purchase order lines to insert
+ * @returns Number of purchase order lines inserted
+ */
+export const insertPurchaseOrderLines = (purchaseOrderLines: readonly PurchaseOrderLine[]): number => {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO purchase_order_lines (
+      id, purchase_order_id, product_id, quantity, received_quantity,
+      unit_price, total_price
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  let inserted = 0
+
+  const insertMany = db.transaction((lines: readonly PurchaseOrderLine[]) => {
+    for (const line of lines) {
+      try {
+        stmt.run(
+          line.id,
+          line.purchaseOrderId,
+          line.productId,
+          line.quantity,
+          line.receivedQuantity,
+          line.unitPrice,
+          line.totalPrice
+        )
+        inserted++
+      } catch (error) {
+        console.error(`Error inserting purchase order line ${line.id}:`, error)
+      }
+    }
+  })
+
+  insertMany(purchaseOrderLines)
+  return inserted
+}
+
+/**
  * Insert products into database
  * @param products - Array of products to insert
  * @returns Number of products inserted
@@ -910,6 +990,7 @@ export const loadToDatabase = (data: NormalizedData): {
   usersImported?: number
   suppliersImported?: number
   customersImported?: number
+  purchaseOrdersImported?: number
   zonesImported?: number
   sectorsImported?: number
   locationsImported?: number
@@ -927,6 +1008,7 @@ export const loadToDatabase = (data: NormalizedData): {
     usersImported: 0,
     suppliersImported: 0,
     customersImported: 0,
+    purchaseOrdersImported: 0,
     zonesImported: 0,
     sectorsImported: 0,
     locationsImported: 0,
@@ -955,6 +1037,16 @@ export const loadToDatabase = (data: NormalizedData): {
   // Insert customers
   if (data.customers && data.customers.length > 0) {
     stats.customersImported = insertCustomers(data.customers)
+  }
+
+  // Insert purchase orders
+  if (data.purchaseOrders && data.purchaseOrders.length > 0) {
+    stats.purchaseOrdersImported = insertPurchaseOrders(data.purchaseOrders)
+  }
+
+  // Insert purchase order lines
+  if (data.purchaseOrderLines && data.purchaseOrderLines.length > 0) {
+    insertPurchaseOrderLines(data.purchaseOrderLines)
   }
 
   // Insert zones first (locations reference them)
