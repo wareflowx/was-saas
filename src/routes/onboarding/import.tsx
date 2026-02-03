@@ -161,7 +161,7 @@ function DataImport() {
                 Generate test data for exploration
               </div>
               <div className="text-sm text-muted-foreground">
-                Create realistic mock data (50 products, 200 movements) to explore the application without needing a real WMS export
+                Create realistic mock data with complete business operations (orders, pickings, shipments, returns, etc.) to explore the application without needing a real WMS export
               </div>
               {useMockData && (
                 <div className="mt-3 p-3 bg-background rounded border">
@@ -169,12 +169,20 @@ function DataImport() {
                     <Database className="w-4 h-4" />
                     Test data includes:
                   </div>
-                  <ul className="text-sm text-muted-foreground space-y-1 ml-6">
-                    <li>• 50 products across 10 categories</li>
-                    <li>• 200 movements over 90 days</li>
-                    <li>• ABC classification data</li>
-                    <li>• Dead stock analysis samples</li>
-                  </ul>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
+                    <div>• <strong>3 Warehouses</strong> (Paris, Madrid, Brussels)</div>
+                    <div>• <strong>8 Users</strong> (Admin, Managers, Pickers)</div>
+                    <div>• <strong>8 Suppliers</strong> (international)</div>
+                    <div>• <strong>12 Customers</strong> (B2B/B2C)</div>
+                    <div>• <strong>50 Products</strong> (10 categories)</div>
+                    <div>• <strong>15-20 Purchase Orders</strong> + receptions</div>
+                    <div>• <strong>200 Movements</strong> (90 days)</div>
+                    <div>• <strong>30-40 Orders</strong> + pickings</div>
+                    <div>• <strong>Shipments</strong> with carrier tracking</div>
+                    <div>• <strong>5-10 Returns</strong> (customer)</div>
+                    <div>• <strong>10-15 Restockings</strong> (internal)</div>
+                    <div>• <strong>ABC Analysis</strong> ready</div>
+                  </div>
                 </div>
               )}
             </label>
