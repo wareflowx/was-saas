@@ -683,3 +683,325 @@ export const getImportHistory = async (warehouseId?: string) => {
 
   return result
 }
+
+// ============================================================================
+// OPERATIONS - RECEPTIONS
+// ============================================================================
+
+/**
+ * Get all receptions for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Receptions data with KPIs
+ */
+export const getReceptionsByWarehouse = async (warehouseId: string) => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select({
+      id: receptions.id,
+      receptionNumber: receptions.receptionNumber,
+      warehouseId: receptions.warehouseId,
+      supplierId: receptions.supplierId,
+      supplierName: receptions.supplierName,
+      expectedDate: receptions.expectedDate,
+      receivedDate: receptions.receivedDate,
+      status: receptions.status,
+      priority: receptions.priority,
+      totalQuantity: receptions.totalQuantity,
+      receivedQuantity: receptions.receivedQuantity,
+      rejectedQuantity: receptions.rejectedQuantity,
+      totalAmount: receptions.totalAmount,
+      carrier: receptions.carrier,
+      trackingNumber: receptions.trackingNumber,
+      receiver: receptions.receiver,
+      notes: receptions.notes,
+      createdAt: receptions.createdAt,
+      lastUpdated: receptions.updatedAt,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(receptions)
+    .leftJoin(warehouses, eq(receptions.warehouseId, warehouses.id))
+    .where(eq(receptions.warehouseId, warehouseId))
+    .orderBy(desc(receptions.expectedDate))
+
+  // Calculate KPIs
+  const totalReceptions = rows.length
+  const pendingReceptions = rows.filter(r => r.status === 'pending').length
+  const inProgressReceptions = rows.filter(r => r.status === 'in_progress').length
+  const completedReceptions = rows.filter(r => r.status === 'completed').length
+
+  const totalQuantity = rows.reduce((sum, r) => sum + (r.totalQuantity || 0), 0)
+  const receivedQuantity = rows.reduce((sum, r) => sum + (r.receivedQuantity || 0), 0)
+  const pendingQuantity = totalQuantity - receivedQuantity
+
+  return {
+    kpis: {
+      totalReceptions,
+      pendingReceptions,
+      inProgressReceptions,
+      completedReceptions,
+      totalQuantity,
+      receivedQuantity,
+      pendingQuantity,
+    },
+    receptions: rows,
+  }
+}
+
+/**
+ * Get reception lines for a reception
+ * @param receptionId - Reception ID
+ * @returns Array of reception lines
+ */
+export const getReceptionLines = async (receptionId: string) => {
+  const db = getDatabase()
+
+  return await db
+    .select()
+    .from(receptionLines)
+    .where(eq(receptionLines.receptionId, receptionId))
+    .orderBy(receptionLines.createdAt)
+}
+
+// ============================================================================
+// OPERATIONS - PICKINGS
+// ============================================================================
+
+/**
+ * Get all pickings for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Pickings data with KPIs
+ */
+export const getPickingsByWarehouse = async (warehouseId: string) => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select({
+      id: pickings.id,
+      pickingNumber: pickings.pickingNumber,
+      warehouseId: pickings.warehouseId,
+      orderId: pickings.orderId,
+      orderNumber: pickings.orderNumber,
+      customerId: pickings.customerId,
+      customerName: pickings.customerName,
+      assignedDate: pickings.assignedDate,
+      startedDate: pickings.startedDate,
+      completedDate: pickings.completedDate,
+      status: pickings.status,
+      priority: pickings.priority,
+      totalQuantity: pickings.totalQuantity,
+      pickedQuantity: pickings.pickedQuantity,
+      remainingQuantity: pickings.remainingQuantity,
+      picker: pickings.picker,
+      pickerId: pickings.pickerId,
+      notes: pickings.notes,
+      createdAt: pickings.createdAt,
+      lastUpdated: pickings.updatedAt,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(pickings)
+    .leftJoin(warehouses, eq(pickings.warehouseId, warehouses.id))
+    .where(eq(pickings.warehouseId, warehouseId))
+    .orderBy(desc(pickings.assignedDate))
+
+  // Calculate KPIs
+  const totalPickings = rows.length
+  const pendingPickings = rows.filter(r => r.status === 'pending').length
+  const inProgressPickings = rows.filter(r => r.status === 'in_progress').length
+  const completedPickings = rows.filter(r => r.status === 'completed').length
+
+  const totalLines = rows.reduce((sum, r) => sum + (r.totalQuantity || 0), 0)
+  const pickedLines = rows.reduce((sum, r) => sum + (r.pickedQuantity || 0), 0)
+  const completionRate = totalLines > 0 ? Math.round((pickedLines / totalLines) * 100) : 0
+
+  return {
+    kpis: {
+      totalPickings,
+      pendingPickings,
+      inProgressPickings,
+      completedPickings,
+      totalLines,
+      pickedLines,
+      completionRate,
+    },
+    pickings: rows,
+  }
+}
+
+/**
+ * Get picking lines for a picking
+ * @param pickingId - Picking ID
+ * @returns Array of picking lines
+ */
+export const getPickingLines = async (pickingId: string) => {
+  const db = getDatabase()
+
+  return await db
+    .select()
+    .from(pickingLines)
+    .where(eq(pickingLines.pickingId, pickingId))
+    .orderBy(pickingLines.createdAt)
+}
+
+// ============================================================================
+// OPERATIONS - RETURNS
+// ============================================================================
+
+/**
+ * Get all returns for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Returns data with KPIs
+ */
+export const getReturnsByWarehouse = async (warehouseId: string) => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select({
+      id: returns.id,
+      returnNumber: returns.returnNumber,
+      warehouseId: returns.warehouseId,
+      orderId: returns.orderId,
+      orderNumber: returns.orderNumber,
+      customerId: returns.customerId,
+      customerName: returns.customerName,
+      returnDate: returns.returnDate,
+      type: returns.type,
+      status: returns.status,
+      priority: returns.priority,
+      reason: returns.reason,
+      reasonLabel: returns.reasonLabel,
+      totalQuantity: returns.totalQuantity,
+      totalAmount: returns.totalAmount,
+      refundedAmount: returns.refundedAmount,
+      processor: returns.processor,
+      completedDate: returns.completedDate,
+      createdAt: returns.createdAt,
+      lastUpdated: returns.updatedAt,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(returns)
+    .leftJoin(warehouses, eq(returns.warehouseId, warehouses.id))
+    .where(eq(returns.warehouseId, warehouseId))
+    .orderBy(desc(returns.returnDate))
+
+  // Calculate KPIs
+  const totalReturns = rows.length
+  const pendingReturns = rows.filter(r => r.status === 'pending').length
+  const inProgressReturns = rows.filter(r => r.status === 'in_progress').length
+  const completedReturns = rows.filter(r => r.status === 'completed').length
+
+  const totalQuantity = rows.reduce((sum, r) => sum + (r.totalQuantity || 0), 0)
+  const returnedQuantity = rows.filter(r => r.status === 'completed').reduce((sum, r) => sum + (r.totalQuantity || 0), 0)
+  const pendingQuantity = totalQuantity - returnedQuantity
+
+  const totalValue = rows.reduce((sum, r) => sum + (r.totalAmount || 0), 0)
+  const refundedValue = rows.reduce((sum, r) => sum + (r.refundedAmount || 0), 0)
+
+  return {
+    kpis: {
+      totalReturns,
+      pendingReturns,
+      inProgressReturns,
+      completedReturns,
+      totalQuantity,
+      returnedQuantity,
+      pendingQuantity,
+      totalValue,
+      refundedValue,
+    },
+    returns: rows,
+  }
+}
+
+/**
+ * Get return lines for a return
+ * @param returnId - Return ID
+ * @returns Array of return lines
+ */
+export const getReturnLines = async (returnId: string) => {
+  const db = getDatabase()
+
+  return await db
+    .select()
+    .from(returnLines)
+    .where(eq(returnLines.returnId, returnId))
+    .orderBy(returnLines.createdAt)
+}
+
+// ============================================================================
+// OPERATIONS - RESTOCKINGS
+// ============================================================================
+
+/**
+ * Get all restockings for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Restockings data with KPIs
+ */
+export const getRestockingsByWarehouse = async (warehouseId: string) => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select({
+      id: restockings.id,
+      restockingNumber: restockings.restockingNumber,
+      warehouseId: restockings.warehouseId,
+      status: restockings.status,
+      priority: restockings.priority,
+      totalProducts: restockings.totalProducts,
+      restockedProducts: restockings.restockedProducts,
+      requester: restockings.requester,
+      assignedTo: restockings.assignedTo,
+      requestedDate: restockings.requestedDate,
+      startedDate: restockings.startedDate,
+      completedDate: restockings.completedDate,
+      createdAt: restockings.createdAt,
+      lastUpdated: restockings.updatedAt,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(restockings)
+    .leftJoin(warehouses, eq(restockings.warehouseId, warehouses.id))
+    .where(eq(restockings.warehouseId, warehouseId))
+    .orderBy(desc(restockings.requestedDate))
+
+  // Calculate KPIs
+  const totalRestockings = rows.length
+  const pendingRestockings = rows.filter(r => r.status === 'pending').length
+  const inProgressRestockings = rows.filter(r => r.status === 'in_progress').length
+  const completedRestockings = rows.filter(r => r.status === 'completed').length
+
+  const totalProducts = rows.reduce((sum, r) => sum + (r.totalProducts || 0), 0)
+  const restockedProducts = rows.reduce((sum, r) => sum + (r.restockedProducts || 0), 0)
+  const pendingProducts = totalProducts - restockedProducts
+
+  return {
+    kpis: {
+      totalRestockings,
+      pendingRestockings,
+      inProgressRestockings,
+      completedRestockings,
+      totalProducts,
+      restockedProducts,
+      pendingProducts,
+    },
+    restockings: rows,
+  }
+}
+
+/**
+ * Get restocking lines for a restocking
+ * @param restockingId - Restocking ID
+ * @returns Array of restocking lines
+ */
+export const getRestockingLines = async (restockingId: string) => {
+  const db = getDatabase()
+
+  return await db
+    .select()
+    .from(restockingLines)
+    .where(eq(restockingLines.restockingId, restockingId))
+    .orderBy(restockingLines.createdAt)
+}
