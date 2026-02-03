@@ -8,6 +8,7 @@ import type {
   Location,
   Zone,
   Sector,
+  Warehouse,
 } from '../../types'
 
 // ============================================================================
@@ -73,17 +74,24 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
   ): NormalizedData => {
     const { warehouseId } = context
 
+    // Generate warehouses first (generates 2-3 warehouses)
+    const warehouses = generateMockWarehouses()
+
+    // Use the first warehouse for zones, sectors, locations (or use provided warehouseId if it exists)
+    const primaryWarehouseId = warehouses[0].id
+    const effectiveWarehouseId = warehouseId || primaryWarehouseId
+
     // Generate mock data (zones, sectors, locations first, then products, inventory, movements)
-    const zones = generateMockZones(warehouseId)
-    const sectors = generateMockSectors(warehouseId, zones)
-    const locations = generateMockLocations(warehouseId, zones, sectors)
+    const zones = generateMockZones(effectiveWarehouseId)
+    const sectors = generateMockSectors(effectiveWarehouseId, zones)
+    const locations = generateMockLocations(effectiveWarehouseId, zones, sectors)
     const products = generateMockProducts(50)
-    const inventory = generateMockInventory(warehouseId, products, locations)
-    const movements = generateMockMovements(warehouseId, products, locations, 200)
+    const inventory = generateMockInventory(effectiveWarehouseId, products, locations)
+    const movements = generateMockMovements(effectiveWarehouseId, products, locations, 200)
 
     return {
       metadata: {
-        warehouseId,
+        warehouseId: effectiveWarehouseId,
         importDate: new Date(),
         pluginId: 'mock-data-generator',
         pluginVersion: '1.0.0',
@@ -95,6 +103,7 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
       locations,
       zones,
       sectors,
+      warehouses,
     }
   },
 }
@@ -102,6 +111,64 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
 // ============================================================================
 // DATA GENERATION FUNCTIONS
 // ============================================================================
+
+/**
+ * Generate mock warehouses
+ */
+function generateMockWarehouses(): Warehouse[] {
+  const warehouses: Warehouse[] = []
+
+  const warehouseData = [
+    {
+      id: 'WH-FR-01',
+      code: 'WH-FR-01',
+      name: 'Paris Distribution Center',
+      city: 'Paris',
+      country: 'France',
+      surface: 15000,
+      capacity: 50000,
+      manager: 'Jean Dupont',
+      email: 'jean.dupont@wareflow.com',
+      phone: '+33 1 23 45 67 89',
+      status: 'active',
+      openingDate: new Date('2020-01-15'),
+    },
+    {
+      id: 'WH-ES-02',
+      code: 'WH-ES-02',
+      name: 'Madrid Logistics Hub',
+      city: 'Madrid',
+      country: 'Spain',
+      surface: 12000,
+      capacity: 40000,
+      manager: 'Maria Garcia',
+      email: 'maria.garcia@wareflow.com',
+      phone: '+34 91 123 45 67',
+      status: 'active',
+      openingDate: new Date('2021-03-20'),
+    },
+    {
+      id: 'WH-BE-03',
+      code: 'WH-BE-03',
+      name: 'Brussels Storage Facility',
+      city: 'Brussels',
+      country: 'Belgium',
+      surface: 8000,
+      capacity: 25000,
+      manager: 'Peter Van Der Berg',
+      email: 'peter.vandenberg@wareflow.com',
+      phone: '+32 2 123 45 67',
+      status: 'active',
+      openingDate: new Date('2022-06-10'),
+    },
+  ]
+
+  for (const wh of warehouseData) {
+    warehouses.push(wh)
+  }
+
+  return warehouses
+}
 
 /**
  * Generate mock zones

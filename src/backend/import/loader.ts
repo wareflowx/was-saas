@@ -1,5 +1,56 @@
-import type { NormalizedData, Product, Inventory, Movement, Location, Zone, Sector, Order, OrderLine, Picking, PickingLine, Reception, ReceptionLine, Restocking, RestockingLine, Return, ReturnLine } from './types'
+import type { NormalizedData, Product, Inventory, Movement, Location, Zone, Sector, Order, OrderLine, Picking, PickingLine, Reception, ReceptionLine, Restocking, RestockingLine, Return, ReturnLine, Warehouse, Supplier, Customer, User, PurchaseOrder, PurchaseOrderLine, Shipment, ShipmentLine } from './types'
 import { getDatabase } from '../database/index'
+
+/**
+ * Insert products into database
+ * @param products - Array of products to insert
+ * @returns Number of products inserted
+ */
+
+/**
+ * Insert warehouses into database
+ * @param warehouses - Array of warehouses to insert
+ * @returns Number of warehouses inserted
+ */
+export const insertWarehouses = (warehouses: readonly Warehouse[]): number => {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO warehouses (
+      id, code, name, city, country, surface, capacity,
+      manager, email, phone, status, opening_date,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `)
+
+  let inserted = 0
+
+  const insertMany = db.transaction((warehouses: readonly Warehouse[]) => {
+    for (const warehouse of warehouses) {
+      try {
+        stmt.run(
+          warehouse.id,
+          warehouse.code,
+          warehouse.name,
+          warehouse.city,
+          warehouse.country,
+          warehouse.surface || null,
+          warehouse.capacity || null,
+          warehouse.manager || null,
+          warehouse.email || null,
+          warehouse.phone || null,
+          warehouse.status,
+          warehouse.openingDate ? formatDate(warehouse.openingDate) : null
+        )
+        inserted++
+      } catch (error) {
+        console.error(`Error inserting warehouse ${warehouse.code}:`, error)
+      }
+    }
+  })
+
+  insertMany(warehouses)
+  return inserted
+}
 
 /**
  * Insert products into database
@@ -726,6 +777,7 @@ export const loadToDatabase = (data: NormalizedData): {
   productsImported: number
   inventoryImported: number
   movementsImported: number
+  warehousesImported?: number
   zonesImported?: number
   sectorsImported?: number
   locationsImported?: number
@@ -739,6 +791,7 @@ export const loadToDatabase = (data: NormalizedData): {
     productsImported: 0,
     inventoryImported: 0,
     movementsImported: 0,
+    warehousesImported: 0,
     zonesImported: 0,
     sectorsImported: 0,
     locationsImported: 0,
@@ -747,6 +800,11 @@ export const loadToDatabase = (data: NormalizedData): {
     receptionsImported: 0,
     restockingsImported: 0,
     returnsImported: 0,
+  }
+
+  // Insert warehouses first (zones reference them)
+  if (data.warehouses && data.warehouses.length > 0) {
+    stats.warehousesImported = insertWarehouses(data.warehouses)
   }
 
   // Insert zones first (locations reference them)
