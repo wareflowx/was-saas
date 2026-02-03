@@ -30,9 +30,11 @@ export function useLocations(warehouseId?: string) {
         throw new Error('No warehouse found')
       }
 
-      const locations = await backend.getLocations({
+      const data = await backend.getLocations({
         warehouseId: warehouseId || firstWarehouse.id
       })
+
+      const locations = data?.locations || []
 
       console.log('📍 [DB] Locations loaded:', {
         warehouseId: warehouseId || firstWarehouse.id,
@@ -40,7 +42,7 @@ export function useLocations(warehouseId?: string) {
         sample: locations?.slice(0, 2).map((l: any) => ({ id: l.id, code: l.code, zone: l.zone_name }))
       })
 
-      return locations
+      return data
     },
 
     // Only run query if warehouseId is provided or we have warehouses
@@ -117,11 +119,12 @@ export function useABCAnalysis(
     queryKey: ['analysis', 'abc', warehouseId, params],
     queryFn: async () => {
       const analysis = await backend.runABCAnalysis({ warehouseId, ...params })
+      const products = analysis?.products || []
 
       console.log('🔤 [DB] ABC Analysis loaded:', {
         warehouseId,
-        products: analysis?.products?.length || 0,
-        categories: analysis?.products?.slice(0, 3).map((p: any) => ({ sku: p.sku, abc: p.abc_class }))
+        products: products?.length || 0,
+        categories: products?.slice(0, 3).map((p: any) => ({ sku: p.sku, abc: p.abc_class }))
       })
 
       return analysis
@@ -150,11 +153,12 @@ export function useDeadStockAnalysis(
     queryKey: ['analysis', 'dead-stock', warehouseId, params],
     queryFn: async () => {
       const analysis = await backend.runDeadStockAnalysis({ warehouseId, ...params })
+      const deadStock = analysis?.dead_stock || []
 
       console.log('💀 [DB] Dead Stock Analysis loaded:', {
         warehouseId,
-        deadStockProducts: analysis?.dead_stock?.length || 0,
-        sample: analysis?.dead_stock?.slice(0, 2).map((p: any) => ({ sku: p.sku, daysSinceMovement: p.days_since_last_movement }))
+        deadStockProducts: deadStock?.length || 0,
+        sample: deadStock?.slice(0, 2).map((p: any) => ({ sku: p.sku, daysSinceMovement: p.days_since_last_movement }))
       })
 
       return analysis
@@ -181,9 +185,11 @@ export function useZones(warehouseId?: string) {
         throw new Error('No warehouse found')
       }
 
-      const zones = await backend.getZones({
+      const data = await backend.getZones({
         warehouseId: warehouseId || firstWarehouse.id
       })
+
+      const zones = data?.zones || []
 
       console.log('🗺️ [DB] Zones loaded:', {
         warehouseId: warehouseId || firstWarehouse.id,
@@ -191,7 +197,7 @@ export function useZones(warehouseId?: string) {
         sample: zones?.slice(0, 3).map((z: any) => ({ id: z.id, name: z.name, type: z.type }))
       })
 
-      return zones
+      return data
     },
     enabled: !!warehouseId,
   })
@@ -215,9 +221,11 @@ export function useSectors(warehouseId?: string) {
         throw new Error('No warehouse found')
       }
 
-      const sectors = await backend.getSectors({
+      const data = await backend.getSectors({
         warehouseId: warehouseId || firstWarehouse.id
       })
+
+      const sectors = data?.sectors || []
 
       console.log('🏗️ [DB] Sectors loaded:', {
         warehouseId: warehouseId || firstWarehouse.id,
@@ -225,7 +233,7 @@ export function useSectors(warehouseId?: string) {
         sample: sectors?.slice(0, 3).map((s: any) => ({ id: s.id, zone: s.zone_name, type: s.type }))
       })
 
-      return sectors
+      return data
     },
     enabled: !!warehouseId,
   })
@@ -275,9 +283,12 @@ export function useDashboardKPIs(warehouseId?: string) {
 
       console.log('📈 [DB] Dashboard KPIs loaded:', {
         warehouseId: warehouseId || 'all',
-        totalProducts: kpis?.total_products || 0,
-        totalWarehouses: kpis?.total_warehouses || 0,
-        totalMovements: kpis?.total_movements || 0
+        kpis: kpis?.kpis || {},
+        hasKpis: !!kpis?.kpis,
+        stockEvolutionPoints: kpis?.stockEvolution?.length || 0,
+        movementsByTypePoints: kpis?.movementsByType?.length || 0,
+        topProductsCount: kpis?.topProducts?.length || 0,
+        lowStockAlertsCount: kpis?.lowStockAlerts?.length || 0,
       })
 
       return kpis
