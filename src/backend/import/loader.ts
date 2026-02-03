@@ -978,6 +978,78 @@ export const insertReturns = (returns: readonly Return[], returnLines: readonly 
 }
 
 /**
+ * Insert shipments and shipment lines into database
+ * @param shipments - Array of shipments to insert
+ * @param shipmentLines - Array of shipment lines to insert
+ * @returns Number of shipments inserted
+ */
+export const insertShipments = (shipments: readonly Shipment[], shipmentLines: readonly ShipmentLine[]): { shipments: number, lines: number } => {
+  const db = getDatabase()
+  const shipmentStmt = db.prepare(`
+    INSERT OR REPLACE INTO shipments (
+      id, warehouse_id, order_id, shipment_number, shipment_date, carrier,
+      tracking_number, status, shipping_address, shipping_city, shipping_country,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `)
+
+  const lineStmt = db.prepare(`
+    INSERT OR REPLACE INTO shipment_lines (
+      id, shipment_id, product_id, quantity
+    ) VALUES (?, ?, ?, ?)
+  `)
+
+  let shipmentsInserted = 0
+  let linesInserted = 0
+
+  const insertShipments = db.transaction((shipments: readonly Shipment[]) => {
+    for (const shipment of shipments) {
+      try {
+        shipmentStmt.run(
+          shipment.id,
+          shipment.warehouseId,
+          shipment.orderId,
+          shipment.shipmentNumber,
+          formatDate(shipment.shipmentDate),
+          shipment.carrier,
+          shipment.trackingNumber || null,
+          shipment.status,
+          shipment.shippingAddress || null,
+          shipment.shippingCity || null,
+          shipment.shippingCountry || null
+        )
+        shipmentsInserted++
+      } catch (error) {
+        console.error(`Error inserting shipment ${shipment.shipmentNumber}:`, error)
+      }
+    }
+  })
+
+  insertShipments(shipments)
+
+  // Insert shipment lines
+  const insertLines = db.transaction((lines: readonly ShipmentLine[]) => {
+    for (const line of lines) {
+      try {
+        lineStmt.run(
+          line.id,
+          line.shipmentId,
+          line.productId,
+          line.quantity
+        )
+        linesInserted++
+      } catch (error) {
+        console.error(`Error inserting shipment line ${line.id}:`, error)
+      }
+    }
+  })
+
+  insertLines(shipmentLines)
+
+  return { shipments: shipmentsInserted, lines: linesInserted }
+}
+
+/**
  * Load normalized data into database
  * @param data - Normalized data from plugin
  * @returns Import statistics
@@ -999,6 +1071,7 @@ export const loadToDatabase = (data: NormalizedData): {
   receptionsImported?: number
   restockingsImported?: number
   returnsImported?: number
+  shipmentsImported?: number
 } => {
   const stats = {
     productsImported: 0,
@@ -1017,6 +1090,7 @@ export const loadToDatabase = (data: NormalizedData): {
     receptionsImported: 0,
     restockingsImported: 0,
     returnsImported: 0,
+    shipmentsImported: 0,
   }
 
   // Insert warehouses first (zones reference them)
@@ -1107,6 +1181,12 @@ export const loadToDatabase = (data: NormalizedData): {
   if (data.returns && data.returns.length > 0) {
     const returnResults = insertReturns(data.returns, data.returnLines || [])
     stats.returnsImported = returnResults.returns
+  }
+
+  // Insert shipments and shipment lines
+  if (data.shipments && data.shipments.length > 0) {
+    const shipmentResults = insertShipments(data.shipments, data.shipmentLines || [])
+    stats.shipmentsImported = shipmentResults.shipments
   }
 
   return stats
