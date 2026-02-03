@@ -62,6 +62,17 @@ function Dashboard() {
     recentOrders: [],
   }
 
+  // Debug log to verify dashboard data
+  console.log('📊 [UI] Dashboard rendering with data:', {
+    totalProducts: data?.kpis?.totalProducts || 0,
+    totalLocations: data?.kpis?.totalLocations || 0,
+    lowStockItems: data?.kpis?.lowStockItems || 0,
+    activeOrders: data?.kpis?.activeOrders || 0,
+    movementsThisWeek: data?.kpis?.movementsThisWeek || 0,
+    stockEvolutionPoints: data?.stockEvolution?.length || 0,
+    topProductsCount: data?.topProducts?.length || 0,
+  })
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
