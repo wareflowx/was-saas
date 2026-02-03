@@ -10,6 +10,7 @@ import type {
   Sector,
   Warehouse,
   User,
+  Supplier,
 } from '../../types'
 
 // ============================================================================
@@ -90,6 +91,7 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
     const inventory = generateMockInventory(effectiveWarehouseId, products, locations)
     const movements = generateMockMovements(effectiveWarehouseId, products, locations, 200)
     const users = generateMockUsers(effectiveWarehouseId)
+    const suppliers = generateMockSuppliers()
 
     return {
       metadata: {
@@ -107,6 +109,7 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
       sectors,
       warehouses,
       users,
+      suppliers,
     }
   },
 }
@@ -203,6 +206,139 @@ function generateMockUsers(warehouseId: string): User[] {
   }
 
   return users
+}
+
+/**
+ * Generate mock suppliers
+ */
+function generateMockSuppliers(): Supplier[] {
+  const suppliers: Supplier[] = []
+
+  const supplierData = [
+    {
+      id: 'SUP-001',
+      code: 'TECH-PRO',
+      name: 'TechPro Electronics',
+      contactPerson: 'Hans Mueller',
+      email: 'hans.mueller@techpro.de',
+      phone: '+49 30 1234567',
+      address: 'Mittenwalder Str. 25',
+      city: 'Berlin',
+      country: 'Germany',
+      paymentTerms: 'NET 30',
+      leadTimeDays: 14,
+    },
+    {
+      id: 'SUP-002',
+      code: 'ASIA-SRC',
+      name: 'Asia Source Corp',
+      contactPerson: 'Li Wei',
+      email: 'liwei@asiasource.cn',
+      phone: '+86 21 87654321',
+      address: '123 Nanjing Road',
+      city: 'Shanghai',
+      country: 'China',
+      paymentTerms: 'NET 45',
+      leadTimeDays: 30,
+    },
+    {
+      id: 'SUP-003',
+      code: 'EU-WHS',
+      name: 'European Wholesale Ltd',
+      contactPerson: 'Jean-Pierre Martin',
+      email: 'jpmartin@euwholesale.fr',
+      phone: '+33 1 23 45 67 89',
+      address: '45 Avenue des Champs-Élysées',
+      city: 'Paris',
+      country: 'France',
+      paymentTerms: 'NET 30',
+      leadTimeDays: 7,
+    },
+    {
+      id: 'SUP-004',
+      code: 'GLO-TRD',
+      name: 'Global Trading Partners',
+      contactPerson: 'Sarah Johnson',
+      email: 'sjohnson@globaltrading.us',
+      phone: '+1 212 555 0123',
+      address: '350 Fifth Avenue',
+      city: 'New York',
+      country: 'USA',
+      paymentTerms: 'NET 60',
+      leadTimeDays: 21,
+    },
+    {
+      id: 'SUP-005',
+      code: 'LOCAL-SUP',
+      name: 'Local Suppliers Coop',
+      contactPerson: 'Carlos Rodriguez',
+      email: 'crodriguez@localsuppliers.es',
+      phone: '+34 93 123 45 67',
+      address: 'Carrer de la Capacita',
+      city: 'Barcelona',
+      country: 'Spain',
+      paymentTerms: 'COD',
+      leadTimeDays: 3,
+    },
+    {
+      id: 'SUP-006',
+      code: 'PRE-MFG',
+      name: 'Premium Manufacturing',
+      contactPerson: 'Tom Anderson',
+      email: 'tanderson@premiummfg.uk',
+      phone: '+44 20 7123 4567',
+      address: '123 Industrial Way',
+      city: 'Manchester',
+      country: 'United Kingdom',
+      paymentTerms: 'NET 30',
+      leadTimeDays: 10,
+    },
+    {
+      id: 'SUP-007',
+      code: 'FAST-DIST',
+      name: 'Fast Distribution',
+      contactPerson: 'Maria Santos',
+      email: 'msantos@fastdist.pt',
+      phone: '+351 21 123 4567',
+      address: 'Rua do Comércio',
+      city: 'Lisbon',
+      country: 'Portugal',
+      paymentTerms: 'NET 15',
+      leadTimeDays: 5,
+    },
+    {
+      id: 'SUP-008',
+      code: 'NORD-SUP',
+      name: 'Nordic Supplies AB',
+      contactPerson: 'Erik Lindqvist',
+      email: 'elindqvist@nordicsup.se',
+      phone: '+46 8 123 45 67',
+      address: 'Box 12345',
+      city: 'Stockholm',
+      country: 'Sweden',
+      paymentTerms: 'NET 30',
+      leadTimeDays: 12,
+    },
+  ]
+
+  for (const supplier of supplierData) {
+    suppliers.push({
+      id: supplier.id,
+      code: supplier.code,
+      name: supplier.name,
+      contactPerson: supplier.contactPerson,
+      email: supplier.email,
+      phone: supplier.phone,
+      address: supplier.address,
+      city: supplier.city,
+      country: supplier.country,
+      paymentTerms: supplier.paymentTerms,
+      leadTimeDays: supplier.leadTimeDays,
+      status: 'active',
+    })
+  }
+
+  return suppliers
 }
 
 /**

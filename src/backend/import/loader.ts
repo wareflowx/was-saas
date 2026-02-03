@@ -92,6 +92,51 @@ export const insertUsers = (users: readonly User[]): number => {
 }
 
 /**
+ * Insert suppliers into database
+ * @param suppliers - Array of suppliers to insert
+ * @returns Number of suppliers inserted
+ */
+export const insertSuppliers = (suppliers: readonly Supplier[]): number => {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO suppliers (
+      id, code, name, contact_person, email, phone, address, city, country,
+      payment_terms, lead_time_days, status,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `)
+
+  let inserted = 0
+
+  const insertMany = db.transaction((suppliers: readonly Supplier[]) => {
+    for (const supplier of suppliers) {
+      try {
+        stmt.run(
+          supplier.id,
+          supplier.code,
+          supplier.name,
+          supplier.contactPerson || null,
+          supplier.email || null,
+          supplier.phone || null,
+          supplier.address || null,
+          supplier.city || null,
+          supplier.country || null,
+          supplier.paymentTerms || null,
+          supplier.leadTimeDays || null,
+          supplier.status
+        )
+        inserted++
+      } catch (error) {
+        console.error(`Error inserting supplier ${supplier.code}:`, error)
+      }
+    }
+  })
+
+  insertMany(suppliers)
+  return inserted
+}
+
+/**
  * Insert products into database
  * @param products - Array of products to insert
  * @returns Number of products inserted
@@ -818,6 +863,7 @@ export const loadToDatabase = (data: NormalizedData): {
   movementsImported: number
   warehousesImported?: number
   usersImported?: number
+  suppliersImported?: number
   zonesImported?: number
   sectorsImported?: number
   locationsImported?: number
@@ -833,6 +879,7 @@ export const loadToDatabase = (data: NormalizedData): {
     movementsImported: 0,
     warehousesImported: 0,
     usersImported: 0,
+    suppliersImported: 0,
     zonesImported: 0,
     sectorsImported: 0,
     locationsImported: 0,
@@ -851,6 +898,11 @@ export const loadToDatabase = (data: NormalizedData): {
   // Insert users
   if (data.users && data.users.length > 0) {
     stats.usersImported = insertUsers(data.users)
+  }
+
+  // Insert suppliers
+  if (data.suppliers && data.suppliers.length > 0) {
+    stats.suppliersImported = insertSuppliers(data.suppliers)
   }
 
   // Insert zones first (locations reference them)
