@@ -379,3 +379,307 @@ export const getDeadStock = async (warehouseId: string, thresholdDays: number = 
 
   return result.rows
 }
+
+// ============================================================================
+// LOCATIONS
+// ============================================================================
+
+/**
+ * Get all locations for a specific warehouse
+ * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * @returns Locations data with KPIs
+ */
+export const getLocationsByWarehouse = async (warehouseId: string) => {
+  const db = getDatabase()
+
+  const locationsData = await db
+    .select({
+      id: locations.id,
+      code: locations.code,
+      type: locations.type,
+      capacity: locations.capacity,
+      usedCapacity: locations.usedCapacity,
+      productCount: locations.productCount,
+      pickerCount: locations.pickerCount,
+      aisle: locations.aisle,
+      level: locations.level,
+      position: locations.position,
+      barcode: locations.barcode,
+      status: locations.status,
+      lastUpdated: locations.updatedAt,
+      zoneId: zones.id,
+      zoneName: zones.name,
+      zoneCode: zones.code,
+      sectorId: sectors.id,
+      sectorName: sectors.name,
+      sectorCode: sectors.code,
+      warehouseId: warehouses.id,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(locations)
+    .leftJoin(zones, eq(locations.zoneId, zones.id))
+    .leftJoin(sectors, eq(locations.sectorId, sectors.id))
+    .leftJoin(warehouses, eq(locations.warehouseId, warehouses.id))
+    .where(eq(locations.warehouseId, warehouseId))
+    .orderBy(locations.code)
+
+  // Get products for each location
+  const locationsWithProducts = await Promise.all(
+    locationsData.map(async (loc) => {
+      const products = await db
+        .select({
+          id: products.id,
+          sku: products.sku,
+          name: products.name,
+          quantity: inventory.quantity,
+        })
+        .from(inventory)
+        .innerJoin(products, eq(inventory.productId, products.id))
+        .where(and(
+          eq(inventory.locationId, loc.id),
+          eq(inventory.warehouseId, warehouseId)
+        ))
+
+      return {
+        ...loc,
+        products,
+      }
+    })
+  )
+
+  // Calculate KPIs
+  const totalLocations = locationsWithProducts.length
+  const availableLocations = locationsWithProducts.filter(l => l.status === 'available').length
+  const occupiedLocations = locationsWithProducts.filter(l => l.status === 'occupied').length
+  const blockedLocations = locationsWithProducts.filter(l => l.status === 'blocked').length
+  const reservedLocations = locationsWithProducts.filter(l => l.status === 'reserved').length
+
+  const totalCapacity = locationsWithProducts.reduce((sum, l) => sum + (l.capacity || 0), 0)
+  const usedCapacity = locationsWithProducts.reduce((sum, l) => sum + (l.usedCapacity || 0), 0)
+
+  return {
+    kpis: {
+      totalLocations,
+      availableLocations,
+      occupiedLocations,
+      blockedLocations,
+      reservedLocations,
+      totalCapacity,
+      usedCapacity,
+      averageOccupancy: totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0,
+    },
+    locations: locationsWithProducts,
+  }
+}
+
+// ============================================================================
+// ZONES
+// ============================================================================
+
+/**
+ * Get all zones for a specific warehouse
+ * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * @returns Zones data with KPIs
+ */
+export const getZonesByWarehouse = async (warehouseId: string) => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select({
+      id: zones.id,
+      code: zones.code,
+      name: zones.name,
+      type: zones.type,
+      surface: zones.surface,
+      capacity: zones.capacity,
+      usedCapacity: zones.usedCapacity,
+      sectorCount: zones.sectorCount,
+      locationCount: zones.locationCount,
+      pickerCount: zones.pickerCount,
+      temperatureMin: zones.temperatureMin,
+      temperatureMax: zones.temperatureMax,
+      status: zones.status,
+      lastUpdated: zones.updatedAt,
+      warehouseId: warehouses.id,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(zones)
+    .leftJoin(warehouses, eq(zones.warehouseId, warehouses.id))
+    .where(eq(zones.warehouseId, warehouseId))
+    .orderBy(zones.code)
+
+  // Calculate KPIs
+  const totalZones = rows.length
+  const activeZones = rows.filter(r => r.status === 'active').length
+  const totalSurface = rows.reduce((sum, r) => sum + (r.surface || 0), 0)
+  const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0)
+  const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0)
+  const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
+
+  // Count zones by type
+  const zoneTypes: Record<string, number> = {}
+  rows.forEach(r => {
+    if (r.type) {
+      zoneTypes[r.type] = (zoneTypes[r.type] || 0) + 1
+    }
+  })
+
+  return {
+    kpis: {
+      totalZones,
+      activeZones,
+      totalSurface,
+      totalCapacity,
+      usedCapacity,
+      averageOccupancy,
+      zoneTypes,
+    },
+    zones: rows,
+  }
+}
+
+// ============================================================================
+// SECTORS
+// ============================================================================
+
+/**
+ * Get all sectors for a specific warehouse
+ * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * @returns Sectors data with KPIs
+ */
+export const getSectorsByWarehouse = async (warehouseId: string) => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select({
+      id: sectors.id,
+      code: sectors.code,
+      name: sectors.name,
+      type: sectors.type,
+      capacity: sectors.capacity,
+      usedCapacity: sectors.usedCapacity,
+      locationCount: sectors.locationCount,
+      pickerCount: sectors.pickerCount,
+      aisle: sectors.aisle,
+      level: sectors.level,
+      position: sectors.position,
+      status: sectors.status,
+      lastUpdated: sectors.updatedAt,
+      zoneId: zones.id,
+      zoneName: zones.name,
+      zoneCode: zones.code,
+      warehouseId: warehouses.id,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(sectors)
+    .leftJoin(zones, eq(sectors.zoneId, zones.id))
+    .leftJoin(warehouses, eq(sectors.warehouseId, warehouses.id))
+    .where(eq(sectors.warehouseId, warehouseId))
+    .orderBy(sectors.code)
+
+  // Calculate KPIs
+  const totalSectors = rows.length
+  const activeSectors = rows.filter(r => r.status === 'active').length
+  const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0)
+  const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0)
+  const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
+
+  // Count sectors by type
+  const sectorTypes: Record<string, number> = {}
+  rows.forEach(r => {
+    if (r.type) {
+      sectorTypes[r.type] = (sectorTypes[r.type] || 0) + 1
+    }
+  })
+
+  return {
+    kpis: {
+      totalSectors,
+      activeSectors,
+      totalCapacity,
+      usedCapacity,
+      averageOccupancy,
+      sectorTypes,
+    },
+    sectors: rows,
+  }
+}
+
+// ============================================================================
+// WAREHOUSES
+// ============================================================================
+
+/**
+ * Get all warehouses with KPIs
+ * @returns Warehouses data with KPIs
+ */
+export const getWarehousesWithKPIs = async () => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select()
+    .from(warehouses)
+    .orderBy(warehouses.name)
+
+  // Calculate KPIs
+  const totalWarehouses = rows.length
+  const activeWarehouses = rows.filter(r => r.status === 'active').length
+  const totalSurface = rows.reduce((sum, r) => sum + (r.surface || 0), 0)
+  const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0)
+  const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0)
+  const averageOccupancy = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0
+  const trackedPickers = rows.reduce((sum, r) => sum + (r.pickerCount || 0), 0)
+
+  return {
+    kpis: {
+      totalWarehouses,
+      activeWarehouses,
+      totalSurface,
+      totalCapacity,
+      usedCapacity,
+      averageOccupancy,
+      trackedPickers,
+    },
+    warehouses: rows,
+  }
+}
+
+/**
+ * Get import history for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Import history records
+ */
+export const getImportHistory = async (warehouseId?: string) => {
+  const db = getDatabase()
+
+  const conditions = warehouseId
+    ? [eq(importHistory.warehouseId, warehouseId)]
+    : []
+
+  const result = await db
+    .select({
+      id: importHistory.id,
+      warehouseId: importHistory.warehouseId,
+      pluginId: importHistory.pluginId,
+      pluginVersion: importHistory.pluginVersion,
+      importedAt: importHistory.importedAt,
+      rowsProcessed: importHistory.rowsProcessed,
+      status: importHistory.status,
+      fileName: importHistory.fileName,
+      fileSize: importHistory.fileSize,
+      durationMs: importHistory.durationMs,
+      errorMessage: importHistory.errorMessage,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(importHistory)
+    .leftJoin(warehouses, eq(importHistory.warehouseId, warehouses.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(importHistory.importedAt))
+    .limit(50)
+
+  return result
+}
