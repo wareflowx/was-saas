@@ -14,6 +14,18 @@ import type {
   Customer,
   PurchaseOrder,
   PurchaseOrderLine,
+  Order,
+  OrderLine,
+  Picking,
+  PickingLine,
+  Reception,
+  ReceptionLine,
+  Return,
+  ReturnLine,
+  Shipment,
+  ShipmentLine,
+  Restocking,
+  RestockingLine,
 } from '../../types'
 
 // ============================================================================
@@ -100,6 +112,29 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
     // Generate purchase orders and their lines
     const purchaseOrdersResult = generateMockPurchaseOrdersAndLines(effectiveWarehouseId, suppliers, products)
 
+    // Generate receptions and their lines (for received purchase orders)
+    const receptionsResult = generateMockReceptionsAndLines(
+      effectiveWarehouseId,
+      suppliers,
+      purchaseOrdersResult.orders,
+      purchaseOrdersResult.lines
+    )
+
+    // Generate orders and their lines
+    const ordersResult = generateMockOrdersAndLines(effectiveWarehouseId, customers, products)
+
+    // Generate pickings and their lines (for orders in PICKING/SHIPPED status)
+    const pickingsResult = generateMockPickingsAndLines(effectiveWarehouseId, users, ordersResult.orders, ordersResult.lines)
+
+    // Generate shipments and their lines (for shipped orders)
+    const shipmentsResult = generateMockShipmentsAndLines(effectiveWarehouseId, ordersResult.orders, ordersResult.lines)
+
+    // Generate returns and their lines
+    const returnsResult = generateMockReturnsAndLines(effectiveWarehouseId, customers, ordersResult.orders, products)
+
+    // Generate restockings and their lines
+    const restockingsResult = generateMockRestockingsAndLines(effectiveWarehouseId, users, products, locations)
+
     return {
       metadata: {
         warehouseId: effectiveWarehouseId,
@@ -120,6 +155,18 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
       customers,
       purchaseOrders: purchaseOrdersResult.orders,
       purchaseOrderLines: purchaseOrdersResult.lines,
+      receptions: receptionsResult.receptions,
+      receptionLines: receptionsResult.lines,
+      orders: ordersResult.orders,
+      orderLines: ordersResult.lines,
+      pickings: pickingsResult.pickings,
+      pickingLines: pickingsResult.lines,
+      shipments: shipmentsResult.shipments,
+      shipmentLines: shipmentsResult.lines,
+      returns: returnsResult.returns,
+      returnLines: returnsResult.lines,
+      restockings: restockingsResult.restockings,
+      restockingLines: restockingsResult.lines,
     }
   },
 }
@@ -602,6 +649,445 @@ function generateMockPurchaseOrdersAndLines(
   }
 
   return { orders: purchaseOrders, lines: purchaseOrderLines }
+}
+
+/**
+ * Generate mock receptions and their lines
+ */
+function generateMockReceptionsAndLines(
+  warehouseId: string,
+  suppliers: readonly Supplier[],
+  purchaseOrders: readonly PurchaseOrder[],
+  purchaseOrderLines: readonly PurchaseOrderLine[]
+): { receptions: Reception[]; lines: ReceptionLine[] } {
+  const receptions: Reception[] = []
+  const receptionLines: ReceptionLine[] = []
+
+  // Only generate receptions for received purchase orders
+  const receivedPOs = purchaseOrders.filter(po => po.status === 'RECEIVED')
+
+  for (const po of receivedPOs) {
+    const supplier = suppliers.find(s => s.id === po.supplierId)
+    if (!supplier) continue
+
+    const receptionDate = new Date(po.orderDate.getTime() + getRandomInt(7, 30) * 24 * 60 * 60 * 1000)
+    const receptionId = `REC-${po.id.split('-')[1]}`
+    const receptionNumber = `REC-${new Date(po.orderDate).getFullYear()}-${po.id.split('-')[1]}`
+
+    // Get all lines for this PO
+    const poLines = purchaseOrderLines.filter(pol => pol.purchaseOrderId === po.id)
+    let totalQuantity = 0
+    let receivedQuantity = 0
+
+    for (const pol of poLines) {
+      totalQuantity += pol.quantity
+      receivedQuantity += pol.receivedQuantity
+
+      const rejectedQuantity = pol.quantity - pol.receivedQuantity
+
+      receptionLines.push({
+        id: `REL-${receptionId}-${pol.id.split('-')[2]}`,
+        receptionId,
+        warehouseId,
+        productId: pol.productId,
+        productSku: pol.productSku,
+        productName: pol.productName,
+        orderedQuantity: pol.quantity,
+        receivedQuantity: pol.receivedQuantity,
+        rejectedQuantity,
+        unitPrice: pol.unitPrice,
+      })
+    }
+
+    receptions.push({
+      id: receptionId,
+      warehouseId,
+      supplierId: po.supplierId,
+      supplierName: supplier.name,
+      receptionNumber,
+      expectedDate: po.expectedDate || po.orderDate,
+      receivedDate: receptionDate,
+      status: 'COMPLETED',
+      priority: 'NORMAL',
+      totalQuantity,
+      receivedQuantity,
+    })
+  }
+
+  return { receptions, lines: receptionLines }
+}
+
+/**
+ * Generate mock orders and their lines
+ */
+function generateMockOrdersAndLines(
+  warehouseId: string,
+  customers: readonly Customer[],
+  products: readonly Product[]
+): { orders: Order[]; lines: OrderLine[] } {
+  const orders: Order[] = []
+  const orderLines: OrderLine[] = []
+
+  const statuses: Array<'DRAFT' | 'CONFIRMED' | 'PICKING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'> = ['DRAFT', 'CONFIRMED', 'PICKING', 'SHIPPED', 'DELIVERED', 'CANCELLED']
+  const priorities: Array<'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'> = ['LOW', 'NORMAL', 'HIGH', 'URGENT']
+
+  const now = new Date()
+  const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+
+  // Generate 30-40 orders
+  const orderCount = getRandomInt(30, 40)
+
+  for (let i = 0; i < orderCount; i++) {
+    const customer = customers[getRandomInt(0, customers.length - 1)]
+    const orderDate = getRandomDate(ninetyDaysAgo, now)
+    const status = statuses[getRandomInt(0, statuses.length - 1)]
+    const priority = priorities[getRandomInt(0, priorities.length - 1)]
+    const requiredDate = new Date(orderDate.getTime() + getRandomInt(2, 14) * 24 * 60 * 60 * 1000)
+
+    const orderId = `ORD-${String(i + 1).padStart(4, '0')}`
+    const orderNumber = `SO-${new Date(orderDate).getFullYear()}-${String(i + 1).padStart(4, '0')}`
+
+    // Generate 1-15 lines per order
+    const lineCount = getRandomInt(1, 15)
+    let totalQuantity = 0
+    let totalAmount = 0
+
+    for (let j = 0; j < lineCount; j++) {
+      const product = products[getRandomInt(0, products.length - 1)]
+      const quantity = getRandomInt(1, 50)
+      const unitPrice = product.sellingPrice || getRandomFloat(10, 500)
+      const totalPrice = quantity * unitPrice
+      totalQuantity += quantity
+      totalAmount += totalPrice
+
+      const pickedQuantity = (status === 'SHIPPED' || status === 'DELIVERED') ? quantity : (status === 'PICKING' ? getRandomInt(0, quantity) : 0)
+
+      orderLines.push({
+        id: `ORL-${orderId}-${j + 1}`,
+        orderId,
+        warehouseId,
+        productId: product.id,
+        productSku: product.sku,
+        productName: product.name,
+        quantity,
+        pickedQuantity,
+        unitPrice,
+        totalPrice,
+      })
+    }
+
+    orders.push({
+      id: orderId,
+      warehouseId,
+      orderNumber,
+      customerId: customer.id,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      orderDate,
+      requiredDate,
+      promisedDate: requiredDate,
+      status,
+      priority,
+      totalQuantity,
+      totalAmount,
+      shippingAddress: customer.shippingAddress,
+      shippingCity: customer.city,
+      shippingCountry: customer.country,
+    })
+  }
+
+  return { orders, lines: orderLines }
+}
+
+/**
+ * Generate mock pickings and their lines
+ */
+function generateMockPickingsAndLines(
+  warehouseId: string,
+  users: readonly User[],
+  orders: readonly Order[],
+  orderLines: readonly OrderLine[]
+): { pickings: Picking[]; lines: PickingLine[] } {
+  const pickings: Picking[] = []
+  const pickingLines: PickingLine[] = []
+
+  // Only generate pickings for orders in PICKING or SHIPPED status
+  const pickableOrders = orders.filter(o => o.status === 'PICKING' || o.status === 'SHIPPED' || o.status === 'DELIVERED')
+
+  for (const order of pickableOrders) {
+    const pickingId = `PIC-${order.id.split('-')[1]}`
+    const pickingNumber = `PIC-${new Date(order.orderDate).getFullYear()}-${order.id.split('-')[1]}`
+
+    const picker = users.find(u => u.role === 'Picker' || u.role === 'Warehouse Operator')
+    const priority = order.priority as 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
+
+    // Get all lines for this order
+    const orderLinesForOrder = orderLines.filter(ol => ol.orderId === order.id)
+    let totalQuantity = 0
+    let pickedQuantity = 0
+
+    for (const ol of orderLinesForOrder) {
+      totalQuantity += ol.quantity
+      pickedQuantity += ol.pickedQuantity
+
+      const lineStatus = ol.pickedQuantity >= ol.quantity ? 'COMPLETED' : (ol.pickedQuantity > 0 ? 'IN_PROGRESS' : 'PENDING')
+
+      pickingLines.push({
+        id: `PIL-${pickingId}-${ol.id.split('-')[2]}`,
+        pickingId,
+        warehouseId,
+        productId: ol.productId,
+        productSku: ol.productSku,
+        productName: ol.productName,
+        locationCode: `LOC-${getRandomInt(1, 50).toString().padStart(2, '0')}`,
+        zoneName: `Zone ${getRandomInt(1, 5)}`,
+        quantity: ol.quantity,
+        pickedQuantity: ol.pickedQuantity,
+        unit: 'ea',
+        status: lineStatus,
+      })
+    }
+
+    pickings.push({
+      id: pickingId,
+      warehouseId,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      customerId: order.customerId,
+      customerName: order.customerName,
+      pickingNumber,
+      assignedDate: order.orderDate,
+      status: order.status === 'DELIVERED' ? 'COMPLETED' : (order.status === 'SHIPPED' ? 'COMPLETED' : 'IN_PROGRESS'),
+      priority,
+      totalQuantity,
+      pickedQuantity,
+      picker: picker?.username,
+    })
+  }
+
+  return { pickings, lines: pickingLines }
+}
+
+/**
+ * Generate mock shipments and their lines
+ */
+function generateMockShipmentsAndLines(
+  warehouseId: string,
+  orders: readonly Order[],
+  orderLines: readonly OrderLine[]
+): { shipments: Shipment[]; lines: ShipmentLine[] } {
+  const shipments: Shipment[] = []
+  const shipmentLines: ShipmentLine[] = []
+
+  const carriers = ['DHL', 'UPS', 'FedEx', 'TNT', 'DPD', 'GLS']
+
+  // Only generate shipments for shipped orders
+  const shippedOrders = orders.filter(o => o.status === 'SHIPPED' || o.status === 'DELIVERED')
+
+  for (const order of shippedOrders) {
+    const shipmentId = `SHP-${order.id.split('-')[1]}`
+    const shipmentNumber = `SHP-${new Date(order.orderDate).getFullYear()}-${order.id.split('-')[1]}`
+    const shipmentDate = new Date(order.orderDate.getTime() + getRandomInt(1, 5) * 24 * 60 * 60 * 1000)
+    const carrier = carriers[getRandomInt(0, carriers.length - 1)]
+    const trackingNumber = `${carrier.substring(0, 2).toUpperCase()}${getRandomInt(100000000, 999999999)}`
+
+    // Get all lines for this order
+    const orderLinesForOrder = orderLines.filter(ol => ol.orderId === order.id)
+
+    for (const ol of orderLinesForOrder) {
+      shipmentLines.push({
+        id: `SHL-${shipmentId}-${ol.id.split('-')[2]}`,
+        shipmentId,
+        productId: ol.productId,
+        quantity: ol.quantity,
+      })
+    }
+
+    shipments.push({
+      id: shipmentId,
+      warehouseId,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      shipmentNumber,
+      shipmentDate,
+      carrier,
+      trackingNumber,
+      status: order.status === 'DELIVERED' ? 'DELIVERED' : 'IN_TRANSIT',
+      shippingAddress: order.shippingAddress,
+      shippingCity: order.shippingCity,
+      shippingCountry: order.shippingCountry,
+    })
+  }
+
+  return { shipments, lines: shipmentLines }
+}
+
+/**
+ * Generate mock returns and their lines
+ */
+function generateMockReturnsAndLines(
+  warehouseId: string,
+  customers: readonly Customer[],
+  orders: readonly Order[],
+  products: readonly Product[]
+): { returns: Return[]; lines: ReturnLine[] } {
+  const returns: Return[] = []
+  const returnLines: ReturnLine[] = []
+
+  const reasons: Array<'DAMAGED' | 'WRONG_ITEM' | 'CUSTOMER_REQUEST' | 'DEFECTIVE' | 'EXPIRED'> = ['DAMAGED', 'WRONG_ITEM', 'CUSTOMER_REQUEST', 'DEFECTIVE', 'EXPIRED']
+  const reasonLabels: Record<string, string> = {
+    'DAMAGED': 'Item arrived damaged',
+    'WRONG_ITEM': 'Wrong item shipped',
+    'CUSTOMER_REQUEST': 'Customer no longer wants item',
+    'DEFECTIVE': 'Product defective',
+    'EXPIRED': 'Product expired',
+  }
+
+  const conditions: Array<'NEW' | 'OPENED' | 'DAMAGED' | 'DEFECTIVE'> = ['NEW', 'OPENED', 'DAMAGED', 'DEFECTIVE']
+  const resolutions: Array<'REFUND' | 'REPLACE' | 'REPAIR' | 'CREDIT'> = ['REFUND', 'REPLACE', 'REPAIR', 'CREDIT']
+
+  // Generate 5-10 returns from delivered orders
+  const deliveredOrders = orders.filter(o => o.status === 'DELIVERED')
+  const returnCount = Math.min(getRandomInt(5, 10), deliveredOrders.length)
+
+  for (let i = 0; i < returnCount; i++) {
+    const order = deliveredOrders[i]
+    const customer = customers.find(c => c.id === order.customerId)
+    if (!customer) continue
+
+    const returnDate = new Date(order.orderDate.getTime() + getRandomInt(7, 30) * 24 * 60 * 60 * 1000)
+    const reason = reasons[getRandomInt(0, reasons.length - 1)]
+    const returnId = `RTN-${String(i + 1).padStart(4, '0')}`
+    const returnNumber = `RTN-${new Date(returnDate).getFullYear()}-${String(i + 1).padStart(4, '0')}`
+
+    // Generate 1-5 lines per return
+    const lineCount = getRandomInt(1, 5)
+    let totalQuantity = 0
+    let totalAmount = 0
+    let returnedQuantity = 0
+    let refundedAmount = 0
+
+    for (let j = 0; j < lineCount; j++) {
+      const product = products[getRandomInt(0, products.length - 1)]
+      const quantity = getRandomInt(1, 10)
+      const unitPrice = product.sellingPrice || getRandomFloat(10, 500)
+      const totalPrice = quantity * unitPrice
+      totalQuantity += quantity
+      totalAmount += totalPrice
+      returnedQuantity += quantity
+
+      const isRefunded = Math.random() < 0.7
+      if (isRefunded) {
+        refundedAmount += totalPrice
+      }
+
+      returnLines.push({
+        id: `RTL-${returnId}-${j + 1}`,
+        returnId,
+        warehouseId,
+        productId: product.id,
+        productSku: product.sku,
+        productName: product.name,
+        quantity,
+        unitPrice,
+        totalPrice,
+        condition: conditions[getRandomInt(0, conditions.length - 1)],
+        resolution: resolutions[getRandomInt(0, resolutions.length - 1)],
+      })
+    }
+
+    returns.push({
+      id: returnId,
+      warehouseId,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      returnNumber,
+      customerId: customer.id,
+      customerName: customer.name,
+      returnDate,
+      type: 'CUSTOMER_RETURN',
+      status: Math.random() < 0.5 ? 'COMPLETED' : 'PROCESSING',
+      priority: 'NORMAL',
+      reason,
+      reasonLabel: reasonLabels[reason],
+      totalQuantity,
+      returnedQuantity,
+      totalAmount,
+      refundedAmount,
+      processor: `User-${getRandomInt(1, 10)}`,
+      completedDate: Math.random() < 0.5 ? returnDate : undefined,
+    })
+  }
+
+  return { returns, lines: returnLines }
+}
+
+/**
+ * Generate mock restockings and their lines
+ */
+function generateMockRestockingsAndLines(
+  warehouseId: string,
+  users: readonly User[],
+  products: readonly Product[],
+  locations: readonly Location[]
+): { restockings: Restocking[]; lines: RestockingLine[] } {
+  const restockings: Restocking[] = []
+  const restockingLines: RestockingLine[] = []
+
+  const priorities: Array<'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'> = ['LOW', 'NORMAL', 'HIGH', 'URGENT']
+
+  // Generate 10-15 restockings
+  const restockingCount = getRandomInt(10, 15)
+
+  for (let i = 0; i < restockingCount; i++) {
+    const requester = users[getRandomInt(0, users.length - 1)]
+    const requestedDate = new Date(Date.now() - getRandomInt(1, 60) * 24 * 60 * 60 * 1000)
+    const priority = priorities[getRandomInt(0, priorities.length - 1)]
+
+    const restockingId = `RST-${String(i + 1).padStart(4, '0')}`
+    const restockingNumber = `RST-${new Date(requestedDate).getFullYear()}-${String(i + 1).padStart(4, '0')}`
+
+    // Generate 3-8 lines per restocking
+    const lineCount = getRandomInt(3, 8)
+
+    for (let j = 0; j < lineCount; j++) {
+      const product = products[getRandomInt(0, products.length - 1)]
+      const sourceLocation = locations[getRandomInt(0, locations.length - 1)]
+      const destLocation = locations[getRandomInt(0, locations.length - 1)]
+
+      const currentQuantity = getRandomInt(0, 50)
+      const targetQuantity = getRandomInt(100, 500)
+      const quantityToRestock = targetQuantity - currentQuantity
+
+      restockingLines.push({
+        id: `RSL-${restockingId}-${j + 1}`,
+        restockingId,
+        warehouseId,
+        productId: product.id,
+        productSku: product.sku,
+        productName: product.name,
+        sourceLocationId: sourceLocation.id,
+        destinationLocationId: destLocation.id,
+        currentQuantity,
+        targetQuantity,
+        quantityToRestock,
+        unit: product.unit,
+        status: Math.random() < 0.5 ? 'COMPLETED' : 'PENDING',
+      })
+    }
+
+    restockings.push({
+      id: restockingId,
+      warehouseId,
+      restockingNumber,
+      status: Math.random() < 0.5 ? 'COMPLETED' : 'IN_PROGRESS',
+      priority,
+      requester: requester.username,
+      requestedDate,
+    })
+  }
+
+  return { restockings, lines: restockingLines }
 }
 
 /**
