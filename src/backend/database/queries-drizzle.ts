@@ -1005,3 +1005,255 @@ export const getRestockingLines = async (restockingId: string) => {
     .where(eq(restockingLines.restockingId, restockingId))
     .orderBy(restockingLines.createdAt)
 }
+
+// ============================================================================
+// OPERATIONS - ORDERS WITH LINES
+// ============================================================================
+
+/**
+ * Get orders for a warehouse with lines and KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Orders data with KPIs
+ */
+export const getOrdersByWarehouseWithLines = async (warehouseId: string) => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select({
+      id: orders.id,
+      orderNumber: orders.orderNumber,
+      warehouseId: orders.warehouseId,
+      customerId: orders.customerId,
+      customerName: orders.customerName,
+      customerEmail: orders.customerEmail,
+      orderDate: orders.orderDate,
+      requiredDate: orders.requiredDate,
+      promisedDate: orders.promisedDate,
+      shippedDate: orders.shippedDate,
+      deliveredDate: orders.deliveredDate,
+      status: orders.status,
+      priority: orders.priority,
+      totalQuantity: orders.totalQuantity,
+      totalAmount: orders.totalAmount,
+      shippingAddress: orders.shippingAddress,
+      shippingCity: orders.shippingCity,
+      shippingCountry: orders.shippingCountry,
+      trackingNumber: orders.trackingNumber,
+      carrier: orders.carrier,
+      notes: orders.notes,
+      picker: orders.picker,
+      packer: orders.packer,
+      createdAt: orders.createdAt,
+      lastUpdated: orders.updatedAt,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(orders)
+    .leftJoin(warehouses, eq(orders.warehouseId, warehouses.id))
+    .where(eq(orders.warehouseId, warehouseId))
+    .orderBy(desc(orders.orderDate))
+
+  // Get lines for each order
+  const ordersWithLines = await Promise.all(
+    rows.map(async (row) => {
+      const lines = await db
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.orderId, row.id))
+        .orderBy(orderLines.createdAt)
+
+      return {
+        ...row,
+        lines,
+      }
+    })
+  )
+
+  // Calculate KPIs
+  const totalOrders = ordersWithLines.length
+  const pendingOrders = ordersWithLines.filter(r => r.status === 'pending').length
+  const inProgressOrders = ordersWithLines.filter(r => r.status === 'processing' || r.status === 'picking').length
+  const shippedOrders = ordersWithLines.filter(r => r.status === 'shipped').length
+  const deliveredOrders = ordersWithLines.filter(r => r.status === 'delivered').length
+  const cancelledOrders = ordersWithLines.filter(r => r.status === 'cancelled').length
+
+  const totalValue = ordersWithLines.reduce((sum, r) => sum + (r.totalAmount || 0), 0)
+  const averageOrderValue = totalOrders > 0 ? totalValue / totalOrders : 0
+
+  return {
+    kpis: {
+      totalOrders,
+      pendingOrders,
+      inProgressOrders,
+      shippedOrders,
+      deliveredOrders,
+      cancelledOrders,
+      totalValue,
+      averageOrderValue,
+    },
+    orders: ordersWithLines,
+  }
+}
+
+// ============================================================================
+// DASHBOARD
+// ============================================================================
+
+/**
+ * Get dashboard KPIs and summary data
+ * @param warehouseId - Warehouse ID (optional)
+ * @returns Dashboard data with KPIs, stock evolution, movements, alerts
+ */
+export const getDashboardKPIs = async (warehouseId?: string) => {
+  const db = getDatabase()
+
+  // Total products
+  const productsResult = await db
+    .select({ count: count() })
+    .from(products)
+
+  const totalProducts = productsResult[0]?.count || 0
+
+  // Total locations
+  let totalLocations = 0
+  if (warehouseId) {
+    const locResult = await db
+      .select({ count: count() })
+      .from(locations)
+      .where(eq(locations.warehouseId, warehouseId))
+    totalLocations = locResult[0]?.count || 0
+  } else {
+    const locResult = await db
+      .select({ count: count() })
+      .from(locations)
+    totalLocations = locResult[0]?.count || 0
+  }
+
+  // Low stock items
+  const lowStockResult = await db
+    .select({ count: count() })
+    .from(inventory)
+    .innerJoin(products, eq(inventory.productId, products.id))
+    .where(and(
+      ...(warehouseId ? [eq(inventory.warehouseId, warehouseId)] : []),
+      sql`inventory.quantity < products.min_stock`
+    ))
+  const lowStockItems = lowStockResult[0]?.count || 0
+
+  // Active orders
+  const activeOrdersResult = await db
+    .select({ count: count() })
+    .from(orders)
+    .where(and(
+      ...(warehouseId ? [eq(orders.warehouseId, warehouseId)] : []),
+      sql`status IN ('pending', 'processing', 'picked')`
+    ))
+  const activeOrders = activeOrdersResult[0]?.count || 0
+
+  // Movements this week
+  const movementsThisWeekResult = await db
+    .select({ count: count() })
+    .from(movements)
+    .where(and(
+      ...(warehouseId ? [eq(movements.warehouseId, warehouseId)] : []),
+      sql`movement_date >= datetime('now', '-7 days')`
+    ))
+  const movementsThisWeek = movementsThisWeekResult[0]?.count || 0
+
+  // Stock evolution (last 7 days) - using raw SQL for complex aggregation
+  const stockEvolutionSql = warehouseId
+    ? `SELECT date(movement_date) as date, SUM(CASE WHEN type IN ('in', 'receipt') THEN quantity ELSE -quantity END) as stock FROM movements WHERE warehouse_id = ? AND movement_date >= datetime('now', '-7 days') GROUP BY date(movement_date) ORDER BY date`
+    : `SELECT date(movement_date) as date, SUM(CASE WHEN type IN ('in', 'receipt') THEN quantity ELSE -quantity END) as stock FROM movements WHERE movement_date >= datetime('now', '-7 days') GROUP BY date(movement_date) ORDER BY date`
+
+  const stockEvolutionRows = warehouseId
+    ? await getDbRaw().prepare(stockEvolutionSql).all(warehouseId)
+    : await getDbRaw().prepare(stockEvolutionSql).all()
+
+  let runningStock = 0
+  const stockEvolution = stockEvolutionRows.map((row: any) => {
+    const stock = row.stock || 0
+    runningStock += stock
+    return {
+      date: new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      stock: runningStock,
+    }
+  })
+
+  // Movements by type
+  const movementsByTypeSql = warehouseId
+    ? `SELECT type as movementType, COUNT(*) as movements FROM movements WHERE warehouse_id = ? AND movement_date >= datetime('now', '-7 days') GROUP BY type`
+    : `SELECT type as movementType, COUNT(*) as movements FROM movements WHERE movement_date >= datetime('now', '-7 days') GROUP BY type`
+
+  const movementsByTypeRows = warehouseId
+    ? await getDbRaw().prepare(movementsByTypeSql).all(warehouseId)
+    : await getDbRaw().prepare(movementsByTypeSql).all()
+
+  const typeColors: Record<string, string> = {
+    in: 'hsl(var(--chart))',
+    inbound: 'hsl(var(--chart))',
+    receipt: 'hsl(var(--chart))',
+    out: 'hsl(142, 76%, 36%)',
+    outbound: 'hsl(142, 76%, 36%)',
+    shipment: 'hsl(142, 76%, 36%)',
+    transfer: 'hsl(25, 95%, 53%)',
+    adjustment: 'hsl(25, 95%, 53%)',
+  }
+
+  const movementsByType = movementsByTypeRows.map((row: any) => ({
+    movementType: row.movementType,
+    movements: row.movements,
+    fill: typeColors[row.movementType] || 'hsl(var(--muted))',
+  }))
+
+  // Top products
+  const topProductsSql = warehouseId
+    ? `SELECT product_name as product, COUNT(*) as movements FROM movements WHERE warehouse_id = ? AND movement_date >= datetime('now', '-30 days') GROUP BY product_name ORDER BY movements DESC LIMIT 5`
+    : `SELECT product_name as product, COUNT(*) as movements FROM movements WHERE movement_date >= datetime('now', '-30 days') GROUP BY product_name ORDER BY movements DESC LIMIT 5`
+
+  const topProducts = warehouseId
+    ? await getDbRaw().prepare(topProductsSql).all(warehouseId)
+    : await getDbRaw().prepare(topProductsSql).all()
+
+  // Low stock alerts
+  const lowStockAlertsSql = warehouseId
+    ? `SELECT p.id, p.name as product, i.quantity as currentStock, p.min_stock as minStock, l.code as location, CASE WHEN i.quantity = 0 THEN 'critical' WHEN i.quantity < p.min_stock * 0.5 THEN 'critical' ELSE 'warning' END as severity FROM products p INNER JOIN inventory i ON p.id = i.product_id LEFT JOIN locations l ON i.location_id = l.id WHERE i.warehouse_id = ? AND i.quantity < p.min_stock ORDER BY i.quantity ASC LIMIT 10`
+    : `SELECT p.id, p.name as product, i.quantity as currentStock, p.min_stock as minStock, l.code as location, CASE WHEN i.quantity = 0 THEN 'critical' WHEN i.quantity < p.min_stock * 0.5 THEN 'critical' ELSE 'warning' END as severity FROM products p INNER JOIN inventory i ON p.id = i.product_id LEFT JOIN locations l ON i.location_id = l.id WHERE i.quantity < p.min_stock ORDER BY i.quantity ASC LIMIT 10`
+
+  const lowStockAlerts = warehouseId
+    ? await getDbRaw().prepare(lowStockAlertsSql).all(warehouseId)
+    : await getDbRaw().prepare(lowStockAlertsSql).all()
+
+  // Recent movements
+  const recentMovementsSql = warehouseId
+    ? `SELECT id, date(movement_date) as date, product_name as product, type, quantity, destination_location_code as "to", source_location_code as "from" FROM movements WHERE warehouse_id = ? ORDER BY movement_date DESC LIMIT 10`
+    : `SELECT id, date(movement_date) as date, product_name as product, type, quantity, destination_location_code as "to", source_location_code as "from" FROM movements ORDER BY movement_date DESC LIMIT 10`
+
+  const recentMovementsRows = warehouseId
+    ? await getDbRaw().prepare(recentMovementsSql).all(warehouseId)
+    : await getDbRaw().prepare(recentMovementsSql).all()
+
+  const recentMovements = recentMovementsRows.map((row: any) => ({
+    ...row,
+    type: (row.type || '').toLowerCase() as 'in' | 'out' | 'transfer',
+  }))
+
+  return {
+    kpis: {
+      totalProducts,
+      totalLocations,
+      lowStockItems,
+      activeOrders,
+      movementsThisWeek,
+    },
+    stockEvolution,
+    movementsByType,
+    topProducts,
+    lowStockAlerts,
+    recentMovements,
+  }
+}
+
+// Helper function to get raw DB for complex queries
+function getDbRaw() {
+  return require('./index').getDbRaw()
+}
