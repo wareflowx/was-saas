@@ -156,7 +156,7 @@ export const suggestMappings = (
     }
 
     // If required and not mapped, add as unmapped
-    if (schemaField.required && !mappings.has(schemaField.field)) {
+    if (schemaField.required && !mappings.some(m => m.targetField === schemaField.field)) {
       mappings.push({
         sourceColumn: '', // Empty means not mapped
         targetField: schemaField.field,
@@ -288,7 +288,7 @@ export const saveMappingPreset = (preset: MappingPreset): void => {
  * @param presetId - Preset ID to load
  * @returns Mapping preset or null
  */
-export const loadMappingPreset = (presetId: string): MappingPreset | null => {
+export const loadMappingPreset = (_presetId: string): MappingPreset | null => {
   // TODO: Implement loading from database
   return null
 }

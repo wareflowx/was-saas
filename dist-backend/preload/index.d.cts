@@ -67,7 +67,7 @@ declare const electronAPI: {
     /**
      * Generate mock data for testing
      */
-    generateMockData: (warehouseId: string, onProgress?: (progress: number, message: string) => void) => Promise<ImportResult>;
+    generateMockData: (warehouseId: string) => Promise<ImportResult>;
     /**
      * Get products for a warehouse
      */
@@ -107,6 +107,76 @@ declare const electronAPI: {
     getLocations: (filters: {
         warehouseId: string;
     }) => Promise<unknown>;
+    /**
+     * Get zones for a warehouse
+     */
+    getZones: (filters: {
+        warehouseId: string;
+    }) => Promise<unknown>;
+    /**
+     * Get sectors for a warehouse
+     */
+    getSectors: (filters: {
+        warehouseId: string;
+    }) => Promise<unknown>;
+    /**
+     * Get receptions for a warehouse
+     */
+    getReceptions: (filters: {
+        warehouseId: string;
+    }) => Promise<unknown>;
+    /**
+     * Get reception lines
+     */
+    getReceptionLines: (receptionId: string) => Promise<readonly unknown[]>;
+    /**
+     * Get pickings for a warehouse
+     */
+    getPickings: (filters: {
+        warehouseId: string;
+    }) => Promise<unknown>;
+    /**
+     * Get picking lines
+     */
+    getPickingLines: (pickingId: string) => Promise<readonly unknown[]>;
+    /**
+     * Get returns for a warehouse
+     */
+    getReturns: (filters: {
+        warehouseId: string;
+    }) => Promise<unknown>;
+    /**
+     * Get return lines
+     */
+    getReturnLines: (returnId: string) => Promise<readonly unknown[]>;
+    /**
+     * Get restockings for a warehouse
+     */
+    getRestockings: (filters: {
+        warehouseId: string;
+    }) => Promise<unknown>;
+    /**
+     * Get restocking lines
+     */
+    getRestockingLines: (restockingId: string) => Promise<readonly unknown[]>;
+    /**
+     * Get orders with lines for a warehouse
+     */
+    getOrdersWithLines: (filters: {
+        warehouseId: string;
+    }) => Promise<unknown>;
+    /**
+     * Get import history
+     */
+    getImportHistory: (warehouseId?: string) => Promise<readonly unknown[]>;
+    /**
+     * Get dashboard KPIs
+     */
+    getDashboardKPIs: (warehouseId?: string) => Promise<unknown>;
+    /**
+     * Get warehouses with KPIs
+     */
+    getWarehousesWithKPIs: () => Promise<unknown>;
     /**
      * Get all warehouses
      */

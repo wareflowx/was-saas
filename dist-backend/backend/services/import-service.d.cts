@@ -22,7 +22,6 @@ export declare const executeImport: (filePath: string, warehouseId: string, plug
  * Generate mock data for testing
  * @param warehouseId - Target warehouse ID
  * @param plugin - Mock data generator plugin
- * @param onProgress - Optional progress callback
  * @returns Import result
  */
-export declare const generateMockData: (warehouseId: string, plugin: ImportPlugin, onProgress?: (progress: number, message: string) => void) => Promise<ImportResult>;
+export declare const generateMockData: (warehouseId: string, plugin: ImportPlugin) => Promise<ImportResult>;

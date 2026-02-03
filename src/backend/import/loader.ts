@@ -651,19 +651,21 @@ export const insertPickings = (pickings: readonly Picking[], pickingLines: reado
   const db = getDatabase()
   const pickingStmt = db.prepare(`
     INSERT OR REPLACE INTO pickings (
-      id, order_id, order_number, customer_id, customer_name,
-      warehouse_id, picking_number, assigned_date, completed_date,
-      status, priority, total_quantity, picked_quantity,
-      picker, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      id, warehouse_id, order_id, order_number, customer_id, customer_name,
+      picking_number, assigned_date, started_date, completed_date,
+      status, priority, total_quantity, picked_quantity, remaining_quantity,
+      picker, picker_id, equipment, notes,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
   `)
 
   const lineStmt = db.prepare(`
     INSERT OR REPLACE INTO picking_lines (
       id, picking_id, warehouse_id, product_id, product_sku, product_name,
       location_code, zone_name, quantity, picked_quantity, unit, status,
+      processed_by_user_id, started_at, completed_at, duration_ms,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
   `)
 
   let pickingsInserted = 0
@@ -674,28 +676,39 @@ export const insertPickings = (pickings: readonly Picking[], pickingLines: reado
       try {
         pickingStmt.run(
           picking.id,
+          picking.warehouseId,
           picking.orderId,
           picking.orderNumber,
           picking.customerId,
           picking.customerName,
-          picking.warehouseId,
           picking.pickingNumber,
           formatDate(picking.assignedDate),
+          null, // started_date
           null, // completed_date
           picking.status,
           picking.priority,
           picking.totalQuantity,
           picking.pickedQuantity,
-          picking.picker || null
+          null, // remaining_quantity
+          picking.picker || null,
+          null, // picker_id
+          null, // equipment
+          null  // notes
         )
         pickingsInserted++
       } catch (error) {
         console.error(`Error inserting picking ${picking.pickingNumber}:`, error)
+        throw error
       }
     }
   })
 
-  insertPickings(pickings)
+  try {
+    insertPickings(pickings)
+  } catch (error) {
+    console.error('❌ [DB INSERT] Failed to insert pickings')
+    throw error
+  }
 
   // Insert picking lines
   const insertLines = db.transaction((lines: readonly PickingLine[]) => {
@@ -713,16 +726,26 @@ export const insertPickings = (pickings: readonly Picking[], pickingLines: reado
           line.quantity,
           line.pickedQuantity,
           line.unit,
-          line.status
+          line.status,
+          null, // processed_by_user_id
+          null, // started_at
+          null, // completed_at
+          null  // duration_ms
         )
         linesInserted++
       } catch (error) {
         console.error(`Error inserting picking line ${line.id}:`, error)
+        throw error
       }
     }
   })
 
-  insertLines(pickingLines)
+  try {
+    insertLines(pickingLines)
+  } catch (error) {
+    console.error('❌ [DB INSERT] Failed to insert picking lines')
+    throw error
+  }
 
   return { pickings: pickingsInserted, lines: linesInserted }
 }
@@ -737,19 +760,21 @@ export const insertReceptions = (receptions: readonly Reception[], receptionLine
   const db = getDatabase()
   const receptionStmt = db.prepare(`
     INSERT OR REPLACE INTO receptions (
-      id, supplier_id, supplier_name, warehouse_id, reception_number,
-      expected_date, received_date, status, priority,
-      total_quantity, received_quantity,
+      id, warehouse_id, supplier_id, supplier_name, reception_number,
+      purchase_order_number, expected_date, received_date, status, priority,
+      total_quantity, received_quantity, rejected_quantity, total_amount,
+      carrier, tracking_number, dock_door, receiver, notes,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
   `)
 
   const lineStmt = db.prepare(`
     INSERT OR REPLACE INTO reception_lines (
       id, reception_id, warehouse_id, product_id, product_sku, product_name,
       ordered_quantity, received_quantity, rejected_quantity, unit_price,
+      reason, processed_by_user_id, started_at, completed_at, duration_ms,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
   `)
 
   let receptionsInserted = 0
@@ -760,25 +785,39 @@ export const insertReceptions = (receptions: readonly Reception[], receptionLine
       try {
         receptionStmt.run(
           reception.id,
+          reception.warehouseId,
           reception.supplierId,
           reception.supplierName,
-          reception.warehouseId,
           reception.receptionNumber,
+          null, // purchase_order_number
           formatDate(reception.expectedDate),
           reception.receivedDate ? formatDate(reception.receivedDate) : null,
           reception.status,
           reception.priority,
           reception.totalQuantity,
-          reception.receivedQuantity
+          reception.receivedQuantity,
+          reception.rejectedQuantity || 0,
+          reception.totalAmount || 0,
+          null, // carrier
+          null, // tracking_number
+          null, // dock_door
+          null, // receiver
+          null  // notes
         )
         receptionsInserted++
       } catch (error) {
         console.error(`Error inserting reception ${reception.receptionNumber}:`, error)
+        throw error
       }
     }
   })
 
-  insertReceptions(receptions)
+  try {
+    insertReceptions(receptions)
+  } catch (error) {
+    console.error('❌ [DB INSERT] Failed to insert receptions')
+    throw error
+  }
 
   // Insert reception lines
   const insertLines = db.transaction((lines: readonly ReceptionLine[]) => {
@@ -794,16 +833,27 @@ export const insertReceptions = (receptions: readonly Reception[], receptionLine
           line.orderedQuantity,
           line.receivedQuantity,
           line.rejectedQuantity,
-          line.unitPrice
+          line.unitPrice,
+          null, // reason
+          null, // processed_by_user_id
+          null, // started_at
+          null, // completed_at
+          null  // duration_ms
         )
         linesInserted++
       } catch (error) {
         console.error(`Error inserting reception line ${line.id}:`, error)
+        throw error
       }
     }
   })
 
-  insertLines(receptionLines)
+  try {
+    insertLines(receptionLines)
+  } catch (error) {
+    console.error('❌ [DB INSERT] Failed to insert reception lines')
+    throw error
+  }
 
   return { receptions: receptionsInserted, lines: linesInserted }
 }
@@ -901,10 +951,10 @@ export const insertReturns = (returns: readonly Return[], returnLines: readonly 
   const db = getDatabase()
   const returnStmt = db.prepare(`
     INSERT OR REPLACE INTO returns (
-      id, order_id, order_number, customer_id, customer_name,
-      warehouse_id, return_date, status, priority, reason, reason_label,
-      total_quantity, returned_quantity, total_amount, refunded_amount,
-      processor, completed_date,
+      id, warehouse_id, order_id, order_number, return_number,
+      customer_id, customer_name, return_date, type, status,
+      priority, reason, reason_label, total_quantity, returned_quantity,
+      total_amount, refunded_amount, processor, completed_date,
       created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
   `)
@@ -913,8 +963,9 @@ export const insertReturns = (returns: readonly Return[], returnLines: readonly 
     INSERT OR REPLACE INTO return_lines (
       id, return_id, warehouse_id, product_id, product_sku, product_name,
       quantity, unit_price, total_price, condition, resolution,
+      processed_by_user_id, started_at, completed_at, duration_ms,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
   `)
 
   let returnsInserted = 0
@@ -925,31 +976,39 @@ export const insertReturns = (returns: readonly Return[], returnLines: readonly 
       try {
         returnStmt.run(
           ret.id,
+          ret.warehouseId,
           ret.orderId,
           ret.orderNumber,
+          ret.returnNumber,
           ret.customerId,
           ret.customerName,
-          ret.warehouseId,
           formatDate(ret.returnDate),
+          ret.type,
           ret.status,
           ret.priority,
           ret.reason,
           ret.reasonLabel,
           ret.totalQuantity,
-          ret.returnedQuantity,
-          ret.totalAmount,
-          ret.refundedAmount,
+          ret.returnedQuantity || 0,
+          ret.totalAmount || 0,
+          ret.refundedAmount || 0,
           ret.processor || null,
           ret.completedDate ? formatDate(ret.completedDate) : null
         )
         returnsInserted++
       } catch (error) {
-        console.error(`Error inserting return ${ret.id}:`, error)
+        console.error(`❌ [DB INSERT] Error inserting return ${ret.id}:`, error)
+        throw error
       }
     }
   })
 
-  insertReturns(returns)
+  try {
+    insertReturns(returns)
+  } catch (error) {
+    console.error('❌ [DB INSERT] Failed to insert returns')
+    throw error
+  }
 
   // Insert return lines
   const insertLines = db.transaction((lines: readonly ReturnLine[]) => {
@@ -966,7 +1025,11 @@ export const insertReturns = (returns: readonly Return[], returnLines: readonly 
           line.unitPrice,
           line.totalPrice,
           line.condition,
-          line.resolution
+          line.resolution,
+          null, // processed_by_user_id
+          null, // started_at
+          null, // completed_at
+          null  // duration_ms
         )
         linesInserted++
       } catch (error) {
@@ -1128,60 +1191,71 @@ export const loadToDatabase = (data: NormalizedData): {
 
   // Insert zones first (locations reference them)
   if (data.zones && data.zones.length > 0) {
+    console.log('📍 [DB] Inserting zones...')
     stats.zonesImported = insertZones(data.zones)
   }
 
   // Insert sectors (locations reference them)
   if (data.sectors && data.sectors.length > 0) {
+    console.log('📍 [DB] Inserting sectors...')
     stats.sectorsImported = insertSectors(data.sectors)
   }
 
   // Insert locations (products and inventory reference them)
   if (data.locations && data.locations.length > 0) {
+    console.log('📍 [DB] Inserting locations...')
     stats.locationsImported = insertLocations(data.locations)
   }
 
   // Insert products
   if (data.products.length > 0) {
+    console.log('📦 [DB] Inserting products...')
     stats.productsImported = insertProducts(data.products)
   }
 
   // Insert inventory
   if (data.inventory.length > 0) {
+    console.log('📊 [DB] Inserting inventory...')
     stats.inventoryImported = insertInventory(data.metadata.warehouseId, data.inventory)
   }
 
   // Insert movements
   if (data.movements.length > 0) {
+    console.log('🚚 [DB] Inserting movements...')
     stats.movementsImported = insertMovements(data.movements)
   }
 
   // Insert orders and order lines
   if (data.orders && data.orders.length > 0) {
+    console.log('📋 [DB] Inserting orders...')
     const orderResults = insertOrders(data.orders, data.orderLines || [])
     stats.ordersImported = orderResults.orders
   }
 
   // Insert pickings and picking lines
   if (data.pickings && data.pickings.length > 0) {
+    console.log('📦 [DB] Inserting pickings...')
     const pickingResults = insertPickings(data.pickings, data.pickingLines || [])
     stats.pickingsImported = pickingResults.pickings
   }
 
   // Insert receptions and reception lines
   if (data.receptions && data.receptions.length > 0) {
+    console.log('📥 [DB] Inserting receptions...')
     const receptionResults = insertReceptions(data.receptions, data.receptionLines || [])
     stats.receptionsImported = receptionResults.receptions
   }
 
   // Insert restockings and restocking lines
   if (data.restockings && data.restockings.length > 0) {
+    console.log('🔄 [DB] Inserting restockings...')
     const restockingResults = insertRestockings(data.restockings, data.restockingLines || [])
     stats.restockingsImported = restockingResults.restockings
   }
 
   // Insert returns and return lines
   if (data.returns && data.returns.length > 0) {
+    console.log('↩️ [DB] Inserting returns...')
     const returnResults = insertReturns(data.returns, data.returnLines || [])
     stats.returnsImported = returnResults.returns
   }

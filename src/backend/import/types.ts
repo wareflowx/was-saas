@@ -309,6 +309,8 @@ type Reception = {
   readonly priority: string
   readonly totalQuantity: number
   readonly receivedQuantity: number
+  readonly rejectedQuantity?: number
+  readonly totalAmount?: number
 }
 
 /**
@@ -471,6 +473,9 @@ type Supplier = {
   readonly address?: string
   readonly city?: string
   readonly country?: string
+  readonly paymentTerms?: string
+  readonly leadTimeDays?: number
+  readonly status?: string
 }
 
 /**
@@ -487,6 +492,8 @@ type Customer = {
   readonly city?: string
   readonly country?: string
   readonly customerType?: string
+  readonly creditLimit?: number
+  readonly status?: string
 }
 
 /**

@@ -225,6 +225,10 @@ export function useBackend() {
       warehouseId: string,
       onProgress?: (progress: number, message: string) => void
     ): Promise<ImportResult> => {
+      console.log('🔧 [HOOK] generateMockData called with warehouseId:', warehouseId)
+      console.log('🔧 [HOOK] isElectron:', isElectron)
+      console.log('🔧 [HOOK] window.electronAPI:', (window as any).electronAPI)
+
       const fallbackResult: ImportResult = {
         status: 'success',
         warehouseId,
@@ -244,17 +248,23 @@ export function useBackend() {
       }
 
       if (!isElectron) {
+        console.log('⚠️ [HOOK] Not in Electron mode, returning fallback')
         onProgress?.(100, 'Mock data generated (web mode)')
         return fallbackResult
       }
 
       try {
-        return await (window as any).electronAPI.generateMockData(
+        console.log('🔧 [HOOK] About to call window.electronAPI.generateMockData')
+        console.log('🔧 [HOOK] electronAPI.generateMockData function:', (window as any).electronAPI.generateMockData)
+        const result = await (window as any).electronAPI.generateMockData(
           warehouseId,
           onProgress
         )
+        console.log('✅ [HOOK] IPC call completed successfully, result:', result)
+        return result
       } catch (error) {
-        console.error('IPC call failed [generateMockData]:', error)
+        console.error('❌ [HOOK] IPC call failed [generateMockData]:', error)
+        console.error('❌ [HOOK] Error details:', JSON.stringify(error, null, 2))
         throw error
       }
     },

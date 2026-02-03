@@ -106,10 +106,9 @@ const electronAPI = {
    * Generate mock data for testing
    */
   generateMockData: (
-    warehouseId: string,
-    onProgress?: (progress: number, message: string) => void
+    warehouseId: string
   ): Promise<ImportResult> =>
-    ipcRenderer.invoke('import:generate-mock-data', warehouseId, onProgress),
+    ipcRenderer.invoke('import:generate-mock-data', warehouseId),
 
   // ==========================================================================
   // DATABASE QUERIES (all require explicit filters)

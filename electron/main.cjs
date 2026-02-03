@@ -23,13 +23,33 @@ console.log('Database initialized at:', getDatabaseFilePath())
 // MOCK DATA GENERATION
 // ==========================================================================
 
-ipcMain.handle('import:generate-mock-data', async (event, warehouseId, onProgress) => {
+ipcMain.handle('import:generate-mock-data', async (event, warehouseId) => {
+  console.log('🎯 [MAIN] IPC handler "import:generate-mock-data" called')
+  console.log('🎯 [MAIN] warehouseId:', warehouseId)
+  console.log('🎯 [MAIN] event:', event)
+
   initializeDatabase()
+  console.log('🎯 [MAIN] Database initialized')
+
   const plugin = pluginService.getPlugin('mock-data-generator')
+  console.log('🎯 [MAIN] Plugin found:', plugin ? 'YES' : 'NO')
+  console.log('🎯 [MAIN] Plugin details:', plugin)
+
   if (!plugin) {
+    console.error('❌ [MAIN] Mock data generator plugin not found')
     throw new Error('Mock data generator plugin not found')
   }
-  return await importService.generateMockData(warehouseId, plugin, onProgress)
+
+  console.log('🎯 [MAIN] About to call importService.generateMockData')
+  try {
+    const result = await importService.generateMockData(warehouseId, plugin)
+    console.log('✅ [MAIN] importService.generateMockData completed')
+    console.log('✅ [MAIN] Result:', result)
+    return result
+  } catch (error) {
+    console.error('❌ [MAIN] Error in importService.generateMockData:', error)
+    throw error
+  }
 })
 
 // ==========================================================================

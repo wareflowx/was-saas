@@ -420,6 +420,7 @@ export interface Return {
     reasonLabel: string;
     lines: ReturnLine[];
     totalQuantity: number;
+    returnedQuantity: number;
     totalAmount: number;
     refundedAmount: number;
     processor?: string;
@@ -457,4 +458,66 @@ export interface PaginationState {
     currentPage: number;
     itemsPerPage: number;
     totalItems: number;
+}
+export type ImportHistoryStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'partial';
+export interface ImportHistoryEntry {
+    id: string;
+    warehouseId: string;
+    warehouseName: string;
+    warehouseCode: string;
+    pluginId: string;
+    pluginVersion: string;
+    importedAt: string;
+    rowsProcessed: number;
+    status: ImportHistoryStatus;
+    fileName: string;
+    fileSize: number;
+    durationMs: number;
+    errorMessage?: string;
+}
+export interface DashboardKPIs {
+    totalProducts: number;
+    totalLocations: number;
+    lowStockItems: number;
+    activeOrders: number;
+    movementsThisWeek: number;
+}
+export interface StockEvolutionPoint {
+    date: string;
+    stock: number;
+}
+export interface MovementByType {
+    movementType: string;
+    movements: number;
+    fill: string;
+}
+export interface TopProduct {
+    product: string;
+    movements: number;
+}
+export interface LowStockAlert {
+    id: string;
+    product: string;
+    currentStock: number;
+    minStock: number;
+    location: string;
+    severity: 'critical' | 'warning';
+}
+export type MovementType = 'in' | 'out' | 'transfer';
+export interface RecentMovement {
+    id: string;
+    date: string;
+    product: string;
+    type: MovementType;
+    quantity: number;
+    to?: string;
+    from?: string;
+}
+export interface DashboardData {
+    kpis: DashboardKPIs;
+    stockEvolution: StockEvolutionPoint[];
+    movementsByType: MovementByType[];
+    topProducts: TopProduct[];
+    lowStockAlerts: LowStockAlert[];
+    recentMovements: RecentMovement[];
 }

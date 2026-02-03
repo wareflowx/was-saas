@@ -65,10 +65,25 @@ function DataImportPage() {
 
         // Actual data generation for mock data option
         if (index === 1 && useMockData) {
+          console.log('🔄 [FRONTEND] Mock data generation triggered, index:', index, 'useMockData:', useMockData)
           try {
-            await backend.generateMockData(selectedWarehouseId)
+            console.log('🔄 [FRONTEND] About to call backend.generateMockData for warehouse:', selectedWarehouseId)
+            console.log('🔄 [FRONTEND] backend object:', backend)
+            console.log('🔄 [FRONTEND] backend.generateMockData function:', backend.generateMockData)
+            const result = await backend.generateMockData(selectedWarehouseId)
+            console.log('✅ [FRONTEND] generateMockData completed successfully, result:', result)
+            console.log('✅ [FRONTEND] Status:', result.status)
+            console.log('✅ [FRONTEND] Errors:', result.errors)
+            console.log('✅ [FRONTEND] Stats:', result.stats)
+            if (result.errors && result.errors.length > 0) {
+              console.error('❌ [FRONTEND] Generation failed with errors:')
+              result.errors.forEach((err, i) => {
+                console.error(`❌ [FRONTEND] Error ${i + 1}:`, err)
+              })
+            }
           } catch (error) {
-            console.error('Error generating mock data:', error)
+            console.error('❌ [FRONTEND] Error generating mock data:', error)
+            console.error('❌ [FRONTEND] Error details:', JSON.stringify(error, null, 2))
           }
         }
 

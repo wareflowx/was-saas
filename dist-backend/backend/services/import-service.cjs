@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateMockData = exports.executeImport = exports.validateImportFile = void 0;
 const fs = __importStar(require("fs"));
-const parser_1 = require("../import/parser.cjs");
+const parser_1 = require('../import/parser.cjs');
 /**
  * Validate file with selected plugin
  * @param filePath - Path to Excel file
@@ -172,21 +172,19 @@ exports.executeImport = executeImport;
  * Generate mock data for testing
  * @param warehouseId - Target warehouse ID
  * @param plugin - Mock data generator plugin
- * @param onProgress - Optional progress callback
  * @returns Import result
  */
-const generateMockData = async (warehouseId, plugin, onProgress) => {
+const generateMockData = async (warehouseId, plugin) => {
     const startTime = Date.now();
     const warnings = [];
+    console.log('🎲 [MOCK DATA] Starting generation for warehouse:', warehouseId);
     try {
         // Step 1: Generate mock data
-        onProgress?.(10, 'Generating mock data...');
+        console.log('🎲 [MOCK DATA] Generating mock data...');
         const context = {
             warehouseId,
             pluginId: plugin.id,
-            onProgress: (progress, message) => {
-                onProgress?.(20 + progress * 0.6, message);
-            },
+            onProgress: undefined, // No progress callback in IPC mode
         };
         // Mock data generator doesn't need input data, provide empty WMSInputData
         const emptyInput = {
@@ -198,13 +196,51 @@ const generateMockData = async (warehouseId, plugin, onProgress) => {
             },
         };
         const normalizedData = plugin.transform(emptyInput, context);
-        onProgress?.(80, 'Loading data into database...');
+        console.log('📦 [MOCK DATA] Data transformed:', {
+            warehouses: normalizedData.warehouses?.length || 0,
+            users: normalizedData.users?.length || 0,
+            suppliers: normalizedData.suppliers?.length || 0,
+            customers: normalizedData.customers?.length || 0,
+            products: normalizedData.products?.length || 0,
+            inventory: normalizedData.inventory?.length || 0,
+            movements: normalizedData.movements?.length || 0,
+            zones: normalizedData.zones?.length || 0,
+            sectors: normalizedData.sectors?.length || 0,
+            locations: normalizedData.locations?.length || 0,
+            purchaseOrders: normalizedData.purchaseOrders?.length || 0,
+            receptions: normalizedData.receptions?.length || 0,
+            orders: normalizedData.orders?.length || 0,
+            pickings: normalizedData.pickings?.length || 0,
+            shipments: normalizedData.shipments?.length || 0,
+            returns: normalizedData.returns?.length || 0,
+            restockings: normalizedData.restockings?.length || 0,
+        });
+        console.log('🎲 [MOCK DATA] Loading data into database...');
         // Import loader function
         const { loadToDatabase } = await Promise.resolve().then(() => __importStar(require('../import/loader.cjs')));
         // Step 2: Load to database
         const stats = loadToDatabase(normalizedData);
-        onProgress?.(100, 'Mock data generated successfully!');
+        console.log('💾 [MOCK DATA] Data loaded to database:', {
+            warehousesImported: stats.warehousesImported || 0,
+            usersImported: stats.usersImported || 0,
+            suppliersImported: stats.suppliersImported || 0,
+            customersImported: stats.customersImported || 0,
+            productsImported: stats.productsImported || 0,
+            inventoryImported: stats.inventoryImported || 0,
+            movementsImported: stats.movementsImported || 0,
+            zonesImported: stats.zonesImported || 0,
+            sectorsImported: stats.sectorsImported || 0,
+            locationsImported: stats.locationsImported || 0,
+            purchaseOrdersImported: stats.purchaseOrdersImported || 0,
+            receptionsImported: stats.receptionsImported || 0,
+            ordersImported: stats.ordersImported || 0,
+            pickingsImported: stats.pickingsImported || 0,
+            returnsImported: stats.returnsImported || 0,
+            restockingsImported: stats.restockingsImported || 0,
+            shipmentsImported: stats.shipmentsImported || 0,
+        });
         const duration = Date.now() - startTime;
+        console.log('✅ [MOCK DATA] Generation completed in', duration, 'ms');
         return {
             status: 'success',
             warehouseId,
@@ -225,6 +261,7 @@ const generateMockData = async (warehouseId, plugin, onProgress) => {
     }
     catch (error) {
         const duration = Date.now() - startTime;
+        console.error('❌ [MOCK DATA] Generation failed:', error);
         return {
             status: 'failed',
             warehouseId,

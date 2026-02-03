@@ -38,7 +38,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ==========================================================================
 
   generateMockData: (warehouseId, onProgress) => {
-    return ipcRenderer.invoke('import:generate-mock-data', warehouseId, onProgress)
+    // Note: onProgress callback is not passed through IPC as functions cannot be serialized
+    // Progress updates would need to be implemented via IPC messaging if needed
+    return ipcRenderer.invoke('import:generate-mock-data', warehouseId)
   },
 
   // ==========================================================================

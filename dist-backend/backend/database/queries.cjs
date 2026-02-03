@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDashboardKPIs = exports.getImportHistory = exports.getWarehousesWithKPIs = exports.getSectorsByWarehouse = exports.getZonesByWarehouse = exports.getLocationsByWarehouse = exports.getDeadStock = exports.getProductMovementTotals = exports.getOrdersByWarehouse = exports.getLastMovementDate = exports.getMovementsByWarehouse = exports.getInventoryByWarehouse = exports.getProductBySku = exports.getProductById = exports.getProductsByWarehouse = void 0;
-const index_1 = require("./index.cjs");
+exports.getOrdersByWarehouseWithLines = exports.getRestockingLines = exports.getRestockingsByWarehouse = exports.getReturnLines = exports.getReturnsByWarehouse = exports.getPickingLines = exports.getPickingsByWarehouse = exports.getReceptionLines = exports.getReceptionsByWarehouse = exports.getDashboardKPIs = exports.getImportHistory = exports.getWarehousesWithKPIs = exports.getSectorsByWarehouse = exports.getZonesByWarehouse = exports.getLocationsByWarehouse = exports.getDeadStock = exports.getProductMovementTotals = exports.getOrdersByWarehouse = exports.getLastMovementDate = exports.getMovementsByWarehouse = exports.getInventoryByWarehouse = exports.getProductBySku = exports.getProductById = exports.getProductsByWarehouse = void 0;
+const index_1 = require('./index.cjs');
 // ============================================================================
 // PRODUCTS
 // ============================================================================
@@ -385,7 +385,10 @@ const getZonesByWarehouse = (warehouseId) => {
     // Count zones by type
     const zoneTypes = {};
     rows.forEach((r) => {
-        zoneTypes[r.type] = (zoneTypes[r.type] || 0) + 1;
+        const type = r.type;
+        if (type) {
+            zoneTypes[type] = (zoneTypes[type] || 0) + 1;
+        }
     });
     return {
         kpis: {
@@ -448,7 +451,10 @@ const getSectorsByWarehouse = (warehouseId) => {
     // Count sectors by type
     const sectorTypes = {};
     rows.forEach((r) => {
-        sectorTypes[r.type] = (sectorTypes[r.type] || 0) + 1;
+        const type = r.type;
+        if (type) {
+            sectorTypes[type] = (sectorTypes[type] || 0) + 1;
+        }
     });
     return {
         kpis: {
@@ -581,7 +587,6 @@ exports.getImportHistory = getImportHistory;
 const getDashboardKPIs = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     // KPIs
-    let whereClause = warehouseId ? 'WHERE warehouse_id = ?' : '';
     let whereParams = warehouseId ? [warehouseId] : [];
     // Total products
     const productsStmt = db.prepare(`SELECT COUNT(*) as count FROM products`);
@@ -629,9 +634,11 @@ const getDashboardKPIs = (warehouseId) => {
     // Calculate running stock total
     let runningStock = 0;
     const stockEvolution = stockEvolutionRows.map((row) => {
-        runningStock += row.stock;
+        const stock = row.stock || 0;
+        runningStock += stock;
+        const dateStr = row.date;
         return {
-            date: new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             stock: runningStock,
         };
     });
@@ -656,11 +663,14 @@ const getDashboardKPIs = (warehouseId) => {
         transfer: 'hsl(25, 95%, 53%)',
         adjustment: 'hsl(25, 95%, 53%)',
     };
-    const movementsByType = movementsByTypeRows.map((row) => ({
-        movementType: row.movementType,
-        movements: row.movements,
-        fill: typeColors[row.movementType] || 'hsl(var(--muted))',
-    }));
+    const movementsByType = movementsByTypeRows.map((row) => {
+        const movementType = row.movementType;
+        return {
+            movementType,
+            movements: row.movements,
+            fill: typeColors[movementType] || 'hsl(var(--muted))',
+        };
+    });
     // Top products by movements
     const topProductsStmt = db.prepare(`
     SELECT
@@ -713,7 +723,7 @@ const getDashboardKPIs = (warehouseId) => {
   `);
     const recentMovements = recentMovementsStmt.all(...whereParams).map((row) => ({
         ...row,
-        type: row.type.toLowerCase(),
+        type: (row.type || '').toLowerCase(),
     }));
     return {
         kpis: {
@@ -731,13 +741,17 @@ const getDashboardKPIs = (warehouseId) => {
     };
 };
 exports.getDashboardKPIs = getDashboardKPIs;
-
 // ============================================================================
 // OPERATIONS - RECEIPTS
 // ============================================================================
-
+/**
+ * Get all receptions for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Receptions data with KPIs calculated
+ */
 const getReceptionsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
+    // Get receptions with supplier info
     const stmt = db.prepare(`
     SELECT DISTINCT
       r.id,
@@ -767,6 +781,7 @@ const getReceptionsByWarehouse = (warehouseId) => {
     ORDER BY r.expected_date DESC
   `);
     const rows = stmt.all(warehouseId);
+    // Calculate KPIs
     const totalReceptions = rows.length;
     const pendingReceptions = rows.filter((r) => r.status === 'pending').length;
     const inProgressReceptions = rows.filter((r) => r.status === 'in_progress').length;
@@ -788,7 +803,11 @@ const getReceptionsByWarehouse = (warehouseId) => {
     };
 };
 exports.getReceptionsByWarehouse = getReceptionsByWarehouse;
-
+/**
+ * Get reception lines for a reception
+ * @param receptionId - Reception ID
+ * @returns Array of reception lines
+ */
 const getReceptionLines = (receptionId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -813,11 +832,14 @@ const getReceptionLines = (receptionId) => {
     return stmt.all(receptionId);
 };
 exports.getReceptionLines = getReceptionLines;
-
 // ============================================================================
 // OPERATIONS - PICKINGS
 // ============================================================================
-
+/**
+ * Get all pickings for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Pickings data with KPIs calculated
+ */
 const getPickingsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -850,6 +872,7 @@ const getPickingsByWarehouse = (warehouseId) => {
     ORDER BY p.assigned_date DESC
   `);
     const rows = stmt.all(warehouseId);
+    // Calculate KPIs
     const totalPickings = rows.length;
     const pendingPickings = rows.filter((r) => r.status === 'pending').length;
     const inProgressPickings = rows.filter((r) => r.status === 'in_progress').length;
@@ -871,7 +894,11 @@ const getPickingsByWarehouse = (warehouseId) => {
     };
 };
 exports.getPickingsByWarehouse = getPickingsByWarehouse;
-
+/**
+ * Get picking lines for a picking
+ * @param pickingId - Picking ID
+ * @returns Array of picking lines
+ */
 const getPickingLines = (pickingId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -899,11 +926,14 @@ const getPickingLines = (pickingId) => {
     return stmt.all(pickingId);
 };
 exports.getPickingLines = getPickingLines;
-
 // ============================================================================
 // OPERATIONS - RETURNS
 // ============================================================================
-
+/**
+ * Get all returns for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Returns data with KPIs calculated
+ */
 const getReturnsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -936,6 +966,7 @@ const getReturnsByWarehouse = (warehouseId) => {
     ORDER BY r.return_date DESC
   `);
     const rows = stmt.all(warehouseId);
+    // Calculate KPIs
     const totalReturns = rows.length;
     const pendingReturns = rows.filter((r) => r.status === 'pending').length;
     const inProgressReturns = rows.filter((r) => r.status === 'in_progress').length;
@@ -961,7 +992,11 @@ const getReturnsByWarehouse = (warehouseId) => {
     };
 };
 exports.getReturnsByWarehouse = getReturnsByWarehouse;
-
+/**
+ * Get return lines for a return
+ * @param returnId - Return ID
+ * @returns Array of return lines
+ */
 const getReturnLines = (returnId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -989,11 +1024,14 @@ const getReturnLines = (returnId) => {
     return stmt.all(returnId);
 };
 exports.getReturnLines = getReturnLines;
-
 // ============================================================================
 // OPERATIONS - RESTOCKINGS
 // ============================================================================
-
+/**
+ * Get all restockings for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Restockings data with KPIs calculated
+ */
 const getRestockingsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1020,6 +1058,7 @@ const getRestockingsByWarehouse = (warehouseId) => {
     ORDER BY r.requested_date DESC
   `);
     const rows = stmt.all(warehouseId);
+    // Calculate KPIs
     const totalRestockings = rows.length;
     const pendingRestockings = rows.filter((r) => r.status === 'pending').length;
     const inProgressRestockings = rows.filter((r) => r.status === 'in_progress').length;
@@ -1041,7 +1080,11 @@ const getRestockingsByWarehouse = (warehouseId) => {
     };
 };
 exports.getRestockingsByWarehouse = getRestockingsByWarehouse;
-
+/**
+ * Get restocking lines for a restocking
+ * @param restockingId - Restocking ID
+ * @returns Array of restocking lines
+ */
 const getRestockingLines = (restockingId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1070,11 +1113,14 @@ const getRestockingLines = (restockingId) => {
     return stmt.all(restockingId);
 };
 exports.getRestockingLines = getRestockingLines;
-
 // ============================================================================
 // OPERATIONS - ORDERS WITH LINES
 // ============================================================================
-
+/**
+ * Get orders for a warehouse with lines and KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Orders data with KPIs calculated
+ */
 const getOrdersByWarehouseWithLines = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1112,29 +1158,31 @@ const getOrdersByWarehouseWithLines = (warehouseId) => {
     ORDER BY o.order_date DESC
   `);
     const rows = stmt.all(warehouseId);
+    // Get lines for each order
     const ordersWithLines = rows.map((row) => {
         const linesStmt = db.prepare(`
-        SELECT
-          ol.id,
-          ol.product_id as productId,
-          ol.product_sku as productSku,
-          ol.product_name as productName,
-          ol.quantity,
-          ol.picked_quantity as pickedQuantity,
-          ol.unit_price as unitPrice,
-          ol.total_price as totalPrice,
-          ol.created_at as createdAt,
-          ol.updated_at as lastUpdated
-        FROM order_lines ol
-        WHERE ol.order_id = ?
-        ORDER BY ol.created_at
-      `);
+      SELECT
+        ol.id,
+        ol.product_id as productId,
+        ol.product_sku as productSku,
+        ol.product_name as productName,
+        ol.quantity,
+        ol.picked_quantity as pickedQuantity,
+        ol.unit_price as unitPrice,
+        ol.total_price as totalPrice,
+        ol.created_at as createdAt,
+        ol.updated_at as lastUpdated
+      FROM order_lines ol
+      WHERE ol.order_id = ?
+      ORDER BY ol.created_at
+    `);
         const lines = linesStmt.all(row.id);
         return {
             ...row,
             lines,
         };
     });
+    // Calculate KPIs
     const totalOrders = rows.length;
     const pendingOrders = rows.filter((r) => r.status === 'pending').length;
     const inProgressOrders = rows.filter((r) => r.status === 'processing' || r.status === 'picking').length;
@@ -1158,4 +1206,3 @@ const getOrdersByWarehouseWithLines = (warehouseId) => {
     };
 };
 exports.getOrdersByWarehouseWithLines = getOrdersByWarehouseWithLines;
-

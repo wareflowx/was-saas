@@ -139,3 +139,140 @@ export declare const getWarehousesWithKPIs: () => {
     };
     warehouses: any;
 };
+/**
+ * Get import history for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Import history records
+ */
+export declare const getImportHistory: (warehouseId?: string) => any;
+/**
+ * Get dashboard KPIs and summary data
+ * @param warehouseId - Warehouse ID (optional, if not provided uses all warehouses)
+ * @returns Dashboard data with KPIs, stock evolution, movements by type, top products, low stock alerts, and recent movements
+ */
+export declare const getDashboardKPIs: (warehouseId?: string) => {
+    kpis: {
+        totalProducts: any;
+        totalLocations: any;
+        lowStockItems: any;
+        activeOrders: any;
+        movementsThisWeek: any;
+    };
+    stockEvolution: any;
+    movementsByType: any;
+    topProducts: any;
+    lowStockAlerts: any;
+    recentMovements: any;
+};
+/**
+ * Get all receptions for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Receptions data with KPIs calculated
+ */
+export declare const getReceptionsByWarehouse: (warehouseId: string) => {
+    kpis: {
+        totalReceptions: any;
+        pendingReceptions: any;
+        inProgressReceptions: any;
+        completedReceptions: any;
+        totalQuantity: any;
+        receivedQuantity: any;
+        pendingQuantity: number;
+    };
+    receptions: any;
+};
+/**
+ * Get reception lines for a reception
+ * @param receptionId - Reception ID
+ * @returns Array of reception lines
+ */
+export declare const getReceptionLines: (receptionId: string) => any;
+/**
+ * Get all pickings for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Pickings data with KPIs calculated
+ */
+export declare const getPickingsByWarehouse: (warehouseId: string) => {
+    kpis: {
+        totalPickings: any;
+        pendingPickings: any;
+        inProgressPickings: any;
+        completedPickings: any;
+        totalLines: any;
+        pickedLines: any;
+        completionRate: number;
+    };
+    pickings: any;
+};
+/**
+ * Get picking lines for a picking
+ * @param pickingId - Picking ID
+ * @returns Array of picking lines
+ */
+export declare const getPickingLines: (pickingId: string) => any;
+/**
+ * Get all returns for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Returns data with KPIs calculated
+ */
+export declare const getReturnsByWarehouse: (warehouseId: string) => {
+    kpis: {
+        totalReturns: any;
+        pendingReturns: any;
+        inProgressReturns: any;
+        completedReturns: any;
+        totalQuantity: any;
+        returnedQuantity: any;
+        pendingQuantity: number;
+        totalValue: any;
+        refundedValue: any;
+    };
+    returns: any;
+};
+/**
+ * Get return lines for a return
+ * @param returnId - Return ID
+ * @returns Array of return lines
+ */
+export declare const getReturnLines: (returnId: string) => any;
+/**
+ * Get all restockings for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Restockings data with KPIs calculated
+ */
+export declare const getRestockingsByWarehouse: (warehouseId: string) => {
+    kpis: {
+        totalRestockings: any;
+        pendingRestockings: any;
+        inProgressRestockings: any;
+        completedRestockings: any;
+        totalProducts: any;
+        restockedProducts: any;
+        pendingProducts: number;
+    };
+    restockings: any;
+};
+/**
+ * Get restocking lines for a restocking
+ * @param restockingId - Restocking ID
+ * @returns Array of restocking lines
+ */
+export declare const getRestockingLines: (restockingId: string) => any;
+/**
+ * Get orders for a warehouse with lines and KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Orders data with KPIs calculated
+ */
+export declare const getOrdersByWarehouseWithLines: (warehouseId: string) => {
+    kpis: {
+        totalOrders: any;
+        pendingOrders: any;
+        inProgressOrders: any;
+        shippedOrders: any;
+        deliveredOrders: any;
+        cancelledOrders: any;
+        totalValue: any;
+        averageOrderValue: number;
+    };
+    orders: any;
+};

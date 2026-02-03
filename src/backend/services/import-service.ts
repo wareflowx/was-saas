@@ -166,13 +166,11 @@ export const executeImport = async (
  * Generate mock data for testing
  * @param warehouseId - Target warehouse ID
  * @param plugin - Mock data generator plugin
- * @param onProgress - Optional progress callback
  * @returns Import result
  */
 export const generateMockData = async (
   warehouseId: string,
-  plugin: ImportPlugin,
-  onProgress?: (progress: number, message: string) => void
+  plugin: ImportPlugin
 ): Promise<ImportResult> => {
   const startTime = Date.now()
   const warnings: ValidationResult[] = []
@@ -181,14 +179,12 @@ export const generateMockData = async (
 
   try {
     // Step 1: Generate mock data
-    onProgress?.(10, 'Generating mock data...')
+    console.log('🎲 [MOCK DATA] Generating mock data...')
 
     const context: TransformContext = {
       warehouseId,
       pluginId: plugin.id,
-      onProgress: (progress: number, message: string) => {
-        onProgress?.(20 + progress * 0.6, message)
-      },
+      onProgress: undefined, // No progress callback in IPC mode
     }
 
     // Mock data generator doesn't need input data, provide empty WMSInputData
@@ -223,7 +219,7 @@ export const generateMockData = async (
       restockings: normalizedData.restockings?.length || 0,
     })
 
-    onProgress?.(80, 'Loading data into database...')
+    console.log('🎲 [MOCK DATA] Loading data into database...')
 
     // Import loader function
     const { loadToDatabase } = await import('../import/loader')
@@ -250,8 +246,6 @@ export const generateMockData = async (
       restockingsImported: stats.restockingsImported || 0,
       shipmentsImported: stats.shipmentsImported || 0,
     })
-
-    onProgress?.(100, 'Mock data generated successfully!')
 
     const duration = Date.now() - startTime
 

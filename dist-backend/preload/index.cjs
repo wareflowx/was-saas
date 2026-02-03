@@ -31,7 +31,7 @@ const electronAPI = {
     /**
      * Generate mock data for testing
      */
-    generateMockData: (warehouseId, onProgress) => electron_1.ipcRenderer.invoke('import:generate-mock-data', warehouseId, onProgress),
+    generateMockData: (warehouseId) => electron_1.ipcRenderer.invoke('import:generate-mock-data', warehouseId),
     // ==========================================================================
     // DATABASE QUERIES (all require explicit filters)
     // ===========================================================================
@@ -55,6 +55,62 @@ const electronAPI = {
      * Get locations for a warehouse
      */
     getLocations: (filters) => electron_1.ipcRenderer.invoke('db:get-locations', filters),
+    /**
+     * Get zones for a warehouse
+     */
+    getZones: (filters) => electron_1.ipcRenderer.invoke('db:get-zones', filters),
+    /**
+     * Get sectors for a warehouse
+     */
+    getSectors: (filters) => electron_1.ipcRenderer.invoke('db:get-sectors', filters),
+    /**
+     * Get receptions for a warehouse
+     */
+    getReceptions: (filters) => electron_1.ipcRenderer.invoke('db:get-receptions', filters),
+    /**
+     * Get reception lines
+     */
+    getReceptionLines: (receptionId) => electron_1.ipcRenderer.invoke('db:get-reception-lines', receptionId),
+    /**
+     * Get pickings for a warehouse
+     */
+    getPickings: (filters) => electron_1.ipcRenderer.invoke('db:get-pickings', filters),
+    /**
+     * Get picking lines
+     */
+    getPickingLines: (pickingId) => electron_1.ipcRenderer.invoke('db:get-picking-lines', pickingId),
+    /**
+     * Get returns for a warehouse
+     */
+    getReturns: (filters) => electron_1.ipcRenderer.invoke('db:get-returns', filters),
+    /**
+     * Get return lines
+     */
+    getReturnLines: (returnId) => electron_1.ipcRenderer.invoke('db:get-return-lines', returnId),
+    /**
+     * Get restockings for a warehouse
+     */
+    getRestockings: (filters) => electron_1.ipcRenderer.invoke('db:get-restockings', filters),
+    /**
+     * Get restocking lines
+     */
+    getRestockingLines: (restockingId) => electron_1.ipcRenderer.invoke('db:get-restocking-lines', restockingId),
+    /**
+     * Get orders with lines for a warehouse
+     */
+    getOrdersWithLines: (filters) => electron_1.ipcRenderer.invoke('db:get-orders-with-lines', filters),
+    /**
+     * Get import history
+     */
+    getImportHistory: (warehouseId) => electron_1.ipcRenderer.invoke('db:get-import-history', warehouseId),
+    /**
+     * Get dashboard KPIs
+     */
+    getDashboardKPIs: (warehouseId) => electron_1.ipcRenderer.invoke('db:get-dashboard-kpis', warehouseId),
+    /**
+     * Get warehouses with KPIs
+     */
+    getWarehousesWithKPIs: () => electron_1.ipcRenderer.invoke('warehouse:get-all-with-kpis'),
     // ==========================================================================
     // WAREHOUSE MANAGEMENT
     // ===========================================================================

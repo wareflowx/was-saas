@@ -252,7 +252,7 @@ export declare const saveMappingPreset: (preset: MappingPreset) => void;
  * @param presetId - Preset ID to load
  * @returns Mapping preset or null
  */
-export declare const loadMappingPreset: (presetId: string) => MappingPreset | null;
+export declare const loadMappingPreset: (_presetId: string) => MappingPreset | null;
 /**
  * Get available schemas for mapping
  * @returns List of available schemas

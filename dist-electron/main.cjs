@@ -35,7 +35,7 @@ function getAugmentedNamespace(n) {
   return a;
 }
 var main$1 = {};
-var database$2 = {};
+var database$1 = {};
 var lib = { exports: {} };
 function commonjsRequire(path) {
   throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
@@ -725,11 +725,11 @@ function requireInspect() {
   };
   return inspect;
 }
-var database$1;
-var hasRequiredDatabase$2;
-function requireDatabase$2() {
-  if (hasRequiredDatabase$2) return database$1;
-  hasRequiredDatabase$2 = 1;
+var database;
+var hasRequiredDatabase$1;
+function requireDatabase$1() {
+  if (hasRequiredDatabase$1) return database;
+  hasRequiredDatabase$1 = 1;
   const fs = require$$0$1;
   const path = require$$1;
   const util2 = requireUtil();
@@ -798,14 +798,14 @@ function requireDatabase$2() {
   Database.prototype.defaultSafeIntegers = wrappers2.defaultSafeIntegers;
   Database.prototype.unsafeMode = wrappers2.unsafeMode;
   Database.prototype[util2.inspect] = requireInspect();
-  database$1 = Database;
-  return database$1;
+  database = Database;
+  return database;
 }
 var hasRequiredLib;
 function requireLib() {
   if (hasRequiredLib) return lib.exports;
   hasRequiredLib = 1;
-  lib.exports = requireDatabase$2();
+  lib.exports = requireDatabase$1();
   lib.exports.SqliteError = requireSqliteError();
   return lib.exports;
 }
@@ -1474,12 +1474,12 @@ CREATE INDEX IF NOT EXISTS idx_import_history_date ON import_history(imported_at
   schema.DEFAULT_WAREHOUSE_ID = "default";
   return schema;
 }
-var hasRequiredDatabase$1;
-function requireDatabase$1() {
-  if (hasRequiredDatabase$1) return database$2;
-  hasRequiredDatabase$1 = 1;
+var hasRequiredDatabase;
+function requireDatabase() {
+  if (hasRequiredDatabase) return database$1;
+  hasRequiredDatabase = 1;
   (function(exports$1) {
-    var __importDefault = database$2 && database$2.__importDefault || function(mod) {
+    var __importDefault = database$1 && database$1.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
     };
     Object.defineProperty(exports$1, "__esModule", { value: true });
@@ -1558,17 +1558,17 @@ function requireDatabase$1() {
       return database2.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
     };
     exports$1.createWarehouse = createWarehouse;
-  })(database$2);
-  return database$2;
+  })(database$1);
+  return database$1;
 }
-var queries$1 = {};
-var hasRequiredQueries$1;
-function requireQueries$1() {
-  if (hasRequiredQueries$1) return queries$1;
-  hasRequiredQueries$1 = 1;
-  Object.defineProperty(queries$1, "__esModule", { value: true });
-  queries$1.getDashboardKPIs = queries$1.getImportHistory = queries$1.getWarehousesWithKPIs = queries$1.getSectorsByWarehouse = queries$1.getZonesByWarehouse = queries$1.getLocationsByWarehouse = queries$1.getDeadStock = queries$1.getProductMovementTotals = queries$1.getOrdersByWarehouse = queries$1.getLastMovementDate = queries$1.getMovementsByWarehouse = queries$1.getInventoryByWarehouse = queries$1.getProductBySku = queries$1.getProductById = queries$1.getProductsByWarehouse = void 0;
-  const index_1 = requireDatabase$1();
+var queries = {};
+var hasRequiredQueries;
+function requireQueries() {
+  if (hasRequiredQueries) return queries;
+  hasRequiredQueries = 1;
+  Object.defineProperty(queries, "__esModule", { value: true });
+  queries.getDashboardKPIs = queries.getImportHistory = queries.getWarehousesWithKPIs = queries.getSectorsByWarehouse = queries.getZonesByWarehouse = queries.getLocationsByWarehouse = queries.getDeadStock = queries.getProductMovementTotals = queries.getOrdersByWarehouse = queries.getLastMovementDate = queries.getMovementsByWarehouse = queries.getInventoryByWarehouse = queries.getProductBySku = queries.getProductById = queries.getProductsByWarehouse = void 0;
+  const index_1 = requireDatabase();
   const getProductsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1604,17 +1604,17 @@ function requireQueries$1() {
   `);
     return stmt.all(warehouseId, warehouseId);
   };
-  queries$1.getProductsByWarehouse = getProductsByWarehouse;
+  queries.getProductsByWarehouse = getProductsByWarehouse;
   const getProductById = (productId) => {
     const db = (0, index_1.getDatabase)();
     return db.prepare("SELECT * FROM products WHERE id = ?").get(productId);
   };
-  queries$1.getProductById = getProductById;
+  queries.getProductById = getProductById;
   const getProductBySku = (sku) => {
     const db = (0, index_1.getDatabase)();
     return db.prepare("SELECT * FROM products WHERE sku = ?").get(sku);
   };
-  queries$1.getProductBySku = getProductBySku;
+  queries.getProductBySku = getProductBySku;
   const getInventoryByWarehouse = (filters) => {
     const db = (0, index_1.getDatabase)();
     let sql = `
@@ -1649,7 +1649,7 @@ function requireQueries$1() {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
   };
-  queries$1.getInventoryByWarehouse = getInventoryByWarehouse;
+  queries.getInventoryByWarehouse = getInventoryByWarehouse;
   const getMovementsByWarehouse = (filters) => {
     const db = (0, index_1.getDatabase)();
     let sql = "SELECT * FROM movements WHERE warehouse_id = ?";
@@ -1678,13 +1678,13 @@ function requireQueries$1() {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
   };
-  queries$1.getMovementsByWarehouse = getMovementsByWarehouse;
+  queries.getMovementsByWarehouse = getMovementsByWarehouse;
   const getLastMovementDate = (warehouseId, productId) => {
     const db = (0, index_1.getDatabase)();
     const result = db.prepare("SELECT MAX(movement_date) as last_date FROM movements WHERE warehouse_id = ? AND product_id = ?").get(warehouseId, productId);
     return result.last_date;
   };
-  queries$1.getLastMovementDate = getLastMovementDate;
+  queries.getLastMovementDate = getLastMovementDate;
   const getOrdersByWarehouse = (filters) => {
     const db = (0, index_1.getDatabase)();
     let sql = "SELECT * FROM orders WHERE warehouse_id = ?";
@@ -1701,7 +1701,7 @@ function requireQueries$1() {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
   };
-  queries$1.getOrdersByWarehouse = getOrdersByWarehouse;
+  queries.getOrdersByWarehouse = getOrdersByWarehouse;
   const getProductMovementTotals = (warehouseId, type, dateFrom, dateTo) => {
     const db = (0, index_1.getDatabase)();
     let sql = `
@@ -1728,7 +1728,7 @@ function requireQueries$1() {
     const stmt = db.prepare(sql);
     return stmt.all(...params);
   };
-  queries$1.getProductMovementTotals = getProductMovementTotals;
+  queries.getProductMovementTotals = getProductMovementTotals;
   const getDeadStock = (warehouseId, thresholdDays = 90) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1752,7 +1752,7 @@ function requireQueries$1() {
   `);
     return stmt.all(warehouseId, thresholdDays);
   };
-  queries$1.getDeadStock = getDeadStock;
+  queries.getDeadStock = getDeadStock;
   const getLocationsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1827,7 +1827,7 @@ function requireQueries$1() {
       locations
     };
   };
-  queries$1.getLocationsByWarehouse = getLocationsByWarehouse;
+  queries.getLocationsByWarehouse = getLocationsByWarehouse;
   const getZonesByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1878,7 +1878,7 @@ function requireQueries$1() {
       zones: rows
     };
   };
-  queries$1.getZonesByWarehouse = getZonesByWarehouse;
+  queries.getZonesByWarehouse = getZonesByWarehouse;
   const getSectorsByWarehouse = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1930,7 +1930,7 @@ function requireQueries$1() {
       sectors: rows
     };
   };
-  queries$1.getSectorsByWarehouse = getSectorsByWarehouse;
+  queries.getSectorsByWarehouse = getSectorsByWarehouse;
   const getWarehousesWithKPIs = () => {
     const db = (0, index_1.getDatabase)();
     const stmt = db.prepare(`
@@ -1975,7 +1975,7 @@ function requireQueries$1() {
       warehouses: rows
     };
   };
-  queries$1.getWarehousesWithKPIs = getWarehousesWithKPIs;
+  queries.getWarehousesWithKPIs = getWarehousesWithKPIs;
   const getImportHistory = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     let stmt;
@@ -2026,7 +2026,7 @@ function requireQueries$1() {
       return stmt.all();
     }
   };
-  queries$1.getImportHistory = getImportHistory;
+  queries.getImportHistory = getImportHistory;
   const getDashboardKPIs = (warehouseId) => {
     const db = (0, index_1.getDatabase)();
     let whereParams = warehouseId ? [warehouseId] : [];
@@ -2166,10 +2166,408 @@ function requireQueries$1() {
       recentMovements
     };
   };
-  queries$1.getDashboardKPIs = getDashboardKPIs;
-  return queries$1;
+  queries.getDashboardKPIs = getDashboardKPIs;
+  const getReceptionsByWarehouse = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT DISTINCT
+      r.id,
+      r.reception_number as receptionNumber,
+      r.warehouse_id as warehouseId,
+      r.supplier_id as supplierId,
+      r.supplier_name as supplierName,
+      r.expected_date as expectedDate,
+      r.received_date as receivedDate,
+      r.status,
+      r.priority,
+      r.total_quantity as totalQuantity,
+      r.received_quantity as receivedQuantity,
+      r.rejected_quantity as rejectedQuantity,
+      r.total_amount as totalAmount,
+      r.carrier,
+      r.tracking_number as trackingNumber,
+      r.receiver,
+      r.notes,
+      r.created_at as createdAt,
+      r.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM receptions r
+    LEFT JOIN warehouses w ON r.warehouse_id = w.id
+    WHERE r.warehouse_id = ?
+    ORDER BY r.expected_date DESC
+  `);
+    const rows = stmt.all(warehouseId);
+    const totalReceptions = rows.length;
+    const pendingReceptions = rows.filter((r) => r.status === "pending").length;
+    const inProgressReceptions = rows.filter((r) => r.status === "in_progress").length;
+    const completedReceptions = rows.filter((r) => r.status === "completed").length;
+    const totalQuantity = rows.reduce((sum, r) => sum + (r.totalQuantity || 0), 0);
+    const receivedQuantity = rows.reduce((sum, r) => sum + (r.receivedQuantity || 0), 0);
+    const pendingQuantity = totalQuantity - receivedQuantity;
+    return {
+      kpis: {
+        totalReceptions,
+        pendingReceptions,
+        inProgressReceptions,
+        completedReceptions,
+        totalQuantity,
+        receivedQuantity,
+        pendingQuantity
+      },
+      receptions: rows
+    };
+  };
+  queries.getReceptionsByWarehouse = getReceptionsByWarehouse;
+  const getReceptionLines = (receptionId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT
+      rl.id,
+      rl.product_id as productId,
+      rl.product_sku as productSku,
+      rl.product_name as productName,
+      rl.ordered_quantity as orderedQuantity,
+      rl.received_quantity as receivedQuantity,
+      rl.rejected_quantity as rejectedQuantity,
+      rl.unit_price as unitPrice,
+      rl.total_price as totalPrice,
+      rl.reason,
+      rl.status,
+      rl.created_at as createdAt,
+      rl.updated_at as lastUpdated
+    FROM reception_lines rl
+    WHERE rl.reception_id = ?
+    ORDER BY rl.created_at
+  `);
+    return stmt.all(receptionId);
+  };
+  queries.getReceptionLines = getReceptionLines;
+  const getPickingsByWarehouse = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT DISTINCT
+      p.id,
+      p.picking_number as pickingNumber,
+      p.warehouse_id as warehouseId,
+      p.order_id as orderId,
+      p.order_number as orderNumber,
+      p.customer_id as customerId,
+      p.customer_name as customerName,
+      p.assigned_date as assignedDate,
+      p.started_date as startedDate,
+      p.completed_date as completedDate,
+      p.status,
+      p.priority,
+      p.total_quantity as totalQuantity,
+      p.picked_quantity as pickedQuantity,
+      p.remaining_quantity as remainingQuantity,
+      p.picker,
+      p.picker_id as pickerId,
+      p.notes,
+      p.created_at as createdAt,
+      p.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM pickings p
+    LEFT JOIN warehouses w ON p.warehouse_id = w.id
+    WHERE p.warehouse_id = ?
+    ORDER BY p.assigned_date DESC
+  `);
+    const rows = stmt.all(warehouseId);
+    const totalPickings = rows.length;
+    const pendingPickings = rows.filter((r) => r.status === "pending").length;
+    const inProgressPickings = rows.filter((r) => r.status === "in_progress").length;
+    const completedPickings = rows.filter((r) => r.status === "completed").length;
+    const totalLines = rows.reduce((sum, r) => sum + (r.totalQuantity || 0), 0);
+    const pickedLines = rows.reduce((sum, r) => sum + (r.pickedQuantity || 0), 0);
+    const completionRate = totalLines > 0 ? Math.round(pickedLines / totalLines * 100) : 0;
+    return {
+      kpis: {
+        totalPickings,
+        pendingPickings,
+        inProgressPickings,
+        completedPickings,
+        totalLines,
+        pickedLines,
+        completionRate
+      },
+      pickings: rows
+    };
+  };
+  queries.getPickingsByWarehouse = getPickingsByWarehouse;
+  const getPickingLines = (pickingId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT
+      pl.id,
+      pl.product_id as productId,
+      pl.product_sku as productSku,
+      pl.product_name as productName,
+      pl.location_code as locationCode,
+      pl.zone_name as zoneName,
+      pl.quantity,
+      pl.picked_quantity as pickedQuantity,
+      pl.unit,
+      pl.status,
+      pl.processed_by_user_id as processedByUserId,
+      pl.started_at as startedAt,
+      pl.completed_at as completedAt,
+      pl.duration_ms as durationMs,
+      pl.created_at as createdAt,
+      pl.updated_at as lastUpdated
+    FROM picking_lines pl
+    WHERE pl.picking_id = ?
+    ORDER BY pl.created_at
+  `);
+    return stmt.all(pickingId);
+  };
+  queries.getPickingLines = getPickingLines;
+  const getReturnsByWarehouse = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT DISTINCT
+      r.id,
+      r.return_number as returnNumber,
+      r.warehouse_id as warehouseId,
+      r.order_id as orderId,
+      r.order_number as orderNumber,
+      r.customer_id as customerId,
+      r.customer_name as customerName,
+      r.return_date as returnDate,
+      r.type,
+      r.status,
+      r.priority,
+      r.reason,
+      r.reason_label as reasonLabel,
+      r.total_quantity as totalQuantity,
+      r.total_amount as totalAmount,
+      r.refunded_amount as refundedAmount,
+      r.processor,
+      r.completed_date as completedDate,
+      r.created_at as createdAt,
+      r.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM returns r
+    LEFT JOIN warehouses w ON r.warehouse_id = w.id
+    WHERE r.warehouse_id = ?
+    ORDER BY r.return_date DESC
+  `);
+    const rows = stmt.all(warehouseId);
+    const totalReturns = rows.length;
+    const pendingReturns = rows.filter((r) => r.status === "pending").length;
+    const inProgressReturns = rows.filter((r) => r.status === "in_progress").length;
+    const completedReturns = rows.filter((r) => r.status === "completed").length;
+    const totalQuantity = rows.reduce((sum, r) => sum + (r.totalQuantity || 0), 0);
+    const returnedQuantity = rows.filter((r) => r.status === "completed").reduce((sum, r) => sum + (r.totalQuantity || 0), 0);
+    const pendingQuantity = totalQuantity - returnedQuantity;
+    const totalValue = rows.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+    const refundedValue = rows.reduce((sum, r) => sum + (r.refundedAmount || 0), 0);
+    return {
+      kpis: {
+        totalReturns,
+        pendingReturns,
+        inProgressReturns,
+        completedReturns,
+        totalQuantity,
+        returnedQuantity,
+        pendingQuantity,
+        totalValue,
+        refundedValue
+      },
+      returns: rows
+    };
+  };
+  queries.getReturnsByWarehouse = getReturnsByWarehouse;
+  const getReturnLines = (returnId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT
+      rl.id,
+      rl.product_id as productId,
+      rl.product_sku as productSku,
+      rl.product_name as productName,
+      rl.quantity,
+      rl.unit_price as unitPrice,
+      rl.total_price as totalPrice,
+      rl.condition as itemCondition,
+      rl.resolution,
+      rl.status,
+      rl.processed_by_user_id as processedByUserId,
+      rl.started_at as startedAt,
+      rl.completed_at as completedAt,
+      rl.duration_ms as durationMs,
+      rl.created_at as createdAt,
+      rl.updated_at as lastUpdated
+    FROM return_lines rl
+    WHERE rl.return_id = ?
+    ORDER BY rl.created_at
+  `);
+    return stmt.all(returnId);
+  };
+  queries.getReturnLines = getReturnLines;
+  const getRestockingsByWarehouse = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT DISTINCT
+      r.id,
+      r.restocking_number as restockingNumber,
+      r.warehouse_id as warehouseId,
+      r.status,
+      r.priority,
+      r.total_products as totalProducts,
+      r.restocked_products as restockedProducts,
+      r.requester,
+      r.assigned_to as assignedTo,
+      r.requested_date as requestedDate,
+      r.started_date as startedDate,
+      r.completed_date as completedDate,
+      r.created_at as createdAt,
+      r.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM restockings r
+    LEFT JOIN warehouses w ON r.warehouse_id = w.id
+    WHERE r.warehouse_id = ?
+    ORDER BY r.requested_date DESC
+  `);
+    const rows = stmt.all(warehouseId);
+    const totalRestockings = rows.length;
+    const pendingRestockings = rows.filter((r) => r.status === "pending").length;
+    const inProgressRestockings = rows.filter((r) => r.status === "in_progress").length;
+    const completedRestockings = rows.filter((r) => r.status === "completed").length;
+    const totalProducts = rows.reduce((sum, r) => sum + (r.totalProducts || 0), 0);
+    const restockedProducts = rows.reduce((sum, r) => sum + (r.restockedProducts || 0), 0);
+    const pendingProducts = totalProducts - restockedProducts;
+    return {
+      kpis: {
+        totalRestockings,
+        pendingRestockings,
+        inProgressRestockings,
+        completedRestockings,
+        totalProducts,
+        restockedProducts,
+        pendingProducts
+      },
+      restockings: rows
+    };
+  };
+  queries.getRestockingsByWarehouse = getRestockingsByWarehouse;
+  const getRestockingLines = (restockingId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT
+      rl.id,
+      rl.product_id as productId,
+      rl.product_sku as productSku,
+      rl.product_name as productName,
+      rl.source_location_id as sourceLocationId,
+      rl.destination_location_id as destinationLocationId,
+      rl.current_quantity as currentQuantity,
+      rl.target_quantity as targetQuantity,
+      rl.quantity_to_restock as quantityToRestock,
+      rl.unit,
+      rl.status,
+      rl.processed_by_user_id as processedByUserId,
+      rl.started_at as startedAt,
+      rl.completed_at as completedAt,
+      rl.duration_ms as durationMs,
+      rl.created_at as createdAt,
+      rl.updated_at as lastUpdated
+    FROM restocking_lines rl
+    WHERE rl.restocking_id = ?
+    ORDER BY rl.created_at
+  `);
+    return stmt.all(restockingId);
+  };
+  queries.getRestockingLines = getRestockingLines;
+  const getOrdersByWarehouseWithLines = (warehouseId) => {
+    const db = (0, index_1.getDatabase)();
+    const stmt = db.prepare(`
+    SELECT DISTINCT
+      o.id,
+      o.order_number as orderNumber,
+      o.warehouse_id as warehouseId,
+      o.customer_id as customerId,
+      o.customer_name as customerName,
+      o.customer_email as customerEmail,
+      o.order_date as orderDate,
+      o.required_date as requiredDate,
+      o.promised_date as promisedDate,
+      o.shipped_date as shippedDate,
+      o.delivered_date as deliveredDate,
+      o.status,
+      o.priority,
+      o.total_quantity as totalQuantity,
+      o.total_amount as totalAmount,
+      o.shipping_address as shippingAddress,
+      o.shipping_city as shippingCity,
+      o.shipping_country as shippingCountry,
+      o.tracking_number as trackingNumber,
+      o.carrier,
+      o.notes,
+      o.picker,
+      o.packer,
+      o.created_at as createdAt,
+      o.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM orders o
+    LEFT JOIN warehouses w ON o.warehouse_id = w.id
+    WHERE o.warehouse_id = ?
+    ORDER BY o.order_date DESC
+  `);
+    const rows = stmt.all(warehouseId);
+    const ordersWithLines = rows.map((row) => {
+      const linesStmt = db.prepare(`
+        SELECT
+          ol.id,
+          ol.product_id as productId,
+          ol.product_sku as productSku,
+          ol.product_name as productName,
+          ol.quantity,
+          ol.picked_quantity as pickedQuantity,
+          ol.unit_price as unitPrice,
+          ol.total_price as totalPrice,
+          ol.created_at as createdAt,
+          ol.updated_at as lastUpdated
+        FROM order_lines ol
+        WHERE ol.order_id = ?
+        ORDER BY ol.created_at
+      `);
+      const lines = linesStmt.all(row.id);
+      return {
+        ...row,
+        lines
+      };
+    });
+    const totalOrders = rows.length;
+    const pendingOrders = rows.filter((r) => r.status === "pending").length;
+    const inProgressOrders = rows.filter((r) => r.status === "processing" || r.status === "picking").length;
+    const shippedOrders = rows.filter((r) => r.status === "shipped").length;
+    const deliveredOrders = rows.filter((r) => r.status === "delivered").length;
+    const cancelledOrders = rows.filter((r) => r.status === "cancelled").length;
+    const totalValue = rows.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+    const averageOrderValue = totalOrders > 0 ? totalValue / totalOrders : 0;
+    return {
+      kpis: {
+        totalOrders,
+        pendingOrders,
+        inProgressOrders,
+        shippedOrders,
+        deliveredOrders,
+        cancelledOrders,
+        totalValue,
+        averageOrderValue
+      },
+      orders: ordersWithLines
+    };
+  };
+  queries.getOrdersByWarehouseWithLines = getOrdersByWarehouseWithLines;
+  return queries;
 }
-var registry$1 = {};
+var registry = {};
 var genericExcel = {};
 var hasRequiredGenericExcel;
 function requireGenericExcel() {
@@ -2755,10 +3153,10 @@ function requireMockDataGenerator() {
   }
   return mockDataGenerator;
 }
-var hasRequiredRegistry$1;
-function requireRegistry$1() {
-  if (hasRequiredRegistry$1) return registry$1;
-  hasRequiredRegistry$1 = 1;
+var hasRequiredRegistry;
+function requireRegistry() {
+  if (hasRequiredRegistry) return registry;
+  hasRequiredRegistry = 1;
   (function(exports$1) {
     Object.defineProperty(exports$1, "__esModule", { value: true });
     exports$1.initializeDefaultPlugins = exports$1.pluginExists = exports$1.unregisterPlugin = exports$1.registerPlugin = exports$1.listPlugins = exports$1.getPlugin = exports$1.registry = void 0;
@@ -2790,8 +3188,8 @@ function requireRegistry$1() {
       (0, exports$1.registerPlugin)(mock_data_generator_1.mockDataGeneratorPlugin);
     };
     exports$1.initializeDefaultPlugins = initializeDefaultPlugins;
-  })(registry$1);
-  return registry$1;
+  })(registry);
+  return registry;
 }
 var importService = {};
 var parser = {};
@@ -34726,94 +35124,6 @@ function requireParser() {
   return parser;
 }
 var loader = {};
-var database = {};
-var hasRequiredDatabase;
-function requireDatabase() {
-  if (hasRequiredDatabase) return database;
-  hasRequiredDatabase = 1;
-  (function(exports$1) {
-    var __importDefault = database && database.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
-    Object.defineProperty(exports$1, "__esModule", { value: true });
-    exports$1.createWarehouse = exports$1.getAllWarehouses = exports$1.warehouseExists = exports$1.getDatabaseStats = exports$1.vacuumDatabase = exports$1.getDatabaseFilePath = exports$1.closeDatabase = exports$1.initializeDatabase = exports$1.getDatabase = void 0;
-    const better_sqlite3_1 = __importDefault(requireLib());
-    const electron_1 = require$$1$1;
-    const schema_1 = requireSchema();
-    let db = null;
-    const getDatabase = () => {
-      if (db) {
-        return db;
-      }
-      const userDataPath = electron_1.app.getPath("userData");
-      const dbPath = (0, schema_1.getDatabasePath)(userDataPath);
-      db = new better_sqlite3_1.default(dbPath);
-      db.pragma("foreign_keys = ON");
-      db.pragma("journal_mode = WAL");
-      return db;
-    };
-    exports$1.getDatabase = getDatabase;
-    const initializeDatabase = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      database2.exec(schema_1.DATABASE_SCHEMA);
-      const schemaVersion = database2.prepare("PRAGMA schema_version").get();
-      console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${schema_1.SCHEMA_VERSION}`);
-    };
-    exports$1.initializeDatabase = initializeDatabase;
-    const closeDatabase = () => {
-      if (db) {
-        db.close();
-        db = null;
-      }
-    };
-    exports$1.closeDatabase = closeDatabase;
-    const getDatabaseFilePath = () => {
-      const userDataPath = electron_1.app.getPath("userData");
-      return (0, schema_1.getDatabasePath)(userDataPath);
-    };
-    exports$1.getDatabaseFilePath = getDatabaseFilePath;
-    const vacuumDatabase = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      database2.exec("VACUUM");
-    };
-    exports$1.vacuumDatabase = vacuumDatabase;
-    const getDatabaseStats = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      const tableCount = database2.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'").get();
-      const databaseSize = database2.prepare("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()").get();
-      return {
-        tables: tableCount.count,
-        sizeBytes: databaseSize.size,
-        sizeMB: Math.round(databaseSize.size / 1024 / 1024 * 100) / 100
-      };
-    };
-    exports$1.getDatabaseStats = getDatabaseStats;
-    const warehouseExists = (warehouseId) => {
-      const database2 = (0, exports$1.getDatabase)();
-      const result = database2.prepare("SELECT COUNT(*) as count FROM warehouses WHERE id = ?").get(warehouseId);
-      return result.count > 0;
-    };
-    exports$1.warehouseExists = warehouseExists;
-    const getAllWarehouses = () => {
-      const database2 = (0, exports$1.getDatabase)();
-      return database2.prepare("SELECT * FROM warehouses ORDER BY name").all();
-    };
-    exports$1.getAllWarehouses = getAllWarehouses;
-    const createWarehouse = (warehouse) => {
-      const database2 = (0, exports$1.getDatabase)();
-      const stmt = database2.prepare(`
-    INSERT INTO warehouses (
-      id, code, name, city, country, surface, capacity,
-      manager, email, phone, status, opening_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-  `);
-      stmt.run(warehouse.id, warehouse.code, warehouse.name, warehouse.city, warehouse.country, warehouse.surface || null, warehouse.capacity || null, warehouse.manager || null, warehouse.email || null, warehouse.phone || null, "active");
-      return database2.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
-    };
-    exports$1.createWarehouse = createWarehouse;
-  })(database);
-  return database;
-}
 var hasRequiredLoader;
 function requireLoader() {
   if (hasRequiredLoader) return loader;
@@ -35256,45 +35566,6 @@ function requireImportService() {
   return importService;
 }
 var pluginService = {};
-var registry = {};
-var hasRequiredRegistry;
-function requireRegistry() {
-  if (hasRequiredRegistry) return registry;
-  hasRequiredRegistry = 1;
-  (function(exports$1) {
-    Object.defineProperty(exports$1, "__esModule", { value: true });
-    exports$1.initializeDefaultPlugins = exports$1.pluginExists = exports$1.unregisterPlugin = exports$1.registerPlugin = exports$1.listPlugins = exports$1.getPlugin = exports$1.registry = void 0;
-    const generic_excel_1 = requireGenericExcel();
-    const mock_data_generator_1 = requireMockDataGenerator();
-    exports$1.registry = {};
-    const getPlugin = (pluginId) => {
-      return exports$1.registry[pluginId];
-    };
-    exports$1.getPlugin = getPlugin;
-    const listPlugins = () => {
-      return Object.values(exports$1.registry);
-    };
-    exports$1.listPlugins = listPlugins;
-    const registerPlugin = (plugin) => {
-      exports$1.registry[plugin.id] = plugin;
-    };
-    exports$1.registerPlugin = registerPlugin;
-    const unregisterPlugin = (pluginId) => {
-      delete exports$1.registry[pluginId];
-    };
-    exports$1.unregisterPlugin = unregisterPlugin;
-    const pluginExists = (pluginId) => {
-      return pluginId in exports$1.registry;
-    };
-    exports$1.pluginExists = pluginExists;
-    const initializeDefaultPlugins = () => {
-      (0, exports$1.registerPlugin)(generic_excel_1.genericExcelPlugin);
-      (0, exports$1.registerPlugin)(mock_data_generator_1.mockDataGeneratorPlugin);
-    };
-    exports$1.initializeDefaultPlugins = initializeDefaultPlugins;
-  })(registry);
-  return registry;
-}
 var hasRequiredPluginService;
 function requirePluginService() {
   if (hasRequiredPluginService) return pluginService;
@@ -35331,614 +35602,6 @@ function requirePluginService() {
 }
 var analysis = {};
 var abcAnalysis = {};
-var queries = {};
-var hasRequiredQueries;
-function requireQueries() {
-  if (hasRequiredQueries) return queries;
-  hasRequiredQueries = 1;
-  Object.defineProperty(queries, "__esModule", { value: true });
-  queries.getDashboardKPIs = queries.getImportHistory = queries.getWarehousesWithKPIs = queries.getSectorsByWarehouse = queries.getZonesByWarehouse = queries.getLocationsByWarehouse = queries.getDeadStock = queries.getProductMovementTotals = queries.getOrdersByWarehouse = queries.getLastMovementDate = queries.getMovementsByWarehouse = queries.getInventoryByWarehouse = queries.getProductBySku = queries.getProductById = queries.getProductsByWarehouse = void 0;
-  const index_1 = requireDatabase$1();
-  const getProductsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
-    const stmt = db.prepare(`
-    SELECT DISTINCT
-      p.id,
-      p.sku,
-      p.name,
-      p.description,
-      p.category,
-      p.subcategory,
-      p.brand,
-      p.unit,
-      p.weight,
-      p.volume,
-      p.min_stock,
-      p.max_stock,
-      p.reorder_point,
-      p.reorder_quantity,
-      p.cost_price,
-      p.selling_price,
-      p.supplier,
-      p.status,
-      i.quantity as current_quantity,
-      i.available_quantity,
-      i.reserved_quantity
-    FROM products p
-    LEFT JOIN inventory i ON p.id = i.product_id AND i.warehouse_id = ?
-    WHERE EXISTS (
-      SELECT 1 FROM inventory inv
-      WHERE inv.product_id = p.id AND inv.warehouse_id = ?
-    )
-    ORDER BY p.name
-  `);
-    return stmt.all(warehouseId, warehouseId);
-  };
-  queries.getProductsByWarehouse = getProductsByWarehouse;
-  const getProductById = (productId) => {
-    const db = (0, index_1.getDatabase)();
-    return db.prepare("SELECT * FROM products WHERE id = ?").get(productId);
-  };
-  queries.getProductById = getProductById;
-  const getProductBySku = (sku) => {
-    const db = (0, index_1.getDatabase)();
-    return db.prepare("SELECT * FROM products WHERE sku = ?").get(sku);
-  };
-  queries.getProductBySku = getProductBySku;
-  const getInventoryByWarehouse = (filters) => {
-    const db = (0, index_1.getDatabase)();
-    let sql = `
-    SELECT
-      i.id,
-      i.warehouse_id,
-      i.product_id,
-      p.sku as product_sku,
-      p.name as product_name,
-      i.location_id,
-      l.code as location_code,
-      i.quantity,
-      i.available_quantity,
-      i.reserved_quantity,
-      i.last_received_at,
-      i.last_shipped_at
-    FROM inventory i
-    INNER JOIN products p ON i.product_id = p.id
-    LEFT JOIN locations l ON i.location_id = l.id
-    WHERE i.warehouse_id = ?
-  `;
-    const params = [filters.warehouseId];
-    if (filters.productId) {
-      sql += " AND i.product_id = ?";
-      params.push(filters.productId);
-    }
-    if (filters.locationId) {
-      sql += " AND i.location_id = ?";
-      params.push(filters.locationId);
-    }
-    sql += " ORDER BY p.name";
-    const stmt = db.prepare(sql);
-    return stmt.all(...params);
-  };
-  queries.getInventoryByWarehouse = getInventoryByWarehouse;
-  const getMovementsByWarehouse = (filters) => {
-    const db = (0, index_1.getDatabase)();
-    let sql = "SELECT * FROM movements WHERE warehouse_id = ?";
-    const params = [filters.warehouseId];
-    if (filters.productId) {
-      sql += " AND product_id = ?";
-      params.push(filters.productId);
-    }
-    if (filters.type) {
-      sql += " AND type = ?";
-      params.push(filters.type);
-    }
-    if (filters.dateFrom) {
-      sql += " AND movement_date >= ?";
-      params.push(filters.dateFrom);
-    }
-    if (filters.dateTo) {
-      sql += " AND movement_date <= ?";
-      params.push(filters.dateTo);
-    }
-    sql += " ORDER BY movement_date DESC";
-    if (filters.limit) {
-      sql += " LIMIT ?";
-      params.push(filters.limit);
-    }
-    const stmt = db.prepare(sql);
-    return stmt.all(...params);
-  };
-  queries.getMovementsByWarehouse = getMovementsByWarehouse;
-  const getLastMovementDate = (warehouseId, productId) => {
-    const db = (0, index_1.getDatabase)();
-    const result = db.prepare("SELECT MAX(movement_date) as last_date FROM movements WHERE warehouse_id = ? AND product_id = ?").get(warehouseId, productId);
-    return result.last_date;
-  };
-  queries.getLastMovementDate = getLastMovementDate;
-  const getOrdersByWarehouse = (filters) => {
-    const db = (0, index_1.getDatabase)();
-    let sql = "SELECT * FROM orders WHERE warehouse_id = ?";
-    const params = [filters.warehouseId];
-    if (filters.status) {
-      sql += " AND status = ?";
-      params.push(filters.status);
-    }
-    sql += " ORDER BY order_date DESC";
-    if (filters.limit) {
-      sql += " LIMIT ?";
-      params.push(filters.limit);
-    }
-    const stmt = db.prepare(sql);
-    return stmt.all(...params);
-  };
-  queries.getOrdersByWarehouse = getOrdersByWarehouse;
-  const getProductMovementTotals = (warehouseId, type, dateFrom, dateTo) => {
-    const db = (0, index_1.getDatabase)();
-    let sql = `
-    SELECT
-      m.product_id,
-      p.sku,
-      p.name,
-      SUM(m.quantity) as total_quantity,
-      COUNT(*) as movement_count
-    FROM movements m
-    INNER JOIN products p ON m.product_id = p.id
-    WHERE m.warehouse_id = ? AND m.type = ?
-  `;
-    const params = [warehouseId, type];
-    if (dateFrom) {
-      sql += " AND m.movement_date >= ?";
-      params.push(dateFrom);
-    }
-    if (dateTo) {
-      sql += " AND m.movement_date <= ?";
-      params.push(dateTo);
-    }
-    sql += " GROUP BY m.product_id ORDER BY total_quantity DESC";
-    const stmt = db.prepare(sql);
-    return stmt.all(...params);
-  };
-  queries.getProductMovementTotals = getProductMovementTotals;
-  const getDeadStock = (warehouseId, thresholdDays = 90) => {
-    const db = (0, index_1.getDatabase)();
-    const stmt = db.prepare(`
-    SELECT
-      p.id,
-      p.sku,
-      p.name,
-      p.category,
-      p.cost_price,
-      i.quantity as current_quantity,
-      MAX(m.movement_date) as last_movement_date,
-      (julianday('now') - julianday(MAX(m.movement_date))) as days_since_last_move,
-      (i.quantity * p.cost_price) as tied_capital
-    FROM products p
-    INNER JOIN inventory i ON p.id = i.product_id
-    LEFT JOIN movements m ON p.id = m.product_id AND m.warehouse_id = i.warehouse_id
-    WHERE i.warehouse_id = ? AND i.quantity > 0
-    GROUP BY p.id
-    HAVING days_since_last_move >= ?
-    ORDER BY tied_capital DESC
-  `);
-    return stmt.all(warehouseId, thresholdDays);
-  };
-  queries.getDeadStock = getDeadStock;
-  const getLocationsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
-    const stmt = db.prepare(`
-    SELECT DISTINCT
-      l.id,
-      l.code,
-      l.type,
-      l.capacity,
-      l.used_capacity as usedCapacity,
-      l.product_count as productCount,
-      l.picker_count as pickerCount,
-      l.aisle,
-      l.level,
-      l.position,
-      l.barcode,
-      l.status,
-      l.updated_at as lastUpdated,
-      z.id as zoneId,
-      z.name as zoneName,
-      z.code as zoneCode,
-      s.id as sectorId,
-      s.name as sectorName,
-      s.code as sectorCode,
-      w.id as warehouseId,
-      w.name as warehouseName,
-      w.code as warehouseCode,
-      -- For each location, get products as JSON array
-      (
-        SELECT GROUP_CONCAT(
-          json_object(
-            'id', p.id,
-            'sku', p.sku,
-            'name', p.name,
-            'quantity', i2.quantity
-          ),
-          '|'
-        )
-        FROM inventory i2
-        JOIN products p ON i2.product_id = p.id
-        WHERE i2.location_id = l.id AND i2.warehouse_id = ?
-      ) as products_json
-    FROM locations l
-    LEFT JOIN zones z ON l.zone_id = z.id
-    LEFT JOIN sectors s ON l.sector_id = s.id
-    LEFT JOIN warehouses w ON l.warehouse_id = w.id
-    WHERE l.warehouse_id = ?
-    ORDER BY l.code
-  `);
-    const rows = stmt.all(warehouseId, warehouseId);
-    const locations = rows.map((row) => ({
-      ...row,
-      products: row.products_json ? row.products_json.split("|").map((jsonStr) => JSON.parse(jsonStr)) : []
-    }));
-    const totalLocations = locations.length;
-    const availableLocations = locations.filter((l) => l.status === "available").length;
-    const occupiedLocations = locations.filter((l) => l.status === "occupied").length;
-    const blockedLocations = locations.filter((l) => l.status === "blocked").length;
-    const reservedLocations = locations.filter((l) => l.status === "reserved").length;
-    const totalCapacity = locations.reduce((sum, l) => sum + (l.capacity || 0), 0);
-    const usedCapacity = locations.reduce((sum, l) => sum + (l.usedCapacity || 0), 0);
-    return {
-      kpis: {
-        totalLocations,
-        availableLocations,
-        occupiedLocations,
-        blockedLocations,
-        reservedLocations,
-        totalCapacity,
-        usedCapacity,
-        averageOccupancy: totalCapacity > 0 ? usedCapacity / totalCapacity * 100 : 0
-      },
-      locations
-    };
-  };
-  queries.getLocationsByWarehouse = getLocationsByWarehouse;
-  const getZonesByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
-    const stmt = db.prepare(`
-    SELECT DISTINCT
-      z.id,
-      z.code,
-      z.name,
-      z.type,
-      z.surface,
-      z.capacity,
-      z.used_capacity as usedCapacity,
-      z.sector_count as sectorCount,
-      z.location_count as locationCount,
-      z.picker_count as pickerCount,
-      z.temperature_min as temperatureMin,
-      z.temperature_max as temperatureMax,
-      z.status,
-      z.updated_at as lastUpdated,
-      w.id as warehouseId,
-      w.name as warehouseName,
-      w.code as warehouseCode
-    FROM zones z
-    LEFT JOIN warehouses w ON z.warehouse_id = w.id
-    WHERE z.warehouse_id = ?
-    ORDER BY z.code
-  `);
-    const rows = stmt.all(warehouseId);
-    const totalZones = rows.length;
-    const activeZones = rows.filter((r) => r.status === "active").length;
-    const totalSurface = rows.reduce((sum, r) => sum + (r.surface || 0), 0);
-    const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0);
-    const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0);
-    const averageOccupancy = totalCapacity > 0 ? usedCapacity / totalCapacity * 100 : 0;
-    const zoneTypes = {};
-    rows.forEach((r) => {
-      zoneTypes[r.type] = (zoneTypes[r.type] || 0) + 1;
-    });
-    return {
-      kpis: {
-        totalZones,
-        activeZones,
-        totalSurface,
-        totalCapacity,
-        usedCapacity,
-        averageOccupancy,
-        zoneTypes
-      },
-      zones: rows
-    };
-  };
-  queries.getZonesByWarehouse = getZonesByWarehouse;
-  const getSectorsByWarehouse = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
-    const stmt = db.prepare(`
-    SELECT DISTINCT
-      s.id,
-      s.code,
-      s.name,
-      s.type,
-      s.capacity,
-      s.used_capacity as usedCapacity,
-      s.location_count as locationCount,
-      s.picker_count as pickerCount,
-      s.aisle,
-      s.level,
-      s.position,
-      s.status,
-      s.updated_at as lastUpdated,
-      z.id as zoneId,
-      z.name as zoneName,
-      z.code as zoneCode,
-      w.id as warehouseId,
-      w.name as warehouseName,
-      w.code as warehouseCode
-    FROM sectors s
-    LEFT JOIN zones z ON s.zone_id = z.id
-    LEFT JOIN warehouses w ON s.warehouse_id = w.id
-    WHERE s.warehouse_id = ?
-    ORDER BY s.code
-  `);
-    const rows = stmt.all(warehouseId);
-    const totalSectors = rows.length;
-    const activeSectors = rows.filter((r) => r.status === "active").length;
-    const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0);
-    const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0);
-    const averageOccupancy = totalCapacity > 0 ? usedCapacity / totalCapacity * 100 : 0;
-    const sectorTypes = {};
-    rows.forEach((r) => {
-      sectorTypes[r.type] = (sectorTypes[r.type] || 0) + 1;
-    });
-    return {
-      kpis: {
-        totalSectors,
-        activeSectors,
-        totalCapacity,
-        usedCapacity,
-        averageOccupancy,
-        sectorTypes
-      },
-      sectors: rows
-    };
-  };
-  queries.getSectorsByWarehouse = getSectorsByWarehouse;
-  const getWarehousesWithKPIs = () => {
-    const db = (0, index_1.getDatabase)();
-    const stmt = db.prepare(`
-    SELECT
-      w.id,
-      w.code,
-      w.name,
-      w.city,
-      w.country,
-      w.surface,
-      w.capacity,
-      w.used_capacity as usedCapacity,
-      w.zone_count as zoneCount,
-      w.picker_count as pickerCount,
-      w.manager,
-      w.email,
-      w.phone,
-      w.status,
-      w.opening_date as openingDate,
-      w.updated_at as lastUpdated
-    FROM warehouses w
-    ORDER BY w.name
-  `);
-    const rows = stmt.all();
-    const totalWarehouses = rows.length;
-    const activeWarehouses = rows.filter((r) => r.status === "active").length;
-    const totalSurface = rows.reduce((sum, r) => sum + (r.surface || 0), 0);
-    const totalCapacity = rows.reduce((sum, r) => sum + (r.capacity || 0), 0);
-    const usedCapacity = rows.reduce((sum, r) => sum + (r.usedCapacity || 0), 0);
-    const averageOccupancy = totalCapacity > 0 ? usedCapacity / totalCapacity * 100 : 0;
-    const trackedPickers = rows.reduce((sum, r) => sum + (r.pickerCount || 0), 0);
-    return {
-      kpis: {
-        totalWarehouses,
-        activeWarehouses,
-        totalSurface,
-        totalCapacity,
-        usedCapacity,
-        averageOccupancy,
-        trackedPickers
-      },
-      warehouses: rows
-    };
-  };
-  queries.getWarehousesWithKPIs = getWarehousesWithKPIs;
-  const getImportHistory = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
-    let stmt;
-    if (warehouseId) {
-      stmt = db.prepare(`
-      SELECT
-        ih.id,
-        ih.warehouse_id as warehouseId,
-        ih.plugin_id as pluginId,
-        ih.plugin_version as pluginVersion,
-        ih.imported_at as importedAt,
-        ih.rows_processed as rowsProcessed,
-        ih.status,
-        ih.file_name as fileName,
-        ih.file_size as fileSize,
-        ih.duration_ms as durationMs,
-        ih.error_message as errorMessage,
-        w.name as warehouseName,
-        w.code as warehouseCode
-      FROM import_history ih
-      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
-      WHERE ih.warehouse_id = ?
-      ORDER BY ih.imported_at DESC
-      LIMIT 50
-    `);
-      return stmt.all(warehouseId);
-    } else {
-      stmt = db.prepare(`
-      SELECT
-        ih.id,
-        ih.warehouse_id as warehouseId,
-        ih.plugin_id as pluginId,
-        ih.plugin_version as pluginVersion,
-        ih.imported_at as importedAt,
-        ih.rows_processed as rowsProcessed,
-        ih.status,
-        ih.file_name as fileName,
-        ih.file_size as fileSize,
-        ih.duration_ms as durationMs,
-        ih.error_message as errorMessage,
-        w.name as warehouseName,
-        w.code as warehouseCode
-      FROM import_history ih
-      LEFT JOIN warehouses w ON ih.warehouse_id = w.id
-      ORDER BY ih.imported_at DESC
-      LIMIT 50
-    `);
-      return stmt.all();
-    }
-  };
-  queries.getImportHistory = getImportHistory;
-  const getDashboardKPIs = (warehouseId) => {
-    const db = (0, index_1.getDatabase)();
-    let whereParams = warehouseId ? [warehouseId] : [];
-    const productsStmt = db.prepare(`SELECT COUNT(*) as count FROM products`);
-    const totalProducts = productsStmt.get().count;
-    const locationsStmt = db.prepare(`SELECT COUNT(*) as count FROM locations ${warehouseId ? "WHERE warehouse_id = ?" : ""}`);
-    const totalLocations = locationsStmt.get(...whereParams).count;
-    const lowStockStmt = db.prepare(`
-    SELECT COUNT(DISTINCT p.id) as count
-    FROM products p
-    INNER JOIN inventory i ON p.id = i.product_id
-    ${warehouseId ? "WHERE i.warehouse_id = ? AND" : "WHERE"}
-      i.quantity < p.min_stock
-  `);
-    const lowStockItems = lowStockStmt.get(...whereParams).count;
-    const ordersStmt = db.prepare(`
-    SELECT COUNT(*) as count
-    FROM orders
-    ${warehouseId ? "WHERE warehouse_id = ? AND" : "WHERE"}
-      status IN ('pending', 'processing', 'picked')
-  `);
-    const activeOrders = ordersStmt.get(...whereParams).count;
-    const movementsStmt = db.prepare(`
-    SELECT COUNT(*) as count
-    FROM movements
-    ${warehouseId ? "WHERE warehouse_id = ? AND" : "WHERE"}
-      movement_date >= datetime('now', '-7 days')
-  `);
-    const movementsThisWeek = movementsStmt.get(...whereParams).count;
-    const stockEvolutionStmt = db.prepare(`
-    SELECT
-      date(movement_date) as date,
-      SUM(CASE WHEN type IN ('in', 'receipt') THEN quantity ELSE -quantity END) as stock
-    FROM movements
-    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
-      AND movement_date >= datetime('now', '-7 days')
-    GROUP BY date(movement_date)
-    ORDER BY date
-  `);
-    const stockEvolutionRows = stockEvolutionStmt.all(...whereParams);
-    let runningStock = 0;
-    const stockEvolution = stockEvolutionRows.map((row) => {
-      runningStock += row.stock;
-      return {
-        date: new Date(row.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        stock: runningStock
-      };
-    });
-    const movementsByTypeStmt = db.prepare(`
-    SELECT
-      type as movementType,
-      COUNT(*) as movements
-    FROM movements
-    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
-      AND movement_date >= datetime('now', '-7 days')
-    GROUP BY type
-  `);
-    const movementsByTypeRows = movementsByTypeStmt.all(...whereParams);
-    const typeColors = {
-      in: "hsl(var(--chart))",
-      inbound: "hsl(var(--chart))",
-      receipt: "hsl(var(--chart))",
-      out: "hsl(142, 76%, 36%)",
-      outbound: "hsl(142, 76%, 36%)",
-      shipment: "hsl(142, 76%, 36%)",
-      transfer: "hsl(25, 95%, 53%)",
-      adjustment: "hsl(25, 95%, 53%)"
-    };
-    const movementsByType = movementsByTypeRows.map((row) => ({
-      movementType: row.movementType,
-      movements: row.movements,
-      fill: typeColors[row.movementType] || "hsl(var(--muted))"
-    }));
-    const topProductsStmt = db.prepare(`
-    SELECT
-      product_name as product,
-      COUNT(*) as movements
-    FROM movements
-    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
-      AND movement_date >= datetime('now', '-30 days')
-    GROUP BY product_name
-    ORDER BY movements DESC
-    LIMIT 5
-  `);
-    const topProducts = topProductsStmt.all(...whereParams);
-    const lowStockAlertsStmt = db.prepare(`
-    SELECT
-      p.id,
-      p.name as product,
-      i.quantity as currentStock,
-      p.min_stock as minStock,
-      l.code as location,
-      CASE
-        WHEN i.quantity = 0 THEN 'critical'
-        WHEN i.quantity < p.min_stock * 0.5 THEN 'critical'
-        ELSE 'warning'
-      END as severity
-    FROM products p
-    INNER JOIN inventory i ON p.id = i.product_id
-    LEFT JOIN locations l ON i.location_id = l.id
-    ${warehouseId ? "WHERE i.warehouse_id = ? AND" : "WHERE"}
-      i.quantity < p.min_stock
-    ORDER BY i.quantity ASC
-    LIMIT 10
-  `);
-    const lowStockAlerts = lowStockAlertsStmt.all(...whereParams);
-    const recentMovementsStmt = db.prepare(`
-    SELECT
-      id,
-      date(movement_date) as date,
-      product_name as product,
-      type,
-      quantity as quantity,
-      destination_location_code as "to",
-      source_location_code as "from"
-    FROM movements
-    ${warehouseId ? "WHERE warehouse_id = ?" : "WHERE 1=1"}
-    ORDER BY movement_date DESC
-    LIMIT 10
-  `);
-    const recentMovements = recentMovementsStmt.all(...whereParams).map((row) => ({
-      ...row,
-      type: row.type.toLowerCase()
-    }));
-    return {
-      kpis: {
-        totalProducts,
-        totalLocations,
-        lowStockItems,
-        activeOrders,
-        movementsThisWeek
-      },
-      stockEvolution,
-      movementsByType,
-      topProducts,
-      lowStockAlerts,
-      recentMovements
-    };
-  };
-  queries.getDashboardKPIs = getDashboardKPIs;
-  return queries;
-}
 var hasRequiredAbcAnalysis;
 function requireAbcAnalysis() {
   if (hasRequiredAbcAnalysis) return abcAnalysis;
@@ -36148,26 +35811,38 @@ function requireMain() {
   hasRequiredMain = 1;
   const { app, BrowserWindow, dialog, ipcMain } = require$$1$1;
   const path = require$$1;
-  const { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } = requireDatabase$1();
-  const queries2 = requireQueries$1();
-  const { registry: registry2, initializeDefaultPlugins } = requireRegistry$1();
+  const { initializeDatabase, getDatabase, closeDatabase, getAllWarehouses, createWarehouse, warehouseExists, getDatabaseFilePath } = requireDatabase();
+  const queries2 = requireQueries();
+  const { registry: registry2, initializeDefaultPlugins } = requireRegistry();
   const importService2 = requireImportService();
   const pluginService2 = requirePluginService();
   const analysis2 = requireAnalysis();
   initializeDefaultPlugins();
   initializeDatabase();
   console.log("Database initialized at:", getDatabaseFilePath());
-  ipcMain.handle("import:generate-mock-data", async (event, warehouseId, onProgress) => {
-    console.log("Generating mock data for warehouse:", warehouseId);
+  ipcMain.handle("import:generate-mock-data", async (event, warehouseId) => {
+    console.log('🎯 [MAIN] IPC handler "import:generate-mock-data" called');
+    console.log("🎯 [MAIN] warehouseId:", warehouseId);
+    console.log("🎯 [MAIN] event:", event);
     initializeDatabase();
+    console.log("🎯 [MAIN] Database initialized");
     const plugin = pluginService2.getPlugin("mock-data-generator");
+    console.log("🎯 [MAIN] Plugin found:", plugin ? "YES" : "NO");
+    console.log("🎯 [MAIN] Plugin details:", plugin);
     if (!plugin) {
+      console.error("❌ [MAIN] Mock data generator plugin not found");
       throw new Error("Mock data generator plugin not found");
     }
-    console.log("Plugin found, starting generation...");
-    const result = await importService2.generateMockData(warehouseId, plugin, onProgress);
-    console.log("Mock data generation result:", result);
-    return result;
+    console.log("🎯 [MAIN] About to call importService.generateMockData");
+    try {
+      const result = await importService2.generateMockData(warehouseId, plugin);
+      console.log("✅ [MAIN] importService.generateMockData completed");
+      console.log("✅ [MAIN] Result:", result);
+      return result;
+    } catch (error) {
+      console.error("❌ [MAIN] Error in importService.generateMockData:", error);
+      throw error;
+    }
   });
   ipcMain.handle("plugins:list", () => {
     return pluginService2.listPlugins();
@@ -36182,12 +35857,12 @@ function requireMain() {
     }
     return importService2.validateImportFile(filePath, plugin);
   });
-  ipcMain.handle("import:execute", async (event, filePath, warehouseId, pluginId) => {
+  ipcMain.handle("import:execute", async (event, filePath, warehouseId, pluginId, onProgress) => {
     const plugin = pluginService2.getPlugin(pluginId);
     if (!plugin) {
       throw new Error(`Plugin not found: ${pluginId}`);
     }
-    return importService2.executeImport(filePath, warehouseId, plugin);
+    return importService2.executeImport(filePath, warehouseId, plugin, onProgress);
   });
   ipcMain.handle("db:get-products", async (event, filters) => {
     initializeDatabase();
@@ -36223,28 +35898,23 @@ function requireMain() {
   });
   ipcMain.handle("warehouse:getAll", async () => {
     initializeDatabase();
-    const db = getDatabase();
-    const count = db.prepare("SELECT COUNT(*) as count FROM warehouses").get();
-    console.log("Warehouse count in DB:", count);
-    const warehouses = getAllWarehouses();
-    console.log("getAllWarehouses returned:", warehouses);
-    return warehouses;
+    return getAllWarehouses();
   });
   ipcMain.handle("warehouse:getAllWithKPIs", async () => {
     initializeDatabase();
     return queries2.getWarehousesWithKPIs();
   });
+  ipcMain.handle("warehouse:exists", async (event, warehouseId) => {
+    initializeDatabase();
+    return warehouseExists(warehouseId);
+  });
   ipcMain.handle("warehouse:create", async (event, warehouse) => {
     initializeDatabase();
-    console.log("Creating warehouse:", warehouse);
     if (warehouseExists(warehouse.id)) {
-      console.log("Warehouse already exists, returning existing warehouse");
       const db = getDatabase();
       return db.prepare("SELECT * FROM warehouses WHERE id = ?").get(warehouse.id);
     }
-    const result = createWarehouse(warehouse);
-    console.log("Warehouse created:", result);
-    return result;
+    return createWarehouse(warehouse);
   });
   ipcMain.handle("db:get-import-history", async (event, warehouseId) => {
     initializeDatabase();
@@ -36254,12 +35924,48 @@ function requireMain() {
     initializeDatabase();
     return queries2.getDashboardKPIs(warehouseId);
   });
-  ipcMain.handle("analysis:abc", async (event, params) => {
+  ipcMain.handle("db:get-receptions", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getReceptionsByWarehouse(filters.warehouseId);
+  });
+  ipcMain.handle("db:get-reception-lines", async (event, receptionId) => {
+    initializeDatabase();
+    return queries2.getReceptionLines(receptionId);
+  });
+  ipcMain.handle("db:get-pickings", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getPickingsByWarehouse(filters.warehouseId);
+  });
+  ipcMain.handle("db:get-picking-lines", async (event, pickingId) => {
+    initializeDatabase();
+    return queries2.getPickingLines(pickingId);
+  });
+  ipcMain.handle("db:get-returns", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getReturnsByWarehouse(filters.warehouseId);
+  });
+  ipcMain.handle("db:get-return-lines", async (event, returnId) => {
+    initializeDatabase();
+    return queries2.getReturnLines(returnId);
+  });
+  ipcMain.handle("db:get-restockings", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getRestockingsByWarehouse(filters.warehouseId);
+  });
+  ipcMain.handle("db:get-restocking-lines", async (event, restockingId) => {
+    initializeDatabase();
+    return queries2.getRestockingLines(restockingId);
+  });
+  ipcMain.handle("db:get-orders-with-lines", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getOrdersByWarehouseWithLines(filters.warehouseId);
+  });
+  ipcMain.handle("analysis:run-abc", async (event, params) => {
     initializeDatabase();
     const { warehouseId, dateFrom, dateTo } = params;
     return analysis2.runABCAnalysis(warehouseId, dateFrom, dateTo);
   });
-  ipcMain.handle("analysis:dead-stock", async (event, params) => {
+  ipcMain.handle("analysis:run-dead-stock", async (event, params) => {
     initializeDatabase();
     const { warehouseId, thresholdDays, criticalThreshold, warningThreshold } = params;
     return analysis2.runDeadStockAnalysis(
@@ -36277,10 +35983,7 @@ function requireMain() {
     closeDatabase();
   });
   function createWindow() {
-    console.log("Creating window...");
-    console.log("__dirname:", __dirname);
-    const preloadPath = path.join(__dirname, "..", "dist-electron", "preload", "index.cjs");
-    console.log("Preload path:", preloadPath);
+    const preloadPath = path.join(__dirname, "..", "dist-electron", "preload.cjs");
     const win = new BrowserWindow({
       width: 1200,
       height: 800,
@@ -36311,26 +36014,20 @@ function requireMain() {
       });
       win.webContents.openDevTools();
     }
-    win.on("closed", () => {
-      console.log("Window closed");
-    });
   }
   app.whenReady().then(() => {
-    console.log("App is ready, creating window...");
     createWindow();
   }).catch((err) => {
     console.error("Failed to initialize app:", err);
     dialog.showErrorBox("Initialization Error", err.message);
   });
   app.on("window-all-closed", () => {
-    console.log("All windows closed");
     if (process.platform !== "darwin") {
       app.quit();
     }
   });
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      console.log("Activating app, creating window...");
       createWindow();
     }
   });
