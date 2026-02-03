@@ -4,7 +4,7 @@
  */
 
 import { getDatabase } from './index'
-import { eq, and, or, like, gte, lte, sql, desc, asc, count, sum } from 'drizzle-orm'
+import { eq, and, gte, lte, sql, desc, count, sum } from 'drizzle-orm'
 import {
   warehouses,
   zones,
@@ -24,13 +24,6 @@ import {
   returns,
   returnLines,
   importHistory,
-  users,
-  suppliers,
-  customers,
-  purchaseOrders,
-  purchaseOrderLines,
-  shipments,
-  shipmentLines,
 } from './drizzle-schema'
 
 // ============================================================================
@@ -228,15 +221,12 @@ export const getMovementsByWarehouse = async (filters: {
     conditions.push(lte(movements.movementDate, filters.dateTo))
   }
 
-  let query = db
+  const query = db
     .select()
     .from(movements)
     .where(and(...conditions))
     .orderBy(desc(movements.movementDate))
-
-  if (filters.limit) {
-    query = query.limit(filters.limit)
-  }
+    .limit(filters.limit || 1000)
 
   return await query
 }
@@ -284,15 +274,12 @@ export const getOrdersByWarehouse = async (filters: {
     conditions.push(eq(orders.status, filters.status))
   }
 
-  let query = db
+  const query = db
     .select()
     .from(orders)
     .where(and(...conditions))
     .orderBy(desc(orders.orderDate))
-
-  if (filters.limit) {
-    query = query.limit(filters.limit)
-  }
+    .limit(filters.limit || 1000)
 
   return await query
 }
@@ -354,10 +341,10 @@ export const getProductMovementTotals = async (
  * @returns Array of products with last movement date and tied capital
  */
 export const getDeadStock = async (warehouseId: string, thresholdDays: number = 90) => {
-  const db = getDatabase()
+  const dbRaw = require('./index').getDbRaw()
 
   // SQLite-specific query with julianday
-  const result = await db.execute(sql`
+  const result = dbRaw.prepare(`
     SELECT
       p.id,
       p.sku,
@@ -371,13 +358,13 @@ export const getDeadStock = async (warehouseId: string, thresholdDays: number = 
     FROM products p
     INNER JOIN inventory i ON p.id = i.product_id
     LEFT JOIN movements m ON p.id = m.product_id AND m.warehouse_id = i.warehouse_id
-    WHERE i.warehouse_id = ${warehouseId} AND i.quantity > 0
+    WHERE i.warehouse_id = ? AND i.quantity > 0
     GROUP BY p.id
-    HAVING days_since_last_move >= ${thresholdDays}
+    HAVING days_since_last_move >= ?
     ORDER BY tied_capital DESC
-  `)
+  `).all(warehouseId, thresholdDays)
 
-  return result.rows
+  return result
 }
 
 // ============================================================================
@@ -427,7 +414,7 @@ export const getLocationsByWarehouse = async (warehouseId: string) => {
   // Get products for each location
   const locationsWithProducts = await Promise.all(
     locationsData.map(async (loc) => {
-      const products = await db
+      const locationProducts = await db
         .select({
           id: products.id,
           sku: products.sku,
@@ -443,7 +430,7 @@ export const getLocationsByWarehouse = async (warehouseId: string) => {
 
       return {
         ...loc,
-        products,
+        products: locationProducts,
       }
     })
   )
