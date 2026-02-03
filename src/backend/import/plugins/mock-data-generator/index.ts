@@ -9,6 +9,7 @@ import type {
   Zone,
   Sector,
   Warehouse,
+  User,
 } from '../../types'
 
 // ============================================================================
@@ -88,6 +89,7 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
     const products = generateMockProducts(50)
     const inventory = generateMockInventory(effectiveWarehouseId, products, locations)
     const movements = generateMockMovements(effectiveWarehouseId, products, locations, 200)
+    const users = generateMockUsers(effectiveWarehouseId)
 
     return {
       metadata: {
@@ -104,6 +106,7 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
       zones,
       sectors,
       warehouses,
+      users,
     }
   },
 }
@@ -168,6 +171,38 @@ function generateMockWarehouses(): Warehouse[] {
   }
 
   return warehouses
+}
+
+/**
+ * Generate mock users
+ */
+function generateMockUsers(warehouseId: string): User[] {
+  const users: User[] = []
+
+  const userData = [
+    { id: 'USER-001', username: 'admin', fullName: 'System Administrator', email: 'admin@wareflow.com', role: 'Administrator' },
+    { id: 'USER-002', username: 'jdupont', fullName: 'Jean Dupont', email: 'jdupont@wareflow.com', role: 'Manager' },
+    { id: 'USER-003', username: 'mgarcia', fullName: 'Maria Garcia', email: 'mgarcia@wareflow.com', role: 'Manager' },
+    { id: 'USER-004', username: 'pberg', fullName: 'Peter Van Der Berg', email: 'pberg@wareflow.com', role: 'Manager' },
+    { id: 'USER-005', username: 'picker1', fullName: 'John Smith', email: 'john.smith@wareflow.com', role: 'Picker' },
+    { id: 'USER-006', username: 'picker2', fullName: 'Emma Wilson', email: 'emma.wilson@wareflow.com', role: 'Picker' },
+    { id: 'USER-007', username: 'receiver1', fullName: 'Lucas Martin', email: 'lucas.martin@wareflow.com', role: 'Receiver' },
+    { id: 'USER-008', username: 'operator1', fullName: 'Sophie Bernard', email: 'sophie.bernard@wareflow.com', role: 'Warehouse Operator' },
+  ]
+
+  for (const user of userData) {
+    users.push({
+      id: user.id,
+      warehouseId,
+      username: user.username,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      status: 'active',
+    })
+  }
+
+  return users
 }
 
 /**

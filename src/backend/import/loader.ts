@@ -53,6 +53,45 @@ export const insertWarehouses = (warehouses: readonly Warehouse[]): number => {
 }
 
 /**
+ * Insert users into database
+ * @param users - Array of users to insert
+ * @returns Number of users inserted
+ */
+export const insertUsers = (users: readonly User[]): number => {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO users (
+      id, warehouse_id, username, full_name, email, role, status,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `)
+
+  let inserted = 0
+
+  const insertMany = db.transaction((users: readonly User[]) => {
+    for (const user of users) {
+      try {
+        stmt.run(
+          user.id,
+          user.warehouseId,
+          user.username,
+          user.fullName,
+          user.email || null,
+          user.role,
+          user.status
+        )
+        inserted++
+      } catch (error) {
+        console.error(`Error inserting user ${user.username}:`, error)
+      }
+    }
+  })
+
+  insertMany(users)
+  return inserted
+}
+
+/**
  * Insert products into database
  * @param products - Array of products to insert
  * @returns Number of products inserted
@@ -778,6 +817,7 @@ export const loadToDatabase = (data: NormalizedData): {
   inventoryImported: number
   movementsImported: number
   warehousesImported?: number
+  usersImported?: number
   zonesImported?: number
   sectorsImported?: number
   locationsImported?: number
@@ -792,6 +832,7 @@ export const loadToDatabase = (data: NormalizedData): {
     inventoryImported: 0,
     movementsImported: 0,
     warehousesImported: 0,
+    usersImported: 0,
     zonesImported: 0,
     sectorsImported: 0,
     locationsImported: 0,
@@ -805,6 +846,11 @@ export const loadToDatabase = (data: NormalizedData): {
   // Insert warehouses first (zones reference them)
   if (data.warehouses && data.warehouses.length > 0) {
     stats.warehousesImported = insertWarehouses(data.warehouses)
+  }
+
+  // Insert users
+  if (data.users && data.users.length > 0) {
+    stats.usersImported = insertUsers(data.users)
   }
 
   // Insert zones first (locations reference them)
