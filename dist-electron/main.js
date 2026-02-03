@@ -35482,13 +35482,17 @@ function requireMain() {
     initializeDatabase();
     return queries2.getDatabaseStats();
   });
-  ipcMain.handle("warehouse:get-all", async () => {
+  ipcMain.handle("warehouse:getAll", async () => {
     initializeDatabase();
     return getAllWarehouses();
   });
-  ipcMain.handle("warehouse:get-all-with-kpis", async () => {
+  ipcMain.handle("warehouse:getAllWithKPIs", async () => {
     initializeDatabase();
     return queries2.getWarehousesWithKPIs();
+  });
+  ipcMain.handle("warehouse:exists", async (event, warehouseId) => {
+    initializeDatabase();
+    return warehouseExists(warehouseId);
   });
   ipcMain.handle("warehouse:create", async (event, warehouse) => {
     initializeDatabase();
@@ -35505,6 +35509,42 @@ function requireMain() {
   ipcMain.handle("db:get-dashboard-kpis", async (event, warehouseId) => {
     initializeDatabase();
     return queries2.getDashboardKPIs(warehouseId);
+  });
+  ipcMain.handle("db:get-receptions", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getReceptionsByWarehouse(filters.warehouseId);
+  });
+  ipcMain.handle("db:get-reception-lines", async (event, receptionId) => {
+    initializeDatabase();
+    return queries2.getReceptionLines(receptionId);
+  });
+  ipcMain.handle("db:get-pickings", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getPickingsByWarehouse(filters.warehouseId);
+  });
+  ipcMain.handle("db:get-picking-lines", async (event, pickingId) => {
+    initializeDatabase();
+    return queries2.getPickingLines(pickingId);
+  });
+  ipcMain.handle("db:get-returns", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getReturnsByWarehouse(filters.warehouseId);
+  });
+  ipcMain.handle("db:get-return-lines", async (event, returnId) => {
+    initializeDatabase();
+    return queries2.getReturnLines(returnId);
+  });
+  ipcMain.handle("db:get-restockings", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getRestockingsByWarehouse(filters.warehouseId);
+  });
+  ipcMain.handle("db:get-restocking-lines", async (event, restockingId) => {
+    initializeDatabase();
+    return queries2.getRestockingLines(restockingId);
+  });
+  ipcMain.handle("db:get-orders-with-lines", async (event, filters) => {
+    initializeDatabase();
+    return queries2.getOrdersByWarehouseWithLines(filters.warehouseId);
   });
   ipcMain.handle("analysis:run-abc", async (event, params) => {
     initializeDatabase();

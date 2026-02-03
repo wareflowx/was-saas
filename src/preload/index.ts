@@ -162,6 +162,104 @@ const electronAPI = {
   }): Promise<unknown> =>
     ipcRenderer.invoke('db:get-locations', filters),
 
+  /**
+   * Get zones for a warehouse
+   */
+  getZones: (filters: {
+    warehouseId: string
+  }): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-zones', filters),
+
+  /**
+   * Get sectors for a warehouse
+   */
+  getSectors: (filters: {
+    warehouseId: string
+  }): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-sectors', filters),
+
+  /**
+   * Get receptions for a warehouse
+   */
+  getReceptions: (filters: {
+    warehouseId: string
+  }): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-receptions', filters),
+
+  /**
+   * Get reception lines
+   */
+  getReceptionLines: (receptionId: string): Promise<readonly unknown[]> =>
+    ipcRenderer.invoke('db:get-reception-lines', receptionId),
+
+  /**
+   * Get pickings for a warehouse
+   */
+  getPickings: (filters: {
+    warehouseId: string
+  }): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-pickings', filters),
+
+  /**
+   * Get picking lines
+   */
+  getPickingLines: (pickingId: string): Promise<readonly unknown[]> =>
+    ipcRenderer.invoke('db:get-picking-lines', pickingId),
+
+  /**
+   * Get returns for a warehouse
+   */
+  getReturns: (filters: {
+    warehouseId: string
+  }): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-returns', filters),
+
+  /**
+   * Get return lines
+   */
+  getReturnLines: (returnId: string): Promise<readonly unknown[]> =>
+    ipcRenderer.invoke('db:get-return-lines', returnId),
+
+  /**
+   * Get restockings for a warehouse
+   */
+  getRestockings: (filters: {
+    warehouseId: string
+  }): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-restockings', filters),
+
+  /**
+   * Get restocking lines
+   */
+  getRestockingLines: (restockingId: string): Promise<readonly unknown[]> =>
+    ipcRenderer.invoke('db:get-restocking-lines', restockingId),
+
+  /**
+   * Get orders with lines for a warehouse
+   */
+  getOrdersWithLines: (filters: {
+    warehouseId: string
+  }): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-orders-with-lines', filters),
+
+  /**
+   * Get import history
+   */
+  getImportHistory: (warehouseId?: string): Promise<readonly unknown[]> =>
+    ipcRenderer.invoke('db:get-import-history', warehouseId),
+
+  /**
+   * Get dashboard KPIs
+   */
+  getDashboardKPIs: (warehouseId?: string): Promise<unknown> =>
+    ipcRenderer.invoke('db:get-dashboard-kpis', warehouseId),
+
+  /**
+   * Get warehouses with KPIs
+   */
+  getWarehousesWithKPIs: (): Promise<unknown> =>
+    ipcRenderer.invoke('warehouse:get-all-with-kpis'),
+
   // ==========================================================================
   // WAREHOUSE MANAGEMENT
   // ===========================================================================

@@ -295,3 +295,209 @@ export function useDashboardKPIs(warehouseId?: string) {
     },
   })
 }
+
+/**
+ * Fetch receptions for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Query result with receptions data
+ */
+export function useReceptions(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['receptions', warehouseId],
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+      const firstWarehouse = warehouses[0] as any
+
+      if (!firstWarehouse) {
+        throw new Error('No warehouse found')
+      }
+
+      const data = await backend.getReceptions({
+        warehouseId: warehouseId || firstWarehouse.id
+      })
+
+      const receptions = data?.receptions || []
+
+      console.log('📥 [DB] Receptions loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: receptions?.length || 0,
+        sample: receptions?.slice(0, 2).map((r: any) => ({
+          id: r.id,
+          receptionNumber: r.receptionNumber,
+          supplierName: r.supplierName,
+          status: r.status
+        }))
+      })
+
+      return data
+    },
+    enabled: !!warehouseId,
+  })
+}
+
+/**
+ * Fetch pickings for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Query result with pickings data
+ */
+export function usePickings(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['pickings', warehouseId],
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+      const firstWarehouse = warehouses[0] as any
+
+      if (!firstWarehouse) {
+        throw new Error('No warehouse found')
+      }
+
+      const data = await backend.getPickings({
+        warehouseId: warehouseId || firstWarehouse.id
+      })
+
+      const pickings = data?.pickings || []
+
+      console.log('📦 [DB] Pickings loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: pickings?.length || 0,
+        sample: pickings?.slice(0, 2).map((p: any) => ({
+          id: p.id,
+          pickingNumber: p.pickingNumber,
+          customerName: p.customerName,
+          status: p.status
+        }))
+      })
+
+      return data
+    },
+    enabled: !!warehouseId,
+  })
+}
+
+/**
+ * Fetch returns for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Query result with returns data
+ */
+export function useReturns(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['returns', warehouseId],
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+      const firstWarehouse = warehouses[0] as any
+
+      if (!firstWarehouse) {
+        throw new Error('No warehouse found')
+      }
+
+      const data = await backend.getReturns({
+        warehouseId: warehouseId || firstWarehouse.id
+      })
+
+      const returns = data?.returns || []
+
+      console.log('🔄 [DB] Returns loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: returns?.length || 0,
+        sample: returns?.slice(0, 2).map((r: any) => ({
+          id: r.id,
+          returnNumber: r.returnNumber,
+          customerName: r.customerName,
+          status: r.status
+        }))
+      })
+
+      return data
+    },
+    enabled: !!warehouseId,
+  })
+}
+
+/**
+ * Fetch restockings for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Query result with restockings data
+ */
+export function useRestockings(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['restockings', warehouseId],
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+      const firstWarehouse = warehouses[0] as any
+
+      if (!firstWarehouse) {
+        throw new Error('No warehouse found')
+      }
+
+      const data = await backend.getRestockings({
+        warehouseId: warehouseId || firstWarehouse.id
+      })
+
+      const restockings = data?.restockings || []
+
+      console.log('🔁 [DB] Restockings loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: restockings?.length || 0,
+        sample: restockings?.slice(0, 2).map((r: any) => ({
+          id: r.id,
+          restockingNumber: r.restockingNumber,
+          requester: r.requester,
+          status: r.status
+        }))
+      })
+
+      return data
+    },
+    enabled: !!warehouseId,
+  })
+}
+
+/**
+ * Fetch orders with lines for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Query result with orders data including lines
+ */
+export function useOrdersWithLines(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['orders', 'with-lines', warehouseId],
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+      const firstWarehouse = warehouses[0] as any
+
+      if (!firstWarehouse) {
+        throw new Error('No warehouse found')
+      }
+
+      const data = await backend.getOrdersWithLines({
+        warehouseId: warehouseId || firstWarehouse.id
+      })
+
+      const orders = data?.orders || []
+
+      console.log('📋 [DB] Orders with lines loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: orders?.length || 0,
+        sample: orders?.slice(0, 2).map((o: any) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          customerName: o.customerName,
+          status: o.status,
+          linesCount: o.lines?.length || 0
+        }))
+      })
+
+      return data
+    },
+    enabled: !!warehouseId,
+  })
+}

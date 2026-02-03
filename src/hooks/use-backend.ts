@@ -13,6 +13,11 @@ import type {
   LocationsData,
   ZonesData,
   SectorsData,
+  ReceptionsData,
+  PickingsData,
+  ReturnsData,
+  RestockingsData,
+  OrdersData,
 } from '@/types/entities'
 
 // ============================================================================
@@ -400,6 +405,129 @@ export function useBackend() {
           recentMovements: [],
         },
         'getDashboardKPIs'
+      )
+    },
+
+    // ==========================================================================
+    // OPERATIONS - RECEPTIONS
+    // ==========================================================================
+
+    getReceptions: async (filters: { warehouseId: string }): Promise<ReceptionsData> => {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getReceptions(filters),
+        {
+          kpis: {
+            totalReceptions: 0,
+            pendingReceptions: 0,
+            inProgressReceptions: 0,
+            completedReceptions: 0,
+            totalQuantity: 0,
+            receivedQuantity: 0,
+            pendingQuantity: 0,
+          },
+          receptions: [],
+        },
+        'getReceptions'
+      )
+    },
+
+    // ==========================================================================
+    // OPERATIONS - PICKINGS
+    // ==========================================================================
+
+    getPickings: async (filters: { warehouseId: string }): Promise<PickingsData> => {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getPickings(filters),
+        {
+          kpis: {
+            totalPickings: 0,
+            pendingPickings: 0,
+            inProgressPickings: 0,
+            completedPickings: 0,
+            totalLines: 0,
+            pickedLines: 0,
+            completionRate: 0,
+          },
+          pickings: [],
+        },
+        'getPickings'
+      )
+    },
+
+    // ==========================================================================
+    // OPERATIONS - RETURNS
+    // ==========================================================================
+
+    getReturns: async (filters: { warehouseId: string }): Promise<ReturnsData> => {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getReturns(filters),
+        {
+          kpis: {
+            totalReturns: 0,
+            pendingReturns: 0,
+            inProgressReturns: 0,
+            completedReturns: 0,
+            totalQuantity: 0,
+            returnedQuantity: 0,
+            pendingQuantity: 0,
+            totalValue: 0,
+            refundedValue: 0,
+          },
+          returns: [],
+        },
+        'getReturns'
+      )
+    },
+
+    // ==========================================================================
+    // OPERATIONS - RESTOCKINGS
+    // ==========================================================================
+
+    getRestockings: async (filters: { warehouseId: string }): Promise<RestockingsData> => {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getRestockings(filters),
+        {
+          kpis: {
+            totalRestockings: 0,
+            pendingRestockings: 0,
+            inProgressRestockings: 0,
+            completedRestockings: 0,
+            totalProducts: 0,
+            restockedProducts: 0,
+            pendingProducts: 0,
+          },
+          restockings: [],
+        },
+        'getRestockings'
+      )
+    },
+
+    // ==========================================================================
+    // OPERATIONS - ORDERS WITH LINES
+    // ==========================================================================
+
+    getOrdersWithLines: async (filters: { warehouseId: string }): Promise<OrdersData> => {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getOrdersWithLines(filters),
+        {
+          kpis: {
+            totalOrders: 0,
+            pendingOrders: 0,
+            inProgressOrders: 0,
+            shippedOrders: 0,
+            deliveredOrders: 0,
+            cancelledOrders: 0,
+            totalValue: 0,
+            averageOrderValue: 0,
+          },
+          orders: [],
+        },
+        'getOrdersWithLines'
       )
     },
   }

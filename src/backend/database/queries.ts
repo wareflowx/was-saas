@@ -846,3 +846,513 @@ export const getDashboardKPIs = (warehouseId?: string) => {
   }
 }
 
+// ============================================================================
+// OPERATIONS - RECEIPTS
+// ============================================================================
+
+/**
+ * Get all receptions for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Receptions data with KPIs calculated
+ */
+export const getReceptionsByWarehouse = (warehouseId: string) => {
+  const db = getDatabase()
+
+  // Get receptions with supplier info
+  const stmt = db.prepare(`
+    SELECT DISTINCT
+      r.id,
+      r.reception_number as receptionNumber,
+      r.warehouse_id as warehouseId,
+      r.supplier_id as supplierId,
+      r.supplier_name as supplierName,
+      r.expected_date as expectedDate,
+      r.received_date as receivedDate,
+      r.status,
+      r.priority,
+      r.total_quantity as totalQuantity,
+      r.received_quantity as receivedQuantity,
+      r.rejected_quantity as rejectedQuantity,
+      r.total_amount as totalAmount,
+      r.carrier,
+      r.tracking_number as trackingNumber,
+      r.receiver,
+      r.notes,
+      r.created_at as createdAt,
+      r.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM receptions r
+    LEFT JOIN warehouses w ON r.warehouse_id = w.id
+    WHERE r.warehouse_id = ?
+    ORDER BY r.expected_date DESC
+  `)
+
+  const rows = stmt.all(warehouseId)
+
+  // Calculate KPIs
+  const totalReceptions = rows.length
+  const pendingReceptions = rows.filter((r: DbRow) => r.status === 'pending').length
+  const inProgressReceptions = rows.filter((r: DbRow) => r.status === 'in_progress').length
+  const completedReceptions = rows.filter((r: DbRow) => r.status === 'completed').length
+
+  const totalQuantity = rows.reduce((sum: number, r: DbRow) => sum + ((r.totalQuantity as number) || 0), 0)
+  const receivedQuantity = rows.reduce((sum: number, r: DbRow) => sum + ((r.receivedQuantity as number) || 0), 0)
+  const pendingQuantity = totalQuantity - receivedQuantity
+
+  return {
+    kpis: {
+      totalReceptions,
+      pendingReceptions,
+      inProgressReceptions,
+      completedReceptions,
+      totalQuantity,
+      receivedQuantity,
+      pendingQuantity,
+    },
+    receptions: rows,
+  }
+}
+
+/**
+ * Get reception lines for a reception
+ * @param receptionId - Reception ID
+ * @returns Array of reception lines
+ */
+export const getReceptionLines = (receptionId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT
+      rl.id,
+      rl.product_id as productId,
+      rl.product_sku as productSku,
+      rl.product_name as productName,
+      rl.ordered_quantity as orderedQuantity,
+      rl.received_quantity as receivedQuantity,
+      rl.rejected_quantity as rejectedQuantity,
+      rl.unit_price as unitPrice,
+      rl.total_price as totalPrice,
+      rl.reason,
+      rl.status,
+      rl.created_at as createdAt,
+      rl.updated_at as lastUpdated
+    FROM reception_lines rl
+    WHERE rl.reception_id = ?
+    ORDER BY rl.created_at
+  `)
+
+  return stmt.all(receptionId)
+}
+
+// ============================================================================
+// OPERATIONS - PICKINGS
+// ============================================================================
+
+/**
+ * Get all pickings for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Pickings data with KPIs calculated
+ */
+export const getPickingsByWarehouse = (warehouseId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT DISTINCT
+      p.id,
+      p.picking_number as pickingNumber,
+      p.warehouse_id as warehouseId,
+      p.order_id as orderId,
+      p.order_number as orderNumber,
+      p.customer_id as customerId,
+      p.customer_name as customerName,
+      p.assigned_date as assignedDate,
+      p.started_date as startedDate,
+      p.completed_date as completedDate,
+      p.status,
+      p.priority,
+      p.total_quantity as totalQuantity,
+      p.picked_quantity as pickedQuantity,
+      p.remaining_quantity as remainingQuantity,
+      p.picker,
+      p.picker_id as pickerId,
+      p.notes,
+      p.created_at as createdAt,
+      p.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM pickings p
+    LEFT JOIN warehouses w ON p.warehouse_id = w.id
+    WHERE p.warehouse_id = ?
+    ORDER BY p.assigned_date DESC
+  `)
+
+  const rows = stmt.all(warehouseId)
+
+  // Calculate KPIs
+  const totalPickings = rows.length
+  const pendingPickings = rows.filter((r: DbRow) => r.status === 'pending').length
+  const inProgressPickings = rows.filter((r: DbRow) => r.status === 'in_progress').length
+  const completedPickings = rows.filter((r: DbRow) => r.status === 'completed').length
+
+  const totalLines = rows.reduce((sum: number, r: DbRow) => sum + ((r.totalQuantity as number) || 0), 0)
+  const pickedLines = rows.reduce((sum: number, r: DbRow) => sum + ((r.pickedQuantity as number) || 0), 0)
+  const completionRate = totalLines > 0 ? Math.round((pickedLines / totalLines) * 100) : 0
+
+  return {
+    kpis: {
+      totalPickings,
+      pendingPickings,
+      inProgressPickings,
+      completedPickings,
+      totalLines,
+      pickedLines,
+      completionRate,
+    },
+    pickings: rows,
+  }
+}
+
+/**
+ * Get picking lines for a picking
+ * @param pickingId - Picking ID
+ * @returns Array of picking lines
+ */
+export const getPickingLines = (pickingId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT
+      pl.id,
+      pl.product_id as productId,
+      pl.product_sku as productSku,
+      pl.product_name as productName,
+      pl.location_code as locationCode,
+      pl.zone_name as zoneName,
+      pl.quantity,
+      pl.picked_quantity as pickedQuantity,
+      pl.unit,
+      pl.status,
+      pl.processed_by_user_id as processedByUserId,
+      pl.started_at as startedAt,
+      pl.completed_at as completedAt,
+      pl.duration_ms as durationMs,
+      pl.created_at as createdAt,
+      pl.updated_at as lastUpdated
+    FROM picking_lines pl
+    WHERE pl.picking_id = ?
+    ORDER BY pl.created_at
+  `)
+
+  return stmt.all(pickingId)
+}
+
+// ============================================================================
+// OPERATIONS - RETURNS
+// ============================================================================
+
+/**
+ * Get all returns for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Returns data with KPIs calculated
+ */
+export const getReturnsByWarehouse = (warehouseId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT DISTINCT
+      r.id,
+      r.return_number as returnNumber,
+      r.warehouse_id as warehouseId,
+      r.order_id as orderId,
+      r.order_number as orderNumber,
+      r.customer_id as customerId,
+      r.customer_name as customerName,
+      r.return_date as returnDate,
+      r.type,
+      r.status,
+      r.priority,
+      r.reason,
+      r.reason_label as reasonLabel,
+      r.total_quantity as totalQuantity,
+      r.total_amount as totalAmount,
+      r.refunded_amount as refundedAmount,
+      r.processor,
+      r.completed_date as completedDate,
+      r.created_at as createdAt,
+      r.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM returns r
+    LEFT JOIN warehouses w ON r.warehouse_id = w.id
+    WHERE r.warehouse_id = ?
+    ORDER BY r.return_date DESC
+  `)
+
+  const rows = stmt.all(warehouseId)
+
+  // Calculate KPIs
+  const totalReturns = rows.length
+  const pendingReturns = rows.filter((r: DbRow) => r.status === 'pending').length
+  const inProgressReturns = rows.filter((r: DbRow) => r.status === 'in_progress').length
+  const completedReturns = rows.filter((r: DbRow) => r.status === 'completed').length
+
+  const totalQuantity = rows.reduce((sum: number, r: DbRow) => sum + ((r.totalQuantity as number) || 0), 0)
+  const returnedQuantity = rows.filter((r: DbRow) => r.status === 'completed').reduce(
+    (sum: number, r: DbRow) => sum + ((r.totalQuantity as number) || 0),
+    0
+  )
+  const pendingQuantity = totalQuantity - returnedQuantity
+
+  const totalValue = rows.reduce((sum: number, r: DbRow) => sum + ((r.totalAmount as number) || 0), 0)
+  const refundedValue = rows.reduce((sum: number, r: DbRow) => sum + ((r.refundedAmount as number) || 0), 0)
+
+  return {
+    kpis: {
+      totalReturns,
+      pendingReturns,
+      inProgressReturns,
+      completedReturns,
+      totalQuantity,
+      returnedQuantity,
+      pendingQuantity,
+      totalValue,
+      refundedValue,
+    },
+    returns: rows,
+  }
+}
+
+/**
+ * Get return lines for a return
+ * @param returnId - Return ID
+ * @returns Array of return lines
+ */
+export const getReturnLines = (returnId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT
+      rl.id,
+      rl.product_id as productId,
+      rl.product_sku as productSku,
+      rl.product_name as productName,
+      rl.quantity,
+      rl.unit_price as unitPrice,
+      rl.total_price as totalPrice,
+      rl.condition as itemCondition,
+      rl.resolution,
+      rl.status,
+      rl.processed_by_user_id as processedByUserId,
+      rl.started_at as startedAt,
+      rl.completed_at as completedAt,
+      rl.duration_ms as durationMs,
+      rl.created_at as createdAt,
+      rl.updated_at as lastUpdated
+    FROM return_lines rl
+    WHERE rl.return_id = ?
+    ORDER BY rl.created_at
+  `)
+
+  return stmt.all(returnId)
+}
+
+// ============================================================================
+// OPERATIONS - RESTOCKINGS
+// ============================================================================
+
+/**
+ * Get all restockings for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Restockings data with KPIs calculated
+ */
+export const getRestockingsByWarehouse = (warehouseId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT DISTINCT
+      r.id,
+      r.restocking_number as restockingNumber,
+      r.warehouse_id as warehouseId,
+      r.status,
+      r.priority,
+      r.total_products as totalProducts,
+      r.restocked_products as restockedProducts,
+      r.requester,
+      r.assigned_to as assignedTo,
+      r.requested_date as requestedDate,
+      r.started_date as startedDate,
+      r.completed_date as completedDate,
+      r.created_at as createdAt,
+      r.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM restockings r
+    LEFT JOIN warehouses w ON r.warehouse_id = w.id
+    WHERE r.warehouse_id = ?
+    ORDER BY r.requested_date DESC
+  `)
+
+  const rows = stmt.all(warehouseId)
+
+  // Calculate KPIs
+  const totalRestockings = rows.length
+  const pendingRestockings = rows.filter((r: DbRow) => r.status === 'pending').length
+  const inProgressRestockings = rows.filter((r: DbRow) => r.status === 'in_progress').length
+  const completedRestockings = rows.filter((r: DbRow) => r.status === 'completed').length
+
+  const totalProducts = rows.reduce((sum: number, r: DbRow) => sum + ((r.totalProducts as number) || 0), 0)
+  const restockedProducts = rows.reduce((sum: number, r: DbRow) => sum + ((r.restockedProducts as number) || 0), 0)
+  const pendingProducts = totalProducts - restockedProducts
+
+  return {
+    kpis: {
+      totalRestockings,
+      pendingRestockings,
+      inProgressRestockings,
+      completedRestockings,
+      totalProducts,
+      restockedProducts,
+      pendingProducts,
+    },
+    restockings: rows,
+  }
+}
+
+/**
+ * Get restocking lines for a restocking
+ * @param restockingId - Restocking ID
+ * @returns Array of restocking lines
+ */
+export const getRestockingLines = (restockingId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT
+      rl.id,
+      rl.product_id as productId,
+      rl.product_sku as productSku,
+      rl.product_name as productName,
+      rl.source_location_id as sourceLocationId,
+      rl.destination_location_id as destinationLocationId,
+      rl.current_quantity as currentQuantity,
+      rl.target_quantity as targetQuantity,
+      rl.quantity_to_restock as quantityToRestock,
+      rl.unit,
+      rl.status,
+      rl.processed_by_user_id as processedByUserId,
+      rl.started_at as startedAt,
+      rl.completed_at as completedAt,
+      rl.duration_ms as durationMs,
+      rl.created_at as createdAt,
+      rl.updated_at as lastUpdated
+    FROM restocking_lines rl
+    WHERE rl.restocking_id = ?
+    ORDER BY rl.created_at
+  `)
+
+  return stmt.all(restockingId)
+}
+
+// ============================================================================
+// OPERATIONS - ORDERS WITH LINES
+// ============================================================================
+
+/**
+ * Get orders for a warehouse with lines and KPIs
+ * @param warehouseId - Warehouse ID
+ * @returns Orders data with KPIs calculated
+ */
+export const getOrdersByWarehouseWithLines = (warehouseId: string) => {
+  const db = getDatabase()
+
+  const stmt = db.prepare(`
+    SELECT DISTINCT
+      o.id,
+      o.order_number as orderNumber,
+      o.warehouse_id as warehouseId,
+      o.customer_id as customerId,
+      o.customer_name as customerName,
+      o.customer_email as customerEmail,
+      o.order_date as orderDate,
+      o.required_date as requiredDate,
+      o.promised_date as promisedDate,
+      o.shipped_date as shippedDate,
+      o.delivered_date as deliveredDate,
+      o.status,
+      o.priority,
+      o.total_quantity as totalQuantity,
+      o.total_amount as totalAmount,
+      o.shipping_address as shippingAddress,
+      o.shipping_city as shippingCity,
+      o.shipping_country as shippingCountry,
+      o.tracking_number as trackingNumber,
+      o.carrier,
+      o.notes,
+      o.picker,
+      o.packer,
+      o.created_at as createdAt,
+      o.updated_at as lastUpdated,
+      w.name as warehouseName,
+      w.code as warehouseCode
+    FROM orders o
+    LEFT JOIN warehouses w ON o.warehouse_id = w.id
+    WHERE o.warehouse_id = ?
+    ORDER BY o.order_date DESC
+  `)
+
+  const rows = stmt.all(warehouseId)
+
+  // Get lines for each order
+  const ordersWithLines = rows.map((row: DbRow) => {
+    const linesStmt = db.prepare(`
+      SELECT
+        ol.id,
+        ol.product_id as productId,
+        ol.product_sku as productSku,
+        ol.product_name as productName,
+        ol.quantity,
+        ol.picked_quantity as pickedQuantity,
+        ol.unit_price as unitPrice,
+        ol.total_price as totalPrice,
+        ol.created_at as createdAt,
+        ol.updated_at as lastUpdated
+      FROM order_lines ol
+      WHERE ol.order_id = ?
+      ORDER BY ol.created_at
+    `)
+
+    const lines = linesStmt.all(row.id as string)
+
+    return {
+      ...row,
+      lines,
+    }
+  })
+
+  // Calculate KPIs
+  const totalOrders = rows.length
+  const pendingOrders = rows.filter((r: DbRow) => r.status === 'pending').length
+  const inProgressOrders = rows.filter((r: DbRow) => r.status === 'processing' || r.status === 'picking').length
+  const shippedOrders = rows.filter((r: DbRow) => r.status === 'shipped').length
+  const deliveredOrders = rows.filter((r: DbRow) => r.status === 'delivered').length
+  const cancelledOrders = rows.filter((r: DbRow) => r.status === 'cancelled').length
+
+  const totalValue = rows.reduce((sum: number, r: DbRow) => sum + ((r.totalAmount as number) || 0), 0)
+  const averageOrderValue = totalOrders > 0 ? totalValue / totalOrders : 0
+
+  return {
+    kpis: {
+      totalOrders,
+      pendingOrders,
+      inProgressOrders,
+      shippedOrders,
+      deliveredOrders,
+      cancelledOrders,
+      totalValue,
+      averageOrderValue,
+    },
+    orders: ordersWithLines,
+  }
+}
+

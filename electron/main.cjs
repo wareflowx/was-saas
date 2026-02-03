@@ -114,14 +114,19 @@ ipcMain.handle('db:get-stats', async () => {
 // WAREHOUSE MANAGEMENT
 // ==========================================================================
 
-ipcMain.handle('warehouse:get-all', async () => {
+ipcMain.handle('warehouse:getAll', async () => {
   initializeDatabase()
   return getAllWarehouses()
 })
 
-ipcMain.handle('warehouse:get-all-with-kpis', async () => {
+ipcMain.handle('warehouse:getAllWithKPIs', async () => {
   initializeDatabase()
   return queries.getWarehousesWithKPIs()
+})
+
+ipcMain.handle('warehouse:exists', async (event, warehouseId) => {
+  initializeDatabase()
+  return warehouseExists(warehouseId)
 })
 
 ipcMain.handle('warehouse:create', async (event, warehouse) => {
@@ -144,6 +149,71 @@ ipcMain.handle('db:get-import-history', async (event, warehouseId) => {
 ipcMain.handle('db:get-dashboard-kpis', async (event, warehouseId) => {
   initializeDatabase()
   return queries.getDashboardKPIs(warehouseId)
+})
+
+// ==========================================================================
+// OPERATIONS - RECEIPTS
+// ==========================================================================
+
+ipcMain.handle('db:get-receptions', async (event, filters) => {
+  initializeDatabase()
+  return queries.getReceptionsByWarehouse(filters.warehouseId)
+})
+
+ipcMain.handle('db:get-reception-lines', async (event, receptionId) => {
+  initializeDatabase()
+  return queries.getReceptionLines(receptionId)
+})
+
+// ==========================================================================
+// OPERATIONS - PICKINGS
+// ==========================================================================
+
+ipcMain.handle('db:get-pickings', async (event, filters) => {
+  initializeDatabase()
+  return queries.getPickingsByWarehouse(filters.warehouseId)
+})
+
+ipcMain.handle('db:get-picking-lines', async (event, pickingId) => {
+  initializeDatabase()
+  return queries.getPickingLines(pickingId)
+})
+
+// ==========================================================================
+// OPERATIONS - RETURNS
+// ==========================================================================
+
+ipcMain.handle('db:get-returns', async (event, filters) => {
+  initializeDatabase()
+  return queries.getReturnsByWarehouse(filters.warehouseId)
+})
+
+ipcMain.handle('db:get-return-lines', async (event, returnId) => {
+  initializeDatabase()
+  return queries.getReturnLines(returnId)
+})
+
+// ==========================================================================
+// OPERATIONS - RESTOCKINGS
+// ==========================================================================
+
+ipcMain.handle('db:get-restockings', async (event, filters) => {
+  initializeDatabase()
+  return queries.getRestockingsByWarehouse(filters.warehouseId)
+})
+
+ipcMain.handle('db:get-restocking-lines', async (event, restockingId) => {
+  initializeDatabase()
+  return queries.getRestockingLines(restockingId)
+})
+
+// ==========================================================================
+// OPERATIONS - ORDERS WITH LINES
+// ==========================================================================
+
+ipcMain.handle('db:get-orders-with-lines', async (event, filters) => {
+  initializeDatabase()
+  return queries.getOrdersByWarehouseWithLines(filters.warehouseId)
 })
 
 // ==========================================================================
