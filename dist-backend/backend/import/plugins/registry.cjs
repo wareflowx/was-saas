@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeDefaultPlugins = exports.pluginExists = exports.unregisterPlugin = exports.registerPlugin = exports.listPlugins = exports.getPlugin = exports.registry = void 0;
-const generic_excel_1 = require('./generic-excel.cjs');
-const mock_data_generator_1 = require('./mock-data-generator.cjs');
+const index_1 = require('./generic-excel/index.cjs');
+const index_2 = require('./mock-data-generator/index.cjs');
 // ============================================================================
 // PLUGIN REGISTRY
 // Record type containing all available plugins
@@ -66,9 +66,9 @@ exports.pluginExists = pluginExists;
  */
 const initializeDefaultPlugins = () => {
     // Register Generic Excel plugin
-    (0, exports.registerPlugin)(generic_excel_1.genericExcelPlugin);
+    (0, exports.registerPlugin)(index_1.genericExcelPlugin);
     // Register Mock Data Generator plugin (for testing)
-    (0, exports.registerPlugin)(mock_data_generator_1.mockDataGeneratorPlugin);
+    (0, exports.registerPlugin)(index_2.mockDataGeneratorPlugin);
     // More plugins will be registered here as we implement them
     // - Solochain plugin
     // - other WMS plugins

@@ -465,7 +465,7 @@ export const insertReceptions = (receptions: readonly any[], receptionLines: rea
       receivedQuantity: l.receivedQuantity,
       rejectedQuantity: l.rejectedQuantity,
       unitPrice: l.unitPrice,
-      totalPrice: l.totalPrice,
+      totalPrice: l.totalPrice || (l.unitPrice * (l.receivedQuantity || 0)),
     }),
     'ReceptionLines'
   )

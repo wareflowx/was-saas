@@ -47669,7 +47669,7 @@ function requireLoader() {
         receivedQuantity: l.receivedQuantity,
         rejectedQuantity: l.rejectedQuantity,
         unitPrice: l.unitPrice,
-        totalPrice: l.totalPrice
+        totalPrice: l.totalPrice || l.unitPrice * (l.receivedQuantity || 0)
       }), "ReceptionLines");
       return { receptions: receptionsInserted, lines: linesInserted };
     };

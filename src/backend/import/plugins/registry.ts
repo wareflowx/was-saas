@@ -1,6 +1,6 @@
 import type { ImportPlugin, PluginRegistry } from '../types'
-import { genericExcelPlugin } from './generic-excel'
-import { mockDataGeneratorPlugin } from './mock-data-generator'
+import { genericExcelPlugin } from './generic-excel/index'
+import { mockDataGeneratorPlugin } from './mock-data-generator/index'
 
 // ============================================================================
 // PLUGIN REGISTRY
