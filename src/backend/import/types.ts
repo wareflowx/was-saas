@@ -328,6 +328,63 @@ type ReceptionLine = {
 }
 
 /**
+ * Purchase Order entity (normalized)
+ */
+type PurchaseOrder = {
+  readonly id: string
+  readonly warehouseId: string
+  readonly supplierId: string
+  readonly purchaseOrderNumber: string
+  readonly orderDate: Date
+  readonly expectedDate?: Date
+  readonly status: string
+  readonly totalAmount: number
+}
+
+/**
+ * Purchase Order Line entity (normalized)
+ */
+type PurchaseOrderLine = {
+  readonly id: string
+  readonly purchaseOrderId: string
+  readonly productId: string
+  readonly productSku: string
+  readonly productName: string
+  readonly quantity: number
+  readonly receivedQuantity: number
+  readonly unitPrice: number
+  readonly totalPrice: number
+}
+
+/**
+ * Shipment entity (normalized)
+ */
+type Shipment = {
+  readonly id: string
+  readonly warehouseId: string
+  readonly orderId: string
+  readonly orderNumber: string
+  readonly shipmentNumber: string
+  readonly shipmentDate: Date
+  readonly carrier: string
+  readonly trackingNumber?: string
+  readonly status: string
+  readonly shippingAddress?: string
+  readonly shippingCity?: string
+  readonly shippingCountry?: string
+}
+
+/**
+ * Shipment Line entity (normalized)
+ */
+type ShipmentLine = {
+  readonly id: string
+  readonly shipmentId: string
+  readonly productId: string
+  readonly quantity: number
+}
+
+/**
  * Restocking entity (normalized)
  */
 type Restocking = {
@@ -356,6 +413,7 @@ type RestockingLine = {
   readonly targetQuantity: number
   readonly quantityToRestock: number
   readonly unit: string
+  readonly status: string
 }
 
 /**
@@ -364,6 +422,7 @@ type RestockingLine = {
 type Return = {
   readonly id: string
   readonly warehouseId: string
+  readonly orderId?: string
   readonly orderNumber?: string
   readonly returnNumber: string
   readonly customerId: string
@@ -373,6 +432,13 @@ type Return = {
   readonly status: string
   readonly priority: string
   readonly reason: string
+  readonly reasonLabel: string
+  readonly totalQuantity: number
+  readonly returnedQuantity: number
+  readonly totalAmount: number
+  readonly refundedAmount: number
+  readonly processor?: string
+  readonly completedDate?: Date
 }
 
 /**
@@ -387,6 +453,9 @@ type ReturnLine = {
   readonly productName: string
   readonly quantity: number
   readonly unitPrice: number
+  readonly totalPrice: number
+  readonly condition: string
+  readonly resolution: string
 }
 
 /**
@@ -470,6 +539,10 @@ type NormalizedData = {
   readonly suppliers?: readonly Supplier[]
   readonly customers?: readonly Customer[]
   readonly users?: readonly User[]
+  readonly purchaseOrders?: readonly PurchaseOrder[]
+  readonly purchaseOrderLines?: readonly PurchaseOrderLine[]
+  readonly shipments?: readonly Shipment[]
+  readonly shipmentLines?: readonly ShipmentLine[]
 }
 
 // ============================================================================
@@ -592,4 +665,8 @@ export type {
   Supplier,
   Customer,
   User,
+  PurchaseOrder,
+  PurchaseOrderLine,
+  Shipment,
+  ShipmentLine,
 }
