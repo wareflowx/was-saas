@@ -2,177 +2,73 @@ import { createFileRoute } from "@tanstack/react-router"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { ProductsPage } from "@/components/products/ProductsPage"
-import type { ProductsData } from "@/types/entities"
+import { useProducts, useWarehouses } from "@/hooks/use-locations"
 
 export const Route = createFileRoute("/products")({
   component: ProductsRoute,
 })
 
-const demoData: ProductsData = {
-  kpis: {
-    totalProducts: 150,
-    inStock: 125,
-    lowStock: 18,
-    outOfStock: 7,
-    totalQuantity: 12450,
-    totalValue: 247500,
-    categories: 8,
-  },
-  products: [
-    {
-      id: "prod-1",
-      sku: "ELE-001",
-      name: "Laptop Pro 15",
-      description: "High performance laptop",
-      category: "Electronics",
-      subcategory: "Computers",
-      brand: "TechBrand",
-      unit: "unit",
-      weight: 2.5,
-      volume: 0.02,
-      quantity: 150,
-      minStock: 20,
-      maxStock: 200,
-      reorderPoint: 30,
-      reorderQuantity: 50,
-      locationCode: "A-01-01-01",
-      locationId: "loc-1",
-      zoneName: "Storage Zone A",
-      sectorName: "Sector A1",
-      warehouseName: "Paris North Warehouse",
-      costPrice: 800,
-      sellingPrice: 1200,
-      supplier: "TechSupplier Inc.",
-      lastReceivedDate: "2025-01-25",
-      lastShippedDate: "2025-01-28",
-      status: "in_stock",
-      createdAt: "2024-01-15T10:00:00Z",
-      lastUpdated: "2025-01-28T10:30:00Z",
-    },
-    {
-      id: "prod-2",
-      sku: "ELE-002",
-      name: "Smartphone X",
-      description: "Latest generation smartphone",
-      category: "Electronics",
-      subcategory: "Phones",
-      brand: "TechBrand",
-      unit: "unit",
-      weight: 0.2,
-      volume: 0.001,
-      quantity: 12,
-      minStock: 25,
-      maxStock: 150,
-      reorderPoint: 40,
-      reorderQuantity: 50,
-      locationCode: "A-01-01-02",
-      locationId: "loc-2",
-      zoneName: "Storage Zone A",
-      sectorName: "Sector A1",
-      warehouseName: "Paris North Warehouse",
-      costPrice: 400,
-      sellingPrice: 650,
-      supplier: "TechSupplier Inc.",
-      lastReceivedDate: "2025-01-20",
-      lastShippedDate: "2025-01-27",
-      status: "low_stock",
-      createdAt: "2024-02-01T10:00:00Z",
-      lastUpdated: "2025-01-28T10:25:00Z",
-    },
-    {
-      id: "prod-3",
-      sku: "MEC-001",
-      name: "5mm Screw Box",
-      description: "Box of 100 5mm screws",
-      category: "Mechanical",
-      subcategory: "Fasteners",
-      brand: "ToolMaster",
-      unit: "piece",
-      weight: 0.5,
-      volume: 0.0005,
-      quantity: 0,
-      minStock: 50,
-      maxStock: 500,
-      reorderPoint: 100,
-      reorderQuantity: 200,
-      locationCode: "D-01-01-01",
-      locationId: "loc-5",
-      zoneName: "Picking Zone",
-      sectorName: "Sector D1",
-      warehouseName: "Paris North Warehouse",
-      costPrice: 15,
-      sellingPrice: 25,
-      supplier: "FastenerSupply",
-      lastReceivedDate: "2025-01-15",
-      lastShippedDate: "2025-01-26",
-      status: "out_of_stock",
-      createdAt: "2024-01-10T10:00:00Z",
-      lastUpdated: "2025-01-28T09:00:00Z",
-    },
-    {
-      id: "prod-4",
-      sku: "FOOD-001",
-      name: "1kg Coffee Beans",
-      description: "Premium coffee beans",
-      category: "Food",
-      subcategory: "Beverages",
-      brand: "CaféPremium",
-      unit: "package",
-      weight: 1,
-      volume: 0.003,
-      quantity: 300,
-      minStock: 100,
-      maxStock: 500,
-      reorderPoint: 150,
-      reorderQuantity: 100,
-      locationCode: "G-01-01-01",
-      locationId: "loc-8",
-      zoneName: "Storage Zone C",
-      sectorName: "Sector G1",
-      warehouseName: "Marseille Warehouse",
-      costPrice: 12,
-      sellingPrice: 20,
-      supplier: "CaféDirect",
-      lastReceivedDate: "2025-01-22",
-      lastShippedDate: "2025-01-28",
-      status: "in_stock",
-      createdAt: "2024-03-01T10:00:00Z",
-      lastUpdated: "2025-01-28T11:00:00Z",
-    },
-    {
-      id: "prod-5",
-      sku: "AUT-001",
-      name: "Oil Filter",
-      description: "Oil Filter universel",
-      category: "Automobile",
-      subcategory: "Engine parts",
-      brand: "AutoParts",
-      unit: "unit",
-      weight: 0.3,
-      volume: 0.002,
-      quantity: 85,
-      minStock: 30,
-      maxStock: 200,
-      reorderPoint: 50,
-      reorderQuantity: 50,
-      locationCode: "E-01-01-01",
-      locationId: "loc-6",
-      zoneName: "Storage Zone B",
-      sectorName: "Sector E1",
-      warehouseName: "Lyon Warehouse",
-      costPrice: 8,
-      sellingPrice: 15,
-      supplier: "AutoSupply Co.",
-      lastReceivedDate: "2025-01-18",
-      lastShippedDate: "2025-01-27",
-      status: "in_stock",
-      createdAt: "2024-01-20T10:00:00Z",
-      lastUpdated: "2025-01-28T09:30:00Z",
-    },
-  ],
-}
-
 function ProductsRoute() {
+  // Fetch warehouses to get default warehouse ID
+  const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
+
+  // Fetch products data from backend
+  const defaultWarehouseId = warehouses?.[0]?.id
+  const {
+    data: productsData,
+    isLoading: isLoadingProducts,
+    error,
+  } = useProducts(defaultWarehouseId)
+
+  // Loading state
+  if (isLoadingWarehouses || isLoadingProducts) {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-muted-foreground">Loading products...</div>
+          </main>
+        </div>
+      </SidebarProvider>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-destructive">Error loading products: {error.message}</div>
+          </main>
+        </div>
+      </SidebarProvider>
+    )
+  }
+
+  // No data state
+  if (!productsData || !warehouses?.length) {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-muted-foreground mb-4">
+                No products found. Please complete the setup first.
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Import data or generate mock data to get started.
+              </p>
+            </div>
+          </main>
+        </div>
+      </SidebarProvider>
+    )
+  }
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
@@ -183,7 +79,7 @@ function ProductsRoute() {
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <ProductsPage data={demoData} />
+            <ProductsPage data={productsData} />
           </div>
         </main>
       </div>

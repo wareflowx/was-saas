@@ -283,6 +283,20 @@ export function useBackend() {
       )
     },
 
+    getProducts: async (filters: {
+      warehouseId: string
+    }): Promise<any> => {
+      return safeIpcCall(
+        isElectron,
+        () => (window as any).electronAPI.getProducts(filters),
+        {
+          kpis: { totalProducts: 0, inStock: 0, lowStock: 0, outOfStock: 0, totalQuantity: 0, totalValue: 0, categories: 0 },
+          products: []
+        },
+        'getProducts'
+      )
+    },
+
     getZones: async (filters: {
       warehouseId: string
     }): Promise<ZonesData> => {

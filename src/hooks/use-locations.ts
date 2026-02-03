@@ -501,3 +501,36 @@ export function useOrdersWithLines(warehouseId?: string) {
     enabled: !!warehouseId,
   })
 }
+
+/**
+ * Fetch products for a warehouse
+ * @param warehouseId - Warehouse ID
+ * @returns Query result with products data
+ */
+export function useProducts(warehouseId?: string) {
+  const backend = useBackend()
+
+  return useQuery({
+    queryKey: ['products', warehouseId],
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+      const firstWarehouse = warehouses[0] as any
+
+      if (!firstWarehouse) {
+        throw new Error('No warehouse found')
+      }
+
+      const data = await backend.getProducts({
+        warehouseId: warehouseId || firstWarehouse.id
+      })
+
+      console.log('📦 [DB] Products loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: data?.products?.length || 0,
+      })
+
+      return data
+    },
+    enabled: !!warehouseId,
+  })
+}
