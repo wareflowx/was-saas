@@ -49,6 +49,9 @@ export const insertWarehouses = (warehouses: readonly Warehouse[]): number => {
   })
 
   insertMany(warehouses)
+
+  console.log('🏢 [DB INSERT] Warehouses:', { inserted, total: warehouses.length })
+
   return inserted
 }
 

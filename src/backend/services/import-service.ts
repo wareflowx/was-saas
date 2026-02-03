@@ -177,6 +177,8 @@ export const generateMockData = async (
   const startTime = Date.now()
   const warnings: ValidationResult[] = []
 
+  console.log('🎲 [MOCK DATA] Starting generation for warehouse:', warehouseId)
+
   try {
     // Step 1: Generate mock data
     onProgress?.(10, 'Generating mock data...')
@@ -201,6 +203,26 @@ export const generateMockData = async (
 
     const normalizedData = plugin.transform(emptyInput, context)
 
+    console.log('📦 [MOCK DATA] Data transformed:', {
+      warehouses: normalizedData.warehouses?.length || 0,
+      users: normalizedData.users?.length || 0,
+      suppliers: normalizedData.suppliers?.length || 0,
+      customers: normalizedData.customers?.length || 0,
+      products: normalizedData.products?.length || 0,
+      inventory: normalizedData.inventory?.length || 0,
+      movements: normalizedData.movements?.length || 0,
+      zones: normalizedData.zones?.length || 0,
+      sectors: normalizedData.sectors?.length || 0,
+      locations: normalizedData.locations?.length || 0,
+      purchaseOrders: normalizedData.purchaseOrders?.length || 0,
+      receptions: normalizedData.receptions?.length || 0,
+      orders: normalizedData.orders?.length || 0,
+      pickings: normalizedData.pickings?.length || 0,
+      shipments: normalizedData.shipments?.length || 0,
+      returns: normalizedData.returns?.length || 0,
+      restockings: normalizedData.restockings?.length || 0,
+    })
+
     onProgress?.(80, 'Loading data into database...')
 
     // Import loader function
@@ -209,9 +231,31 @@ export const generateMockData = async (
     // Step 2: Load to database
     const stats = loadToDatabase(normalizedData)
 
+    console.log('💾 [MOCK DATA] Data loaded to database:', {
+      warehousesImported: stats.warehousesImported || 0,
+      usersImported: stats.usersImported || 0,
+      suppliersImported: stats.suppliersImported || 0,
+      customersImported: stats.customersImported || 0,
+      productsImported: stats.productsImported || 0,
+      inventoryImported: stats.inventoryImported || 0,
+      movementsImported: stats.movementsImported || 0,
+      zonesImported: stats.zonesImported || 0,
+      sectorsImported: stats.sectorsImported || 0,
+      locationsImported: stats.locationsImported || 0,
+      purchaseOrdersImported: stats.purchaseOrdersImported || 0,
+      receptionsImported: stats.receptionsImported || 0,
+      ordersImported: stats.ordersImported || 0,
+      pickingsImported: stats.pickingsImported || 0,
+      returnsImported: stats.returnsImported || 0,
+      restockingsImported: stats.restockingsImported || 0,
+      shipmentsImported: stats.shipmentsImported || 0,
+    })
+
     onProgress?.(100, 'Mock data generated successfully!')
 
     const duration = Date.now() - startTime
+
+    console.log('✅ [MOCK DATA] Generation completed in', duration, 'ms')
 
     return {
       status: 'success',
@@ -232,6 +276,8 @@ export const generateMockData = async (
     }
   } catch (error) {
     const duration = Date.now() - startTime
+
+    console.error('❌ [MOCK DATA] Generation failed:', error)
 
     return {
       status: 'failed',

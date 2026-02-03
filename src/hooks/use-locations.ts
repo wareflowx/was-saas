@@ -30,9 +30,17 @@ export function useLocations(warehouseId?: string) {
         throw new Error('No warehouse found')
       }
 
-      return await backend.getLocations({
+      const locations = await backend.getLocations({
         warehouseId: warehouseId || firstWarehouse.id
       })
+
+      console.log('📍 [DB] Locations loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: locations?.length || 0,
+        sample: locations?.slice(0, 2).map((l: any) => ({ id: l.id, code: l.code, zone: l.zone_name }))
+      })
+
+      return locations
     },
 
     // Only run query if warehouseId is provided or we have warehouses
@@ -49,7 +57,16 @@ export function useWarehouses() {
 
   return useQuery({
     queryKey: ['warehouses'],
-    queryFn: () => backend.getAllWarehouses(),
+    queryFn: async () => {
+      const warehouses = await backend.getAllWarehouses()
+
+      console.log('🏢 [DB] Warehouses loaded:', {
+        count: warehouses?.length || 0,
+        warehouses: warehouses?.map((w: any) => ({ id: w.id, code: w.code, name: w.name, city: w.city }))
+      })
+
+      return warehouses
+    },
   })
 }
 
@@ -62,7 +79,22 @@ export function useWarehousesWithKPIs() {
 
   return useQuery({
     queryKey: ['warehouses', 'kpis'],
-    queryFn: () => backend.getWarehousesWithKPIs(),
+    queryFn: async () => {
+      const data = await backend.getWarehousesWithKPIs()
+
+      console.log('📊 [DB] Warehouses with KPIs loaded:', {
+        count: data?.warehouses?.length || 0,
+        sample: data?.warehouses?.slice(0, 2).map((w: any) => ({
+          id: w.id,
+          name: w.name,
+          totalProducts: w.total_products,
+          totalMovements: w.total_movements,
+          locations: w.total_locations
+        }))
+      })
+
+      return data
+    },
   })
 }
 
@@ -83,7 +115,17 @@ export function useABCAnalysis(
 
   return useQuery({
     queryKey: ['analysis', 'abc', warehouseId, params],
-    queryFn: () => backend.runABCAnalysis({ warehouseId, ...params }),
+    queryFn: async () => {
+      const analysis = await backend.runABCAnalysis({ warehouseId, ...params })
+
+      console.log('🔤 [DB] ABC Analysis loaded:', {
+        warehouseId,
+        products: analysis?.products?.length || 0,
+        categories: analysis?.products?.slice(0, 3).map((p: any) => ({ sku: p.sku, abc: p.abc_class }))
+      })
+
+      return analysis
+    },
     enabled: !!warehouseId,
   })
 }
@@ -106,7 +148,17 @@ export function useDeadStockAnalysis(
 
   return useQuery({
     queryKey: ['analysis', 'dead-stock', warehouseId, params],
-    queryFn: () => backend.runDeadStockAnalysis({ warehouseId, ...params }),
+    queryFn: async () => {
+      const analysis = await backend.runDeadStockAnalysis({ warehouseId, ...params })
+
+      console.log('💀 [DB] Dead Stock Analysis loaded:', {
+        warehouseId,
+        deadStockProducts: analysis?.dead_stock?.length || 0,
+        sample: analysis?.dead_stock?.slice(0, 2).map((p: any) => ({ sku: p.sku, daysSinceMovement: p.days_since_last_movement }))
+      })
+
+      return analysis
+    },
     enabled: !!warehouseId,
   })
 }
@@ -129,9 +181,17 @@ export function useZones(warehouseId?: string) {
         throw new Error('No warehouse found')
       }
 
-      return await backend.getZones({
+      const zones = await backend.getZones({
         warehouseId: warehouseId || firstWarehouse.id
       })
+
+      console.log('🗺️ [DB] Zones loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: zones?.length || 0,
+        sample: zones?.slice(0, 3).map((z: any) => ({ id: z.id, name: z.name, type: z.type }))
+      })
+
+      return zones
     },
     enabled: !!warehouseId,
   })
@@ -155,9 +215,17 @@ export function useSectors(warehouseId?: string) {
         throw new Error('No warehouse found')
       }
 
-      return await backend.getSectors({
+      const sectors = await backend.getSectors({
         warehouseId: warehouseId || firstWarehouse.id
       })
+
+      console.log('🏗️ [DB] Sectors loaded:', {
+        warehouseId: warehouseId || firstWarehouse.id,
+        count: sectors?.length || 0,
+        sample: sectors?.slice(0, 3).map((s: any) => ({ id: s.id, zone: s.zone_name, type: s.type }))
+      })
+
+      return sectors
     },
     enabled: !!warehouseId,
   })
@@ -173,7 +241,22 @@ export function useImportHistory(warehouseId?: string) {
 
   return useQuery({
     queryKey: ['import-history', warehouseId],
-    queryFn: () => backend.getImportHistory(warehouseId),
+    queryFn: async () => {
+      const history = await backend.getImportHistory(warehouseId)
+
+      console.log('📥 [DB] Import History loaded:', {
+        warehouseId: warehouseId || 'all',
+        count: history?.length || 0,
+        imports: history?.slice(0, 3).map((h: any) => ({
+          id: h.id,
+          pluginId: h.plugin_id,
+          status: h.status,
+          rowsProcessed: h.rows_processed
+        }))
+      })
+
+      return history
+    },
   })
 }
 
@@ -187,6 +270,17 @@ export function useDashboardKPIs(warehouseId?: string) {
 
   return useQuery({
     queryKey: ['dashboard', 'kpis', warehouseId],
-    queryFn: () => backend.getDashboardKPIs(warehouseId),
+    queryFn: async () => {
+      const kpis = await backend.getDashboardKPIs(warehouseId)
+
+      console.log('📈 [DB] Dashboard KPIs loaded:', {
+        warehouseId: warehouseId || 'all',
+        totalProducts: kpis?.total_products || 0,
+        totalWarehouses: kpis?.total_warehouses || 0,
+        totalMovements: kpis?.total_movements || 0
+      })
+
+      return kpis
+    },
   })
 }
