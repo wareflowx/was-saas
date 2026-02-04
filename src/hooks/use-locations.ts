@@ -2,47 +2,33 @@
  * TanStack Query hooks for locations and warehouses
  *
  * These hooks provide automatic caching, loading states, and error handling
- * for backend data fetching. They use the useBackend hook to communicate
- * with the Electron main process via IPC.
+ * for backend data fetching. They use typed IPC with Result<T, E> error handling.
  */
 
 import { useQuery } from '@tanstack/react-query'
+import type { Result } from '../../shared/types'
 import { useBackend } from './use-backend'
 
 /**
  * Fetch locations for a warehouse
- * @param warehouseId - Warehouse ID (optional, uses first warehouse if not provided)
+ * @param warehouseId - Warehouse ID (optional, undefined = all warehouses)
  * @returns Query result with data, isLoading, error, refetch
  */
 export function useLocations(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
-    // Unique query key for cache
     queryKey: ['locations', warehouseId],
 
-    // Query function
     queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
+      // Use typed IPC instead of useBackend
+      const result = await (window as any).typedElectronAPI.locations
+        .getAll({ warehouseId })
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+      // Handle Result<T, E> - throw error for React Query to catch
+      if (result.success) {
+        return result.data
       }
 
-      const data = await backend.getLocations({
-        warehouseId: warehouseId ?? undefined
-      })
-
-      const locations = data?.locations || []
-
-      console.log('📍 [DB] Locations loaded:', {
-        warehouseId: warehouseId ?? 'all',
-        count: locations?.length || 0,
-        sample: locations?.slice(0, 2).map((l: any) => ({ id: l.id, code: l.code, zone: l.zone_name }))
-      })
-
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
   })
 }
@@ -52,19 +38,19 @@ export function useLocations(warehouseId?: string) {
  * @returns Query result with warehouses array
  */
 export function useWarehouses() {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['warehouses'],
+
     queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
+      // Use typed IPC instead of useBackend
+      const result = await (window as any).typedElectronAPI.warehouses.getAll()
 
-      console.log('🏢 [DB] Warehouses loaded:', {
-        count: warehouses?.length || 0,
-        warehouses: warehouses?.map((w: any) => ({ id: w.id, code: w.code, name: w.name, city: w.city }))
-      })
+      // Handle Result<T, E> - throw error for React Query to catch
+      if (result.success) {
+        return result.data
+      }
 
-      return warehouses
+      throw new Error(result.error.message, { cause: result.error })
     },
   })
 }
@@ -166,71 +152,48 @@ export function useDeadStockAnalysis(
 
 /**
  * Fetch zones for a warehouse
- * @param warehouseId - Warehouse ID (optional, uses first warehouse if not provided)
+ * @param warehouseId - Warehouse ID (optional, undefined = all warehouses)
  * @returns Query result with zones data
  */
 export function useZones(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['zones', warehouseId],
-    queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+    queryFn: async () => {
+      // Use typed IPC instead of useBackend
+      const result = await (window as any).typedElectronAPI.zones
+        .getAll({ warehouseId })
+
+      // Handle Result<T, E> - throw error for React Query to catch
+      if (result.success) {
+        return result.data
       }
 
-      // If warehouseId is provided (not undefined), use it; otherwise get all zones from all warehouses
-      const data = await backend.getZones({
-        warehouseId: warehouseId ?? undefined
-      })
-
-      const zones = data?.zones || []
-
-      console.log('🗺️ [DB] Zones loaded:', {
-        warehouseId: warehouseId ?? 'all',
-        count: zones?.length || 0,
-        sample: zones?.slice(0, 3).map((z: any) => ({ id: z.id, name: z.name, type: z.type }))
-      })
-
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
   })
 }
 
 /**
  * Fetch sectors for a warehouse
- * @param warehouseId - Warehouse ID (optional, uses first warehouse if not provided)
+ * @param warehouseId - Warehouse ID (optional, undefined = all warehouses)
  * @returns Query result with sectors data
  */
 export function useSectors(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['sectors', warehouseId],
-    queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+    queryFn: async () => {
+      // Use typed IPC instead of useBackend
+      const result = await (window as any).typedElectronAPI.sectors
+        .getAll({ warehouseId })
+
+      // Handle Result<T, E> - throw error for React Query to catch
+      if (result.success) {
+        return result.data
       }
 
-      const data = await backend.getSectors({
-        warehouseId: warehouseId ?? undefined
-      })
-
-      const sectors = data?.sectors || []
-
-      console.log('🏗️ [DB] Sectors loaded:', {
-        warehouseId: warehouseId ?? 'all',
-        count: sectors?.length || 0,
-        sample: sectors?.slice(0, 3).map((s: any) => ({ id: s.id, zone: s.zone_name, type: s.type }))
-      })
-
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
   })
 }
