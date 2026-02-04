@@ -244,52 +244,94 @@ Replace `useEffect` navigation with:
 - Conditional rendering
 - Protected routes pattern
 
-#### 7. **Type-Safe IPC Layer**
-Replace `(window as any).electronAPI` with a properly typed injection:
+#### 7. **Type-Safe IPC Layer with Zod Contract**
+Replace `(window as any).electronAPI` with a Zod-based contract system:
 
 ```typescript
-// Define IPC interface in shared types
-type ElectronIpcApi = Readonly<{
-  locations: {
-    readonly getAll: (warehouseId?: string) => Promise<Result<LocationsData, AppError>>
-    readonly getById: (id: string) => Promise<Result<Location, AppError>>
-  }
-  // ... all other IPC channels
-}>
+// shared/ipc/contract.ts - Single source of truth
+import { z } from 'zod'
 
-// Inject at app initialization (not during renders)
-const createIpcApi = (): ElectronIpcApi => ({
-  locations: {
-    getAll: (warehouseId) =>
-      window.electronAPI.locations.getAll(warehouseId),
-    getById: (id) =>
-      window.electronAPI.locations.getById(id),
-  },
-  // ... map all channels
+const locationSchema = z.object({
+  id: z.string(),
+  code: z.string(),
+  type: z.string(),
+  // ... all fields
 })
 
-// Use React Context for dependency injection
-const IpcContext = createContext<ElectronIpcApi | null>(null)
+const locationsDataSchema = z.object({
+  locations: z.array(locationSchema),
+  kpis: z.object({
+    totalLocations: z.number(),
+    // ... all KPIs
+  }),
+})
 
-export const useIpc = (): ElectronIpcApi => {
-  const api = useContext(IpcContext)
-  if (!api) throw new Error('useIpc must be used within IpcProvider')
-  return api
+// IPC Contract - defined once, shared between frontend/backend
+const ipcContract = {
+  locations: {
+    getAll: {
+      input: z.object({ warehouseId: z.string().optional() }).optional(),
+      output: locationsDataSchema,
+    },
+  },
+  zones: {
+    getAll: {
+      input: z.object({ warehouseId: z.string().optional() }).optional(),
+      output: zonesDataSchema,
+    },
+  },
+} as const
+
+// Type inference from Zod schemas
+type IpcInput<T extends keyof IpcContract, M extends keyof IpcContract[T]> =
+  z.infer<IpcContract[T][M]['input']>
+type IpcOutput<T extends keyof IpcContract, M extends keyof IpcContract[T]> =
+  z.output<IpcContract[T][M]['output']>
+
+// Type-safe proxy generator
+type IpcProxy<T extends IpcContract> = {
+  [K in keyof T]: {
+    [M in keyof T[K]]: (
+      input: IpcInput<K, M>
+    ) => Promise<Result<IpcOutput<K, M>, AppError>>
+  }
 }
 
-// In App.tsx
-const ipcApi = createIpcApi()
+const createIpcProxy = <T extends IpcContract>(
+  channels: unknown
+): IpcProxy<T> => {
+  // Recursive proxy that validates input/output with Zod
+  return createProxy(channels, ipcContract)
+}
 
-<IpcProvider value={ipcApi}>
-  <App />
-</IpcProvider>
+// Usage - 100% type-safe, runtime validated
+const ipc = createIpcProxy<IpcContract>(window.electronAPI)
+
+const result = await ipc.locations.getAll({ warehouseId: 'WH-001' })
+// ↑ Compile-time type checking + Runtime Zod validation
+// Returns: Result<LocationsData, AppError>
 
 // Benefits:
-// - Full type safety chain
-// - No global mutable access
-// - Easy to test/mock
-// - Clear dependency graph
-// - Refactor-safe
+// - Single source of truth (no type duplication)
+// - Compile-time type safety (TypeScript)
+// - Runtime validation (Zod)
+// - Lightweight (~50kb vs 2MB for tRPC)
+// - Designed for IPC (not HTTP)
+// - Easy to test (mock contract)
+// - Refactor-safe (contract break = compile error)
+```
+
+**Backend (Electron Main):**
+```typescript
+// backend/ipc/handlers.ts
+import { ipcHandler } from './ipc-handler'
+import { ipcContract } from '../../shared/ipc/contract'
+
+ipcHandler.handle(ipcContract.locations.getAll, async (input) => {
+  // Input already validated by Zod
+  const data = await getLocationsByWarehouse(input?.warehouseId)
+  return success(data) // Output validated by Zod
+})
 ```
 
 ---
@@ -314,33 +356,34 @@ const ipcApi = createIpcApi()
    - `AppError` type
    - Error domains and codes
 
-2. **Create type-safe IPC layer**
-   - Define `ElectronIpcApi` type
-   - Create `IpcContext` and `useIpc` hook
-   - Replace all `(window as any).electronAPI` accesses
-   - Implement dependency injection in App.tsx
+2. **Create Zod IPC contract**
+   - Define all Zod schemas for entities (Location, Zone, Sector, etc.)
+   - Create `ipcContract` with input/output schemas for all channels
+   - Add type inference utilities (`IpcInput`, `IpcOutput`)
+   - Implement `createIpcProxy()` with Zod validation
 
 3. **Create IPC wrapper**
    - Implement `safeIpcCall()` with retry logic
    - Add structured logging
+   - Replace all `(window as any).electronAPI` accesses with `ipc` proxy
 
-### Phase 2: Backend API (tRPC Pattern)
-1. **Create tRPC router**
+### Phase 2: Backend API (Direct Functions)
+1. **Create backend API layer**
    - Define API as readonly object with functions
    - All functions return `Result<T, AppError>`
    - No classes, no services, just functions
 
 2. **Update database layer**
    - Return typed results
-   - Add validation at boundaries
-   - Direct mapping to tRPC procedures
+   - Add validation at boundaries with Zod schemas
+   - Direct mapping to API functions
 
 ### Phase 3: Frontend Hooks
 1. **Simplify hooks**
    - Remove "god hook" anti-pattern
-   - Use tRPC procedures directly
-   - Each hook calls api.entities.xxx() directly
-   - Clear contract: `api.locations.getAll(warehouseId?)`
+   - Use IPC proxy directly through `ipc` object
+   - Each hook calls `ipc.entities.xxx()` directly
+   - Clear contract: `ipc.locations.getAll({ warehouseId })`
 
 2. **Fix navigation**
    - Remove `useEffect` navigation
