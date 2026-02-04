@@ -102,14 +102,3 @@ export interface TypedElectronAPI {
   }
 }
 
-// ============================================================================
-// WINDOW DECLARATION
-// ============================================================================
-
-declare global {
-  interface Window {
-    readonly typedElectronAPI: TypedElectronAPI
-  }
-}
-
-export {}

@@ -6,8 +6,6 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import type { Result } from '../../shared/types'
-import type { TypedElectronAPI } from '../../types/typed-electron-api'
 
 /**
  * Fetch locations for a warehouse

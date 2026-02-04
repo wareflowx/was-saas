@@ -73,7 +73,7 @@ function DataImportPage() {
             console.log('✅ [FRONTEND] Stats:', result.stats)
             if (result.errors && result.errors.length > 0) {
               console.error('❌ [FRONTEND] Generation failed with errors:')
-              result.errors.forEach((err, i) => {
+              result.errors.forEach((err: unknown, i: number) => {
                 console.error(`❌ [FRONTEND] Error ${i + 1}:`, err)
               })
             }
@@ -137,12 +137,6 @@ function DataImportPage() {
         </div>
       </SidebarProvider>
     )
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   const formatDuration = (ms: number) => {

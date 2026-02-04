@@ -438,7 +438,7 @@ contextBridge.exposeInMainWorld('typedElectronAPI', typedElectronAPI)
 declare global {
   interface Window {
     electronAPI: typeof electronAPI
-    typedElectronAPI: typeof typedElectronAPI
+    readonly typedElectronAPI: typeof typedElectronAPI
   }
 }
 
