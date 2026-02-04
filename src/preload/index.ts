@@ -353,6 +353,7 @@ contextBridge.exposeInMainWorld('electronAPI', electronAPI)
 const typedElectronAPI = {
   warehouses: {
     getAll: () => ipcRenderer.invoke('warehouses:getAll'),
+    getWithKPIs: () => ipcRenderer.invoke('warehouses:getWithKPIs'),
   },
 
   locations: {
@@ -369,9 +370,61 @@ const typedElectronAPI = {
     getAll: (params?: { warehouseId?: string }) =>
       ipcRenderer.invoke('sectors:getAll', params),
   },
+
+  products: {
+    getAll: (params: { warehouseId: string }) =>
+      ipcRenderer.invoke('products:getAll', params),
+  },
+
+  dashboard: {
+    getKPIs: (params: { warehouseId?: string }) =>
+      ipcRenderer.invoke('dashboard:getKPIs', params),
+  },
+
+  importHistory: {
+    getAll: (params?: { warehouseId?: string }) =>
+      ipcRenderer.invoke('importHistory:getAll', params),
+  },
+
+  receptions: {
+    getAll: (params: { warehouseId: string }) =>
+      ipcRenderer.invoke('receptions:getAll', params),
+  },
+
+  pickings: {
+    getAll: (params: { warehouseId: string }) =>
+      ipcRenderer.invoke('pickings:getAll', params),
+  },
+
+  returns: {
+    getAll: (params: { warehouseId: string }) =>
+      ipcRenderer.invoke('returns:getAll', params),
+  },
+
+  restockings: {
+    getAll: (params: { warehouseId: string }) =>
+      ipcRenderer.invoke('restockings:getAll', params),
+  },
+
+  orders: {
+    getWithLines: (params: { warehouseId: string }) =>
+      ipcRenderer.invoke('orders:getWithLines', params),
+  },
+
+  analysis: {
+    abc: (params: { warehouseId: string; dateFrom?: string; dateTo?: string }) =>
+      ipcRenderer.invoke('analysis:abc', params),
+    deadStock: (params: {
+      warehouseId: string
+      thresholdDays?: number
+      criticalThreshold?: number
+      warningThreshold?: number
+    }) =>
+      ipcRenderer.invoke('analysis:deadStock', params),
+  },
 }
 
-contextBridge.exposeInMainMainWorld('typedElectronAPI', typedElectronAPI)
+contextBridge.exposeInMainWorld('typedElectronAPI', typedElectronAPI)
 
 // ============================================================================
 // TYPE DEFINITIONS FOR TYPESCRIPT
