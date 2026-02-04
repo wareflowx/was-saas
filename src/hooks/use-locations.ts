@@ -31,13 +31,13 @@ export function useLocations(warehouseId?: string) {
       }
 
       const data = await backend.getLocations({
-        warehouseId: warehouseId || firstWarehouse.id
+        warehouseId: warehouseId ?? undefined
       })
 
       const locations = data?.locations || []
 
       console.log('📍 [DB] Locations loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
+        warehouseId: warehouseId ?? 'all',
         count: locations?.length || 0,
         sample: locations?.slice(0, 2).map((l: any) => ({ id: l.id, code: l.code, zone: l.zone_name }))
       })
@@ -182,14 +182,15 @@ export function useZones(warehouseId?: string) {
         throw new Error('No warehouse found')
       }
 
+      // If warehouseId is provided (not undefined), use it; otherwise get all zones from all warehouses
       const data = await backend.getZones({
-        warehouseId: warehouseId || firstWarehouse.id
+        warehouseId: warehouseId ?? undefined
       })
 
       const zones = data?.zones || []
 
       console.log('🗺️ [DB] Zones loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
+        warehouseId: warehouseId ?? 'all',
         count: zones?.length || 0,
         sample: zones?.slice(0, 3).map((z: any) => ({ id: z.id, name: z.name, type: z.type }))
       })
@@ -218,13 +219,13 @@ export function useSectors(warehouseId?: string) {
       }
 
       const data = await backend.getSectors({
-        warehouseId: warehouseId || firstWarehouse.id
+        warehouseId: warehouseId ?? undefined
       })
 
       const sectors = data?.sectors || []
 
       console.log('🏗️ [DB] Sectors loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
+        warehouseId: warehouseId ?? 'all',
         count: sectors?.length || 0,
         sample: sectors?.slice(0, 3).map((s: any) => ({ id: s.id, zone: s.zone_name, type: s.type }))
       })
