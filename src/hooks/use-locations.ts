@@ -44,9 +44,6 @@ export function useLocations(warehouseId?: string) {
 
       return data
     },
-
-    // Only run query if warehouseId is provided or we have warehouses
-    enabled: !!warehouseId,
   })
 }
 
@@ -199,7 +196,6 @@ export function useZones(warehouseId?: string) {
 
       return data
     },
-    enabled: !!warehouseId,
   })
 }
 
@@ -235,7 +231,6 @@ export function useSectors(warehouseId?: string) {
 
       return data
     },
-    enabled: !!warehouseId,
   })
 }
 
@@ -333,7 +328,6 @@ export function useReceptions(warehouseId?: string) {
 
       return data
     },
-    enabled: !!warehouseId,
   })
 }
 
@@ -374,7 +368,6 @@ export function usePickings(warehouseId?: string) {
 
       return data
     },
-    enabled: !!warehouseId,
   })
 }
 
@@ -415,7 +408,6 @@ export function useReturns(warehouseId?: string) {
 
       return data
     },
-    enabled: !!warehouseId,
   })
 }
 
@@ -456,7 +448,6 @@ export function useRestockings(warehouseId?: string) {
 
       return data
     },
-    enabled: !!warehouseId,
   })
 }
 
@@ -498,7 +489,6 @@ export function useOrdersWithLines(warehouseId?: string) {
 
       return data
     },
-    enabled: !!warehouseId,
   })
 }
 
@@ -531,6 +521,5 @@ export function useProducts(warehouseId?: string) {
 
       return data
     },
-    enabled: !!warehouseId,
   })
 }
