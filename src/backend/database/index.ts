@@ -176,8 +176,9 @@ export const warehouseExists = (warehouseId: string): boolean => {
  */
 export const getAllWarehouses = () => {
   const db = getDbRaw()
+  // Order by id to ensure consistent ordering (WH-FR-01 first)
   return db
-    .prepare('SELECT * FROM warehouses ORDER BY name')
+    .prepare('SELECT * FROM warehouses ORDER BY id')
     .all()
 }
 
