@@ -210,11 +210,11 @@ export declare const getProductMovementTotals: (warehouseId: string, type: strin
  */
 export declare const getDeadStock: (warehouseId: string, thresholdDays?: number) => Promise<any>;
 /**
- * Get all locations for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all locations for a specific warehouse, or all locations if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Locations data with KPIs
  */
-export declare const getLocationsByWarehouse: (warehouseId: string) => Promise<{
+export declare const getLocationsByWarehouse: (warehouseId?: string) => Promise<{
     kpis: {
         totalLocations: number;
         availableLocations: number;
@@ -257,11 +257,11 @@ export declare const getLocationsByWarehouse: (warehouseId: string) => Promise<{
     }[];
 }>;
 /**
- * Get all zones for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all zones for a specific warehouse, or all zones if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Zones data with KPIs
  */
-export declare const getZonesByWarehouse: (warehouseId: string) => Promise<{
+export declare const getZonesByWarehouse: (warehouseId?: string) => Promise<{
     kpis: {
         totalZones: number;
         activeZones: number;
@@ -292,11 +292,11 @@ export declare const getZonesByWarehouse: (warehouseId: string) => Promise<{
     }[];
 }>;
 /**
- * Get all sectors for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all sectors for a specific warehouse, or all sectors if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Sectors data with KPIs
  */
-export declare const getSectorsByWarehouse: (warehouseId: string) => Promise<{
+export declare const getSectorsByWarehouse: (warehouseId?: string) => Promise<{
     kpis: {
         totalSectors: number;
         activeSectors: number;

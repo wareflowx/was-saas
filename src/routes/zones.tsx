@@ -14,13 +14,12 @@ function ZonesRoute() {
   // Fetch warehouses to get default warehouse ID
   const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
 
-  // Fetch zones data from backend
-  const defaultWarehouseId = warehouses?.[0]?.id
+  // Fetch zones data from backend (all zones from all warehouses)
   const {
     data: zonesData,
     isLoading: isLoadingZones,
     error,
-  } = useZones(defaultWarehouseId)
+  } = useZones(undefined) // Pass undefined to get all zones from all warehouses
 
   // Redirect to onboarding if no warehouses exist
   // Commented out: zones can exist independently

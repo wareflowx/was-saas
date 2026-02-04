@@ -267,8 +267,8 @@ exports.getDeadStock = getDeadStock;
 // LOCATIONS
 // ============================================================================
 /**
- * Get all locations for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all locations for a specific warehouse, or all locations if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Locations data with KPIs
  */
 const getLocationsByWarehouse = async (warehouseId) => {
@@ -302,7 +302,7 @@ const getLocationsByWarehouse = async (warehouseId) => {
         .leftJoin(drizzle_schema_1.zones, (0, drizzle_orm_1.eq)(drizzle_schema_1.locations.zoneId, drizzle_schema_1.zones.id))
         .leftJoin(drizzle_schema_1.sectors, (0, drizzle_orm_1.eq)(drizzle_schema_1.locations.sectorId, drizzle_schema_1.sectors.id))
         .leftJoin(drizzle_schema_1.warehouses, (0, drizzle_orm_1.eq)(drizzle_schema_1.locations.warehouseId, drizzle_schema_1.warehouses.id))
-        .where((0, drizzle_orm_1.eq)(drizzle_schema_1.locations.warehouseId, warehouseId))
+        .where(warehouseId ? (0, drizzle_orm_1.eq)(drizzle_schema_1.locations.warehouseId, warehouseId) : undefined)
         .orderBy(drizzle_schema_1.locations.code);
     // Get products for each location
     const locationsWithProducts = await Promise.all(locationsData.map(async (loc) => {
@@ -315,7 +315,9 @@ const getLocationsByWarehouse = async (warehouseId) => {
         })
             .from(drizzle_schema_1.inventory)
             .innerJoin(drizzle_schema_1.products, (0, drizzle_orm_1.eq)(drizzle_schema_1.inventory.productId, drizzle_schema_1.products.id))
-            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(drizzle_schema_1.inventory.locationId, loc.id), (0, drizzle_orm_1.eq)(drizzle_schema_1.inventory.warehouseId, warehouseId)));
+            .where(warehouseId
+            ? (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(drizzle_schema_1.inventory.locationId, loc.id), (0, drizzle_orm_1.eq)(drizzle_schema_1.inventory.warehouseId, warehouseId))
+            : (0, drizzle_orm_1.eq)(drizzle_schema_1.inventory.locationId, loc.id));
         return {
             ...loc,
             products: locationProducts,
@@ -348,8 +350,8 @@ exports.getLocationsByWarehouse = getLocationsByWarehouse;
 // ZONES
 // ============================================================================
 /**
- * Get all zones for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all zones for a specific warehouse, or all zones if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Zones data with KPIs
  */
 const getZonesByWarehouse = async (warehouseId) => {
@@ -376,7 +378,7 @@ const getZonesByWarehouse = async (warehouseId) => {
     })
         .from(drizzle_schema_1.zones)
         .leftJoin(drizzle_schema_1.warehouses, (0, drizzle_orm_1.eq)(drizzle_schema_1.zones.warehouseId, drizzle_schema_1.warehouses.id))
-        .where((0, drizzle_orm_1.eq)(drizzle_schema_1.zones.warehouseId, warehouseId))
+        .where(warehouseId ? (0, drizzle_orm_1.eq)(drizzle_schema_1.zones.warehouseId, warehouseId) : undefined)
         .orderBy(drizzle_schema_1.zones.code);
     // Calculate KPIs
     const totalZones = rows.length;
@@ -410,8 +412,8 @@ exports.getZonesByWarehouse = getZonesByWarehouse;
 // SECTORS
 // ============================================================================
 /**
- * Get all sectors for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all sectors for a specific warehouse, or all sectors if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Sectors data with KPIs
  */
 const getSectorsByWarehouse = async (warehouseId) => {
@@ -441,7 +443,7 @@ const getSectorsByWarehouse = async (warehouseId) => {
         .from(drizzle_schema_1.sectors)
         .leftJoin(drizzle_schema_1.zones, (0, drizzle_orm_1.eq)(drizzle_schema_1.sectors.zoneId, drizzle_schema_1.zones.id))
         .leftJoin(drizzle_schema_1.warehouses, (0, drizzle_orm_1.eq)(drizzle_schema_1.sectors.warehouseId, drizzle_schema_1.warehouses.id))
-        .where((0, drizzle_orm_1.eq)(drizzle_schema_1.sectors.warehouseId, warehouseId))
+        .where(warehouseId ? (0, drizzle_orm_1.eq)(drizzle_schema_1.sectors.warehouseId, warehouseId) : undefined)
         .orderBy(drizzle_schema_1.sectors.code);
     // Calculate KPIs
     const totalSectors = rows.length;

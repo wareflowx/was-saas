@@ -15,13 +15,12 @@ function LocationsRoute() {
   // Fetch warehouses to get default warehouse ID
   const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
 
-  // Fetch locations data from backend
-  const defaultWarehouseId = warehouses?.[0]?.id
+  // Fetch locations data from backend (all locations from all warehouses)
   const {
     data: locationsData,
     isLoading: isLoadingLocations,
     error,
-  } = useLocations(defaultWarehouseId)
+  } = useLocations(undefined) // Pass undefined to get all locations from all warehouses
 
   // Redirect to onboarding if no warehouses exist
   useEffect(() => {

@@ -14,13 +14,12 @@ function SectorsRoute() {
   // Fetch warehouses to get default warehouse ID
   const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
 
-  // Fetch sectors data from backend
-  const defaultWarehouseId = warehouses?.[0]?.id
+  // Fetch sectors data from backend (all sectors from all warehouses)
   const {
     data: sectorsData,
     isLoading: isLoadingSectors,
     error,
-  } = useSectors(defaultWarehouseId)
+  } = useSectors(undefined) // Pass undefined to get all sectors from all warehouses
 
   // Loading state
   if (isLoadingWarehouses || isLoadingSectors) {

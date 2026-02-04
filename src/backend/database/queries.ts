@@ -372,11 +372,11 @@ export const getDeadStock = async (warehouseId: string, thresholdDays: number = 
 // ============================================================================
 
 /**
- * Get all locations for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all locations for a specific warehouse, or all locations if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Locations data with KPIs
  */
-export const getLocationsByWarehouse = async (warehouseId: string) => {
+export const getLocationsByWarehouse = async (warehouseId?: string) => {
   const db = getDatabase()
 
   const locationsData = await db
@@ -408,7 +408,7 @@ export const getLocationsByWarehouse = async (warehouseId: string) => {
     .leftJoin(zones, eq(locations.zoneId, zones.id))
     .leftJoin(sectors, eq(locations.sectorId, sectors.id))
     .leftJoin(warehouses, eq(locations.warehouseId, warehouses.id))
-    .where(eq(locations.warehouseId, warehouseId))
+    .where(warehouseId ? eq(locations.warehouseId, warehouseId) : undefined)
     .orderBy(locations.code)
 
   // Get products for each location
@@ -423,10 +423,13 @@ export const getLocationsByWarehouse = async (warehouseId: string) => {
         })
         .from(inventory)
         .innerJoin(products, eq(inventory.productId, products.id))
-        .where(and(
-          eq(inventory.locationId, loc.id),
-          eq(inventory.warehouseId, warehouseId)
-        ))
+        .where(warehouseId
+          ? and(
+              eq(inventory.locationId, loc.id),
+              eq(inventory.warehouseId, warehouseId)
+            )
+          : eq(inventory.locationId, loc.id)
+        )
 
       return {
         ...loc,
@@ -465,11 +468,11 @@ export const getLocationsByWarehouse = async (warehouseId: string) => {
 // ============================================================================
 
 /**
- * Get all zones for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all zones for a specific warehouse, or all zones if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Zones data with KPIs
  */
-export const getZonesByWarehouse = async (warehouseId: string) => {
+export const getZonesByWarehouse = async (warehouseId?: string) => {
   const db = getDatabase()
 
   const rows = await db
@@ -494,7 +497,7 @@ export const getZonesByWarehouse = async (warehouseId: string) => {
     })
     .from(zones)
     .leftJoin(warehouses, eq(zones.warehouseId, warehouses.id))
-    .where(eq(zones.warehouseId, warehouseId))
+    .where(warehouseId ? eq(zones.warehouseId, warehouseId) : undefined)
     .orderBy(zones.code)
 
   // Calculate KPIs
@@ -532,11 +535,11 @@ export const getZonesByWarehouse = async (warehouseId: string) => {
 // ============================================================================
 
 /**
- * Get all sectors for a specific warehouse
- * @param warehouseId - Warehouse ID filter (REQUIRED)
+ * Get all sectors for a specific warehouse, or all sectors if no warehouse specified
+ * @param warehouseId - Warehouse ID filter (optional, returns all if not provided)
  * @returns Sectors data with KPIs
  */
-export const getSectorsByWarehouse = async (warehouseId: string) => {
+export const getSectorsByWarehouse = async (warehouseId?: string) => {
   const db = getDatabase()
 
   const rows = await db
@@ -564,7 +567,7 @@ export const getSectorsByWarehouse = async (warehouseId: string) => {
     .from(sectors)
     .leftJoin(zones, eq(sectors.zoneId, zones.id))
     .leftJoin(warehouses, eq(sectors.warehouseId, warehouses.id))
-    .where(eq(sectors.warehouseId, warehouseId))
+    .where(warehouseId ? eq(sectors.warehouseId, warehouseId) : undefined)
     .orderBy(sectors.code)
 
   // Calculate KPIs
