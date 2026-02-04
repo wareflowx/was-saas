@@ -22,6 +22,7 @@ import type {
   ABCAnalysisResult,
   DeadStockAnalysisResult,
 } from '../shared/schemas/entities'
+import type { ImportResult } from '../backend/import/types'
 
 // ============================================================================
 // TYPED ELECTRON API TYPE
@@ -59,6 +60,10 @@ export interface TypedElectronAPI {
 
   readonly importHistory: {
     readonly getAll: (params?: { warehouseId?: string }) => Promise<Result<readonly ImportHistoryEntry[], AppError>>
+  }
+
+  readonly import: {
+    readonly generateMockData: (warehouseId: string) => Promise<ImportResult>
   }
 
   readonly receptions: {

@@ -386,6 +386,11 @@ const typedElectronAPI = {
       ipcRenderer.invoke('importHistory:getAll', params),
   },
 
+  import: {
+    generateMockData: (warehouseId: string) =>
+      ipcRenderer.invoke('import:generate-mock-data', warehouseId),
+  },
+
   receptions: {
     getAll: (params: { warehouseId: string }) =>
       ipcRenderer.invoke('receptions:getAll', params),

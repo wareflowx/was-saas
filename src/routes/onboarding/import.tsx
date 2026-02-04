@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, ArrowRight, Upload, FileSpreadsheet, Loader2, CheckCircle2, FlaskConical, Database } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useBackend } from "@/hooks/use-backend"
 
 export const Route = createFileRoute("/onboarding/import")({
   component: DataImport,
@@ -15,7 +14,6 @@ type LoadingStep = {
 
 function DataImport() {
   const navigate = useNavigate()
-  const backend = useBackend()
   const [isLoading, setIsLoading] = useState(false)
   const [useMockData, setUseMockData] = useState(false)
 
@@ -52,7 +50,7 @@ function DataImport() {
         if (index === 1 && useMockData) {
           try {
             // The mock data generator will create all warehouses with their zones, sectors, locations, etc.
-            await backend.generateMockData(warehouseId)
+            await window.typedElectronAPI.import.generateMockData(warehouseId)
           } catch (error) {
             console.error('Error generating mock data:', error)
           }

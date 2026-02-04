@@ -3,7 +3,6 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { Upload, FileSpreadsheet, Loader2, CheckCircle2, FlaskConical, Database, Clock, FileText, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useBackend } from "@/hooks/use-backend"
 import { useWarehouses } from "@/hooks/use-locations"
 import { useImportHistory } from "@/hooks/use-locations"
 
@@ -19,7 +18,6 @@ type LoadingStep = {
 
 function DataImportPage() {
   const navigate = useNavigate()
-  const backend = useBackend()
   const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
   const { data: importHistory, isLoading: isLoadingHistory } = useImportHistory()
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("")
@@ -67,10 +65,8 @@ function DataImportPage() {
         if (index === 1 && useMockData) {
           console.log('🔄 [FRONTEND] Mock data generation triggered, index:', index, 'useMockData:', useMockData)
           try {
-            console.log('🔄 [FRONTEND] About to call backend.generateMockData for warehouse:', selectedWarehouseId)
-            console.log('🔄 [FRONTEND] backend object:', backend)
-            console.log('🔄 [FRONTEND] backend.generateMockData function:', backend.generateMockData)
-            const result = await backend.generateMockData(selectedWarehouseId)
+            console.log('🔄 [FRONTEND] About to call electronAPI.generateMockData for warehouse:', selectedWarehouseId)
+            const result = await window.typedElectronAPI.import.generateMockData(selectedWarehouseId)
             console.log('✅ [FRONTEND] generateMockData completed successfully, result:', result)
             console.log('✅ [FRONTEND] Status:', result.status)
             console.log('✅ [FRONTEND] Errors:', result.errors)
