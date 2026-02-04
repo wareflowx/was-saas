@@ -1,4 +1,5 @@
 import type { ABCAnalysisResult, ABCClass } from './types'
+import { getProductMovementTotals } from '../database/queries'
 
 // ============================================================================
 // ABC ANALYSIS FUNCTIONS
@@ -30,8 +31,6 @@ export const runABCAnalysis = (
   dateFrom?: string,
   dateTo?: string
 ): ABCAnalysisResult => {
-  const { getProductMovementTotals } = require('../database/queries')
-
   // Get product movement totals (outbound = sales/picking)
   const movements = getProductMovementTotals(
     warehouseId,

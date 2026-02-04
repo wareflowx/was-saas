@@ -1,4 +1,5 @@
 import type { DeadStockAnalysisResult, DeadStockProduct, DeadStockLevel } from './types'
+import { getDeadStock } from '../database/queries'
 
 // ============================================================================
 // DEAD STOCK ANALYSIS FUNCTIONS
@@ -18,8 +19,6 @@ export const runDeadStockAnalysis = (
   criticalThreshold: number = 180,
   warningThreshold: number = 90
 ): DeadStockAnalysisResult => {
-  const { getDeadStock } = require('../database/queries')
-
   // Get dead stock data
   const deadStockData = getDeadStock(warehouseId)
 
