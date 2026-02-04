@@ -436,3 +436,6 @@ declare global {
     typedElectronAPI: typeof typedElectronAPI
   }
 }
+
+// Import and re-export the proper typed API types
+export type { TypedElectronAPI } from '../types/typed-electron-api'

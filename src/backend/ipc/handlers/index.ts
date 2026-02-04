@@ -7,7 +7,39 @@
 
 import { ipcMain } from 'electron'
 import type { Result, AppError } from '../../../shared/types'
-import { success, failure, ipcError } from '../../../shared/types'
+import { success, failure, ipcError, validationError } from '../../../shared/types'
+import type {
+  WarehousesData,
+  LocationsData,
+  ZonesData,
+  SectorsData,
+  ProductsData,
+  DashboardData,
+  ImportHistoryEntry,
+  ReceptionsData,
+  PickingsData,
+  ReturnsData,
+  RestockingsData,
+  OrdersData,
+  ABCAnalysisResult,
+  DeadStockAnalysisResult,
+} from '../../../shared/schemas/entities'
+import {
+  warehousesDataSchema,
+  locationsDataSchema,
+  zonesDataSchema,
+  sectorsDataSchema,
+  productsDataSchema,
+  dashboardDataSchema,
+  importHistoryEntrySchema,
+  receptionsDataSchema,
+  pickingsDataSchema,
+  returnsDataSchema,
+  restockingsDataSchema,
+  ordersDataSchema,
+  abcAnalysisResultSchema,
+  deadStockAnalysisResultSchema,
+} from '../../../shared/schemas/entities'
 import {
   getLocationsByWarehouse,
   getZonesByWarehouse,
@@ -74,11 +106,15 @@ export const registerIpcHandlers = (): void => {
 /**
  * Warehouses handlers
  */
-const handleWarehousesGetAll = async (): Promise<Result<any, AppError>> => {
+const handleWarehousesGetAll = async (): Promise<Result<WarehousesData, AppError>> => {
   try {
-    const data = await getAllWarehouses()
+    const result = await getAllWarehouses()
 
-    if (!data) {
+    if (!result.success) {
+      return result
+    }
+
+    if (!result.data || result.data.length === 0) {
       return failure({
         domain: 'DATABASE',
         code: 'QUERY_FAILED',
@@ -88,8 +124,13 @@ const handleWarehousesGetAll = async (): Promise<Result<any, AppError>> => {
       })
     }
 
-    // TODO: Wrap in proper schema validation
-    return success(data)
+    // Validate with Zod schema
+    const validation = warehousesDataSchema.safeParse(result.data)
+    if (!validation.success) {
+      return failure(validationError('WarehousesData', result.data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('warehouses:getAll', error))
   }
@@ -101,7 +142,7 @@ const handleWarehousesGetAll = async (): Promise<Result<any, AppError>> => {
 const handleLocationsGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<LocationsData, AppError>> => {
   try {
     const data = await getLocationsByWarehouse(
       (input as { warehouseId?: string })?.warehouseId
@@ -117,7 +158,13 @@ const handleLocationsGetAll = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = locationsDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('LocationsData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('locations:getAll', error))
   }
@@ -129,7 +176,7 @@ const handleLocationsGetAll = async (
 const handleZonesGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<ZonesData, AppError>> => {
   try {
     const data = await getZonesByWarehouse(
       (input as { warehouseId?: string })?.warehouseId
@@ -145,7 +192,13 @@ const handleZonesGetAll = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = zonesDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('ZonesData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('zones:getAll', error))
   }
@@ -157,7 +210,7 @@ const handleZonesGetAll = async (
 const handleSectorsGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<SectorsData, AppError>> => {
   try {
     const data = await getSectorsByWarehouse(
       (input as { warehouseId?: string })?.warehouseId
@@ -173,7 +226,13 @@ const handleSectorsGetAll = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = sectorsDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('SectorsData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('sectors:getAll', error))
   }
@@ -182,7 +241,7 @@ const handleSectorsGetAll = async (
 /**
  * Warehouses with KPIs handler
  */
-const handleWarehousesGetWithKPIs = async (): Promise<Result<any, AppError>> => {
+const handleWarehousesGetWithKPIs = async (): Promise<Result<WarehousesData, AppError>> => {
   try {
     const data = await getWarehousesWithKPIs()
 
@@ -196,7 +255,13 @@ const handleWarehousesGetWithKPIs = async (): Promise<Result<any, AppError>> => 
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = warehousesDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('WarehousesData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('warehouses:getWithKPIs', error))
   }
@@ -208,7 +273,7 @@ const handleWarehousesGetWithKPIs = async (): Promise<Result<any, AppError>> => 
 const handleProductsGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<ProductsData, AppError>> => {
   try {
     const { warehouseId } = input as { warehouseId: string }
 
@@ -234,8 +299,8 @@ const handleProductsGetAll = async (
       })
     }
 
-    // TODO: Calculate KPIs and wrap in proper schema validation
-    return success({
+    // Build response with KPIs
+    const responseData = {
       kpis: {
         totalProducts: products.length,
         inStock: products.filter((p: any) => p.currentQuantity && p.currentQuantity > 0).length,
@@ -246,7 +311,15 @@ const handleProductsGetAll = async (
         categories: new Set(products.map((p: any) => p.category)).size,
       },
       products,
-    })
+    }
+
+    // Validate with Zod schema
+    const validation = productsDataSchema.safeParse(responseData)
+    if (!validation.success) {
+      return failure(validationError('ProductsData', responseData, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('products:getAll', error))
   }
@@ -258,7 +331,7 @@ const handleProductsGetAll = async (
 const handleDashboardGetKPIs = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<DashboardData, AppError>> => {
   try {
     const { warehouseId } = input as { warehouseId?: string }
     const data = await getDashboardKPIs(warehouseId)
@@ -273,7 +346,13 @@ const handleDashboardGetKPIs = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = dashboardDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('DashboardData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('dashboard:getKPIs', error))
   }
@@ -285,7 +364,7 @@ const handleDashboardGetKPIs = async (
 const handleImportHistoryGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<readonly ImportHistoryEntry[], AppError>> => {
   try {
     const { warehouseId } = input as { warehouseId?: string }
     const data = await getImportHistory(warehouseId)
@@ -300,7 +379,13 @@ const handleImportHistoryGetAll = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = importHistoryEntrySchema.array().safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('ImportHistoryEntry', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('importHistory:getAll', error))
   }
@@ -312,7 +397,7 @@ const handleImportHistoryGetAll = async (
 const handleReceptionsGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<ReceptionsData, AppError>> => {
   try {
     const { warehouseId } = input as { warehouseId: string }
 
@@ -338,7 +423,13 @@ const handleReceptionsGetAll = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = receptionsDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('ReceptionsData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('receptions:getAll', error))
   }
@@ -350,7 +441,7 @@ const handleReceptionsGetAll = async (
 const handlePickingsGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<PickingsData, AppError>> => {
   try {
     const { warehouseId } = input as { warehouseId: string }
 
@@ -376,7 +467,13 @@ const handlePickingsGetAll = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = pickingsDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('PickingsData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('pickings:getAll', error))
   }
@@ -388,7 +485,7 @@ const handlePickingsGetAll = async (
 const handleReturnsGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<ReturnsData, AppError>> => {
   try {
     const { warehouseId } = input as { warehouseId: string }
 
@@ -414,7 +511,13 @@ const handleReturnsGetAll = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = returnsDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('ReturnsData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('returns:getAll', error))
   }
@@ -426,7 +529,7 @@ const handleReturnsGetAll = async (
 const handleRestockingsGetAll = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<RestockingsData, AppError>> => {
   try {
     const { warehouseId } = input as { warehouseId: string }
 
@@ -452,7 +555,13 @@ const handleRestockingsGetAll = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = restockingsDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('RestockingsData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('restockings:getAll', error))
   }
@@ -464,7 +573,7 @@ const handleRestockingsGetAll = async (
 const handleOrdersGetWithLines = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<OrdersData, AppError>> => {
   try {
     const { warehouseId } = input as { warehouseId: string }
 
@@ -490,7 +599,13 @@ const handleOrdersGetWithLines = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = ordersDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('OrdersData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('orders:getWithLines', error))
   }
@@ -502,7 +617,7 @@ const handleOrdersGetWithLines = async (
 const handleAnalysisABC = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<ABCAnalysisResult, AppError>> => {
   try {
     const params = input as {
       warehouseId: string
@@ -532,7 +647,13 @@ const handleAnalysisABC = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = abcAnalysisResultSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('ABCAnalysisResult', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('analysis:abc', error))
   }
@@ -544,7 +665,7 @@ const handleAnalysisABC = async (
 const handleAnalysisDeadStock = async (
   _event: Electron.IpcMainInvokeEvent,
   input: unknown
-): Promise<Result<any, AppError>> => {
+): Promise<Result<DeadStockAnalysisResult, AppError>> => {
   try {
     const params = input as {
       warehouseId: string
@@ -578,7 +699,13 @@ const handleAnalysisDeadStock = async (
       })
     }
 
-    return success(data)
+    // Validate with Zod schema
+    const validation = deadStockAnalysisResultSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('DeadStockAnalysisResult', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
   } catch (error) {
     return failure(ipcError('analysis:deadStock', error))
   }

@@ -23,7 +23,7 @@ export function useLocationsTyped(warehouseId?: string) {
       kpis: unknown
     }> => {
       // Use typed IPC instead of useBackend
-      const result = await (window as any).typedElectronAPI.locations
+      const result = await window.typedElectronAPI.locations
         .getAll({ warehouseId })
 
       // Handle Result<T, E>
@@ -53,7 +53,7 @@ export function useLocationsResult(warehouseId?: string): Result<{
       locations: unknown[]
       kpis: unknown
     }> => {
-      const result = await (window as any).typedElectronAPI.locations
+      const result = await window.typedElectronAPI.locations
         .getAll({ warehouseId })
 
       // Return Result directly - let caller handle it

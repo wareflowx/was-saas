@@ -7,6 +7,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import type { Result } from '../../shared/types'
+import type { TypedElectronAPI } from '../../types/typed-electron-api'
 
 /**
  * Fetch locations for a warehouse
@@ -18,7 +19,7 @@ export function useLocations(warehouseId?: string) {
     queryKey: ['locations', warehouseId],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.locations
+      const result = await window.typedElectronAPI.locations
         .getAll({ warehouseId })
 
       // Handle Result<T, E> - throw error for React Query to catch
@@ -40,7 +41,7 @@ export function useWarehouses() {
     queryKey: ['warehouses'],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.warehouses.getAll()
+      const result = await window.typedElectronAPI.warehouses.getAll()
 
       // Handle Result<T, E> - throw error for React Query to catch
       if (result.success) {
@@ -61,7 +62,7 @@ export function useWarehousesWithKPIs() {
     queryKey: ['warehouses', 'kpis'],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.warehouses.getWithKPIs()
+      const result = await window.typedElectronAPI.warehouses.getWithKPIs()
 
       if (result.success) {
         return result.data
@@ -89,7 +90,7 @@ export function useABCAnalysis(
     queryKey: ['analysis', 'abc', warehouseId, params],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.analysis.abc({
+      const result = await window.typedElectronAPI.analysis.abc({
         warehouseId,
         ...params,
       })
@@ -123,7 +124,7 @@ export function useDeadStockAnalysis(
     queryKey: ['analysis', 'dead-stock', warehouseId, params],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.analysis.deadStock({
+      const result = await window.typedElectronAPI.analysis.deadStock({
         warehouseId,
         ...params,
       })
@@ -149,7 +150,7 @@ export function useZones(warehouseId?: string) {
     queryKey: ['zones', warehouseId],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.zones
+      const result = await window.typedElectronAPI.zones
         .getAll({ warehouseId })
 
       // Handle Result<T, E> - throw error for React Query to catch
@@ -172,7 +173,7 @@ export function useSectors(warehouseId?: string) {
     queryKey: ['sectors', warehouseId],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.sectors
+      const result = await window.typedElectronAPI.sectors
         .getAll({ warehouseId })
 
       // Handle Result<T, E> - throw error for React Query to catch
@@ -195,7 +196,7 @@ export function useImportHistory(warehouseId?: string) {
     queryKey: ['import-history', warehouseId],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.importHistory.getAll({
+      const result = await window.typedElectronAPI.importHistory.getAll({
         warehouseId,
       })
 
@@ -218,7 +219,7 @@ export function useDashboardKPIs(warehouseId?: string) {
     queryKey: ['dashboard', 'kpis', warehouseId],
 
     queryFn: async () => {
-      const result = await (window as any).typedElectronAPI.dashboard.getKPIs({
+      const result = await window.typedElectronAPI.dashboard.getKPIs({
         warehouseId,
       })
 
@@ -245,7 +246,7 @@ export function useReceptions(warehouseId?: string) {
         throw new Error('warehouseId is required')
       }
 
-      const result = await (window as any).typedElectronAPI.receptions.getAll({
+      const result = await window.typedElectronAPI.receptions.getAll({
         warehouseId,
       })
 
@@ -274,7 +275,7 @@ export function usePickings(warehouseId?: string) {
         throw new Error('warehouseId is required')
       }
 
-      const result = await (window as any).typedElectronAPI.pickings.getAll({
+      const result = await window.typedElectronAPI.pickings.getAll({
         warehouseId,
       })
 
@@ -303,7 +304,7 @@ export function useReturns(warehouseId?: string) {
         throw new Error('warehouseId is required')
       }
 
-      const result = await (window as any).typedElectronAPI.returns.getAll({
+      const result = await window.typedElectronAPI.returns.getAll({
         warehouseId,
       })
 
@@ -332,7 +333,7 @@ export function useRestockings(warehouseId?: string) {
         throw new Error('warehouseId is required')
       }
 
-      const result = await (window as any).typedElectronAPI.restockings.getAll({
+      const result = await window.typedElectronAPI.restockings.getAll({
         warehouseId,
       })
 
@@ -361,7 +362,7 @@ export function useOrdersWithLines(warehouseId?: string) {
         throw new Error('warehouseId is required')
       }
 
-      const result = await (window as any).typedElectronAPI.orders.getWithLines({
+      const result = await window.typedElectronAPI.orders.getWithLines({
         warehouseId,
       })
 
@@ -390,7 +391,7 @@ export function useProducts(warehouseId?: string) {
         throw new Error('warehouseId is required')
       }
 
-      const result = await (window as any).typedElectronAPI.products.getAll({
+      const result = await window.typedElectronAPI.products.getAll({
         warehouseId,
       })
 
