@@ -87,9 +87,10 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
    */
   transform: (
     _input: unknown,
-    context: TransformContext
+    _context: TransformContext
   ): NormalizedData => {
-    const { warehouseId } = context
+    // Note: warehouseId from context is intentionally ignored
+    // We always use the first warehouse to ensure consistency with frontend hooks
 
     // Generate warehouses first (generates 2-3 warehouses)
     const warehouses = generateMockWarehouses()
