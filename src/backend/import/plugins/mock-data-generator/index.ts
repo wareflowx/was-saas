@@ -94,9 +94,10 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
     // Generate warehouses first (generates 2-3 warehouses)
     const warehouses = generateMockWarehouses()
 
-    // Use the first warehouse for zones, sectors, locations (or use provided warehouseId if it exists)
+    // Always use the first warehouse for zones, sectors, locations
+    // This ensures that the default warehouse used by hooks has data
     const primaryWarehouseId = warehouses[0].id
-    const effectiveWarehouseId = warehouseId || primaryWarehouseId
+    const effectiveWarehouseId = primaryWarehouseId
 
     // Generate mock data (zones, sectors, locations first, then products, inventory, movements)
     const zones = generateMockZones(effectiveWarehouseId)
