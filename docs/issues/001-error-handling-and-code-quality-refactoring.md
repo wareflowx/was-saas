@@ -66,37 +66,107 @@ We should adopt a functional programming approach with the following patterns:
 Replace throwing exceptions with explicit error handling using discriminated unions:
 
 ```typescript
+// Discriminated union for explicit error handling
 type Result<T, E = AppError> =
-  | { success: true; data: T }
-  | { success: false; error: E }
+  | { readonly success: true; readonly data: T }
+  | { readonly success: false; readonly error: E }
+
+// Helper functions (pure, composable)
+const success = <T>(data: T): Result<T> => ({ success: true, data })
+const failure = <E>(error: E): Result<never, E> => ({ success: false, error })
+
+// Transformations
+const map = <T, U, E>(
+  result: Result<T, E>,
+  fn: (data: T) => U
+): Result<U, E> =>
+  result.success ? success(fn(result.data)) : result
+
+const chain = <T, U, E>(
+  result: Result<T, E>,
+  fn: (data: T) => Result<U, E>
+): Result<U, E> =>
+  result.success ? fn(result.data) : result
 
 // Benefits:
 // - Type-safe: forced to handle errors explicitly
 // - Composable: map, chain, flatMap operations
+// - Immutable: readonly properties prevent mutations
 // - No exceptions: predictable control flow
 ```
 
-#### 2. **Hierarchical Error Types**
-Define explicit error domains with structured information:
+#### 2. **Union Types for Error Domains**
+Use union types instead of enums for better type safety and functional programming:
 
 ```typescript
-enum ErrorDomain {
-  DATABASE = 'DATABASE',
-  IPC = 'IPC',
-  VALIDATION = 'VALIDATION',
-  NETWORK = 'NETWORK',
-  BUSINESS = 'BUSINESS'
+// Union type for error domains
+type ErrorDomain =
+  | 'DATABASE'
+  | 'IPC'
+  | 'VALIDATION'
+  | 'NETWORK'
+  | 'BUSINESS'
+
+// Error type as a product type (readonly for immutability)
+type AppError = {
+  readonly domain: ErrorDomain
+  readonly code: string
+  readonly message: string
+  readonly cause?: unknown
+  readonly context?: Readonly<Record<string, unknown>>
+  readonly timestamp: Date
+  readonly recoverable: boolean
 }
 
-interface AppError {
-  domain: ErrorDomain
-  code: string
+// Constructor functions (pure)
+const createError = (
+  domain: ErrorDomain,
+  code: string,
+  message: string,
+  options?: {
+    cause?: unknown
+    context?: Record<string, unknown>
+    recoverable?: boolean
+  }
+): AppError => ({
+  domain,
+  code,
+  message,
+  cause: options?.cause,
+  context: options?.context,
+  timestamp: new Date(),
+  recoverable: options?.recoverable ?? false
+})
+
+// Specific error creators
+const databaseError = (
+  operation: string,
+  table: string,
+  cause: unknown
+): AppError =>
+  createError('DATABASE', `DB_${operation.toUpperCase()}_FAILED`,
+    `Failed to ${operation} on ${table}`,
+    { cause, context: { table, operation } }
+  )
+
+const ipcError = (
+  channel: string,
+  cause: unknown
+): AppError =>
+  createError('IPC', 'IPC_CALL_FAILED',
+    `IPC call to '${channel}' failed`,
+    { cause, context: { channel }, recoverable: true }
+  )
+
+const validationError = (
+  field: string,
+  value: unknown,
   message: string
-  cause?: unknown
-  context?: Record<string, unknown>
-  timestamp: Date
-  recoverable: boolean  // Can this error be retried?
-}
+): AppError =>
+  createError('VALIDATION', 'VALIDATION_FAILED',
+    message,
+    { context: { field, value } }
+  )
 ```
 
 #### 3. **IPC Wrapper with Retry Logic**
