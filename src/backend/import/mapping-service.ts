@@ -275,25 +275,6 @@ export const applyMappings = (
 }
 
 /**
- * Save mapping preset for reuse
- * @param preset - Mapping preset to save
- */
-export const saveMappingPreset = (preset: MappingPreset): void => {
-  // TODO: Implement persistence to database
-  console.log('Saving mapping preset:', preset.id)
-}
-
-/**
- * Load mapping preset
- * @param presetId - Preset ID to load
- * @returns Mapping preset or null
- */
-export const loadMappingPreset = (_presetId: string): MappingPreset | null => {
-  // TODO: Implement loading from database
-  return null
-}
-
-/**
  * Get available schemas for mapping
  * @returns List of available schemas
  */
