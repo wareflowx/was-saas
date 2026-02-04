@@ -7,7 +7,6 @@
 
 import { useQuery } from '@tanstack/react-query'
 import type { Result } from '../../shared/types'
-import { useBackend } from './use-backend'
 
 /**
  * Fetch locations for a warehouse
@@ -19,7 +18,6 @@ export function useLocations(warehouseId?: string) {
     queryKey: ['locations', warehouseId],
 
     queryFn: async () => {
-      // Use typed IPC instead of useBackend
       const result = await (window as any).typedElectronAPI.locations
         .getAll({ warehouseId })
 
@@ -42,7 +40,6 @@ export function useWarehouses() {
     queryKey: ['warehouses'],
 
     queryFn: async () => {
-      // Use typed IPC instead of useBackend
       const result = await (window as any).typedElectronAPI.warehouses.getAll()
 
       // Handle Result<T, E> - throw error for React Query to catch
@@ -60,25 +57,17 @@ export function useWarehouses() {
  * @returns Query result with warehouses data and calculated KPIs
  */
 export function useWarehousesWithKPIs() {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['warehouses', 'kpis'],
+
     queryFn: async () => {
-      const data = await backend.getWarehousesWithKPIs()
+      const result = await (window as any).typedElectronAPI.warehouses.getWithKPIs()
 
-      console.log('📊 [DB] Warehouses with KPIs loaded:', {
-        count: data?.warehouses?.length || 0,
-        sample: data?.warehouses?.slice(0, 2).map((w: any) => ({
-          id: w.id,
-          name: w.name,
-          totalProducts: w.total_products,
-          totalMovements: w.total_movements,
-          locations: w.total_locations
-        }))
-      })
+      if (result.success) {
+        return result.data
+      }
 
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
   })
 }
@@ -96,22 +85,22 @@ export function useABCAnalysis(
     dateTo?: string
   }
 ) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['analysis', 'abc', warehouseId, params],
-    queryFn: async () => {
-      const analysis = await backend.runABCAnalysis({ warehouseId, ...params })
-      const products = analysis?.products || []
 
-      console.log('🔤 [DB] ABC Analysis loaded:', {
+    queryFn: async () => {
+      const result = await (window as any).typedElectronAPI.analysis.abc({
         warehouseId,
-        products: products?.length || 0,
-        categories: products?.slice(0, 3).map((p: any) => ({ sku: p.sku, abc: p.abc_class }))
+        ...params,
       })
 
-      return analysis
+      if (result.success) {
+        return result.data
+      }
+
+      throw new Error(result.error.message, { cause: result.error })
     },
+
     enabled: !!warehouseId,
   })
 }
@@ -130,22 +119,22 @@ export function useDeadStockAnalysis(
     warningThreshold?: number
   }
 ) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['analysis', 'dead-stock', warehouseId, params],
-    queryFn: async () => {
-      const analysis = await backend.runDeadStockAnalysis({ warehouseId, ...params })
-      const deadStock = analysis?.dead_stock || []
 
-      console.log('💀 [DB] Dead Stock Analysis loaded:', {
+    queryFn: async () => {
+      const result = await (window as any).typedElectronAPI.analysis.deadStock({
         warehouseId,
-        deadStockProducts: deadStock?.length || 0,
-        sample: deadStock?.slice(0, 2).map((p: any) => ({ sku: p.sku, daysSinceMovement: p.days_since_last_movement }))
+        ...params,
       })
 
-      return analysis
+      if (result.success) {
+        return result.data
+      }
+
+      throw new Error(result.error.message, { cause: result.error })
     },
+
     enabled: !!warehouseId,
   })
 }
@@ -160,7 +149,6 @@ export function useZones(warehouseId?: string) {
     queryKey: ['zones', warehouseId],
 
     queryFn: async () => {
-      // Use typed IPC instead of useBackend
       const result = await (window as any).typedElectronAPI.zones
         .getAll({ warehouseId })
 
@@ -184,7 +172,6 @@ export function useSectors(warehouseId?: string) {
     queryKey: ['sectors', warehouseId],
 
     queryFn: async () => {
-      // Use typed IPC instead of useBackend
       const result = await (window as any).typedElectronAPI.sectors
         .getAll({ warehouseId })
 
@@ -204,25 +191,19 @@ export function useSectors(warehouseId?: string) {
  * @returns Query result with import history data
  */
 export function useImportHistory(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['import-history', warehouseId],
-    queryFn: async () => {
-      const history = await backend.getImportHistory(warehouseId)
 
-      console.log('📥 [DB] Import History loaded:', {
-        warehouseId: warehouseId || 'all',
-        count: history?.length || 0,
-        imports: history?.slice(0, 3).map((h: any) => ({
-          id: h.id,
-          pluginId: h.plugin_id,
-          status: h.status,
-          rowsProcessed: h.rows_processed
-        }))
+    queryFn: async () => {
+      const result = await (window as any).typedElectronAPI.importHistory.getAll({
+        warehouseId,
       })
 
-      return history
+      if (result.success) {
+        return result.data
+      }
+
+      throw new Error(result.error.message, { cause: result.error })
     },
   })
 }
@@ -233,24 +214,19 @@ export function useImportHistory(warehouseId?: string) {
  * @returns Query result with dashboard KPIs and summary data
  */
 export function useDashboardKPIs(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['dashboard', 'kpis', warehouseId],
-    queryFn: async () => {
-      const kpis = await backend.getDashboardKPIs(warehouseId)
 
-      console.log('📈 [DB] Dashboard KPIs loaded:', {
-        warehouseId: warehouseId || 'all',
-        kpis: kpis?.kpis || {},
-        hasKpis: !!kpis?.kpis,
-        stockEvolutionPoints: kpis?.stockEvolution?.length || 0,
-        movementsByTypePoints: kpis?.movementsByType?.length || 0,
-        topProductsCount: kpis?.topProducts?.length || 0,
-        lowStockAlertsCount: kpis?.lowStockAlerts?.length || 0,
+    queryFn: async () => {
+      const result = await (window as any).typedElectronAPI.dashboard.getKPIs({
+        warehouseId,
       })
 
-      return kpis
+      if (result.success) {
+        return result.data
+      }
+
+      throw new Error(result.error.message, { cause: result.error })
     },
   })
 }
@@ -261,37 +237,26 @@ export function useDashboardKPIs(warehouseId?: string) {
  * @returns Query result with receptions data
  */
 export function useReceptions(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['receptions', warehouseId],
-    queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+    queryFn: async () => {
+      if (!warehouseId) {
+        throw new Error('warehouseId is required')
       }
 
-      const data = await backend.getReceptions({
-        warehouseId: warehouseId || firstWarehouse.id
+      const result = await (window as any).typedElectronAPI.receptions.getAll({
+        warehouseId,
       })
 
-      const receptions = data?.receptions || []
+      if (result.success) {
+        return result.data
+      }
 
-      console.log('📥 [DB] Receptions loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
-        count: receptions?.length || 0,
-        sample: receptions?.slice(0, 2).map((r: any) => ({
-          id: r.id,
-          receptionNumber: r.receptionNumber,
-          supplierName: r.supplierName,
-          status: r.status
-        }))
-      })
-
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
+
+    enabled: !!warehouseId,
   })
 }
 
@@ -301,37 +266,26 @@ export function useReceptions(warehouseId?: string) {
  * @returns Query result with pickings data
  */
 export function usePickings(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['pickings', warehouseId],
-    queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+    queryFn: async () => {
+      if (!warehouseId) {
+        throw new Error('warehouseId is required')
       }
 
-      const data = await backend.getPickings({
-        warehouseId: warehouseId || firstWarehouse.id
+      const result = await (window as any).typedElectronAPI.pickings.getAll({
+        warehouseId,
       })
 
-      const pickings = data?.pickings || []
+      if (result.success) {
+        return result.data
+      }
 
-      console.log('📦 [DB] Pickings loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
-        count: pickings?.length || 0,
-        sample: pickings?.slice(0, 2).map((p: any) => ({
-          id: p.id,
-          pickingNumber: p.pickingNumber,
-          customerName: p.customerName,
-          status: p.status
-        }))
-      })
-
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
+
+    enabled: !!warehouseId,
   })
 }
 
@@ -341,37 +295,26 @@ export function usePickings(warehouseId?: string) {
  * @returns Query result with returns data
  */
 export function useReturns(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['returns', warehouseId],
-    queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+    queryFn: async () => {
+      if (!warehouseId) {
+        throw new Error('warehouseId is required')
       }
 
-      const data = await backend.getReturns({
-        warehouseId: warehouseId || firstWarehouse.id
+      const result = await (window as any).typedElectronAPI.returns.getAll({
+        warehouseId,
       })
 
-      const returns = data?.returns || []
+      if (result.success) {
+        return result.data
+      }
 
-      console.log('🔄 [DB] Returns loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
-        count: returns?.length || 0,
-        sample: returns?.slice(0, 2).map((r: any) => ({
-          id: r.id,
-          returnNumber: r.returnNumber,
-          customerName: r.customerName,
-          status: r.status
-        }))
-      })
-
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
+
+    enabled: !!warehouseId,
   })
 }
 
@@ -381,37 +324,26 @@ export function useReturns(warehouseId?: string) {
  * @returns Query result with restockings data
  */
 export function useRestockings(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['restockings', warehouseId],
-    queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+    queryFn: async () => {
+      if (!warehouseId) {
+        throw new Error('warehouseId is required')
       }
 
-      const data = await backend.getRestockings({
-        warehouseId: warehouseId || firstWarehouse.id
+      const result = await (window as any).typedElectronAPI.restockings.getAll({
+        warehouseId,
       })
 
-      const restockings = data?.restockings || []
+      if (result.success) {
+        return result.data
+      }
 
-      console.log('🔁 [DB] Restockings loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
-        count: restockings?.length || 0,
-        sample: restockings?.slice(0, 2).map((r: any) => ({
-          id: r.id,
-          restockingNumber: r.restockingNumber,
-          requester: r.requester,
-          status: r.status
-        }))
-      })
-
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
+
+    enabled: !!warehouseId,
   })
 }
 
@@ -421,38 +353,26 @@ export function useRestockings(warehouseId?: string) {
  * @returns Query result with orders data including lines
  */
 export function useOrdersWithLines(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['orders', 'with-lines', warehouseId],
-    queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+    queryFn: async () => {
+      if (!warehouseId) {
+        throw new Error('warehouseId is required')
       }
 
-      const data = await backend.getOrdersWithLines({
-        warehouseId: warehouseId || firstWarehouse.id
+      const result = await (window as any).typedElectronAPI.orders.getWithLines({
+        warehouseId,
       })
 
-      const orders = data?.orders || []
+      if (result.success) {
+        return result.data
+      }
 
-      console.log('📋 [DB] Orders with lines loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
-        count: orders?.length || 0,
-        sample: orders?.slice(0, 2).map((o: any) => ({
-          id: o.id,
-          orderNumber: o.orderNumber,
-          customerName: o.customerName,
-          status: o.status,
-          linesCount: o.lines?.length || 0
-        }))
-      })
-
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
+
+    enabled: !!warehouseId,
   })
 }
 
@@ -462,28 +382,25 @@ export function useOrdersWithLines(warehouseId?: string) {
  * @returns Query result with products data
  */
 export function useProducts(warehouseId?: string) {
-  const backend = useBackend()
-
   return useQuery({
     queryKey: ['products', warehouseId],
-    queryFn: async () => {
-      const warehouses = await backend.getAllWarehouses()
-      const firstWarehouse = warehouses[0] as any
 
-      if (!firstWarehouse) {
-        throw new Error('No warehouse found')
+    queryFn: async () => {
+      if (!warehouseId) {
+        throw new Error('warehouseId is required')
       }
 
-      const data = await backend.getProducts({
-        warehouseId: warehouseId || firstWarehouse.id
+      const result = await (window as any).typedElectronAPI.products.getAll({
+        warehouseId,
       })
 
-      console.log('📦 [DB] Products loaded:', {
-        warehouseId: warehouseId || firstWarehouse.id,
-        count: data?.products?.length || 0,
-      })
+      if (result.success) {
+        return result.data
+      }
 
-      return data
+      throw new Error(result.error.message, { cause: result.error })
     },
+
+    enabled: !!warehouseId,
   })
 }
