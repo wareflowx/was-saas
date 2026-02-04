@@ -44,7 +44,17 @@ useEffect(() => {
   - Violates Single Responsibility Principle
 - **Impact:** Tight coupling, low reusability, difficult to extend
 
-#### 4. **Inadequate Error Handling**
+#### 4. **Broken Type Chain with Global Access**
+- **Location:** Throughout the codebase where Electron IPC is accessed
+- **Problems:**
+  - Using `(window as any).electronAPI` breaks the entire type chain
+  - Creates tight 3D coupling between renderer and main process
+  - No type safety for IPC calls
+  - Impossible to refactor safely
+  - Global mutable state
+- **Impact:** Type errors at runtime, impossible to track IPC usage, unsafe refactoring
+
+#### 5. **Inadequate Error Handling**
 - **Location:** `safeIpcCall()` and throughout the codebase
 - **Problems:**
   - `safeIpcCall()` returns fallback values but errors are silently ignored
@@ -234,6 +244,54 @@ Replace `useEffect` navigation with:
 - Conditional rendering
 - Protected routes pattern
 
+#### 7. **Type-Safe IPC Layer**
+Replace `(window as any).electronAPI` with a properly typed injection:
+
+```typescript
+// Define IPC interface in shared types
+type ElectronIpcApi = Readonly<{
+  locations: {
+    readonly getAll: (warehouseId?: string) => Promise<Result<LocationsData, AppError>>
+    readonly getById: (id: string) => Promise<Result<Location, AppError>>
+  }
+  // ... all other IPC channels
+}>
+
+// Inject at app initialization (not during renders)
+const createIpcApi = (): ElectronIpcApi => ({
+  locations: {
+    getAll: (warehouseId) =>
+      window.electronAPI.locations.getAll(warehouseId),
+    getById: (id) =>
+      window.electronAPI.locations.getById(id),
+  },
+  // ... map all channels
+})
+
+// Use React Context for dependency injection
+const IpcContext = createContext<ElectronIpcApi | null>(null)
+
+export const useIpc = (): ElectronIpcApi => {
+  const api = useContext(IpcContext)
+  if (!api) throw new Error('useIpc must be used within IpcProvider')
+  return api
+}
+
+// In App.tsx
+const ipcApi = createIpcApi()
+
+<IpcProvider value={ipcApi}>
+  <App />
+</IpcProvider>
+
+// Benefits:
+// - Full type safety chain
+// - No global mutable access
+// - Easy to test/mock
+// - Clear dependency graph
+// - Refactor-safe
+```
+
 ---
 
 ## Affected Areas
@@ -242,6 +300,7 @@ Replace `useEffect` navigation with:
 - [ ] `useBackend()` hook
 - [ ] `use-locations.ts` (all data fetching hooks)
 - [ ] `src/backend/import/` (IPC communication)
+- [ ] All `(window as any).electronAPI` accesses
 - [ ] Error handling throughout the application
 - [ ] Navigation/redirects
 
@@ -252,10 +311,16 @@ Replace `useEffect` navigation with:
 ### Phase 1: Foundation
 1. **Define core types**
    - `Result<T, E>` type
-   - `AppError` interface
+   - `AppError` type
    - Error domains and codes
 
-2. **Create IPC wrapper**
+2. **Create type-safe IPC layer**
+   - Define `ElectronIpcApi` type
+   - Create `IpcContext` and `useIpc` hook
+   - Replace all `(window as any).electronAPI` accesses
+   - Implement dependency injection in App.tsx
+
+3. **Create IPC wrapper**
    - Implement `safeIpcCall()` with retry logic
    - Add structured logging
 
