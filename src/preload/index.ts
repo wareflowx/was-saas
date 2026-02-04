@@ -343,11 +343,43 @@ const electronAPI = {
 contextBridge.exposeInMainWorld('electronAPI', electronAPI)
 
 // ============================================================================
+// TYPED IPC (NEW - MIGRATE TO THIS)
+// ============================================================================
+
+/**
+ * Typed IPC - Type-safe communication with Result<T, AppError>
+ * This is the new pattern that should be used for all new IPC calls
+ */
+const typedElectronAPI = {
+  warehouses: {
+    getAll: () => ipcRenderer.invoke('warehouses:getAll'),
+  },
+
+  locations: {
+    getAll: (params?: { warehouseId?: string }) =>
+      ipcRenderer.invoke('locations:getAll', params),
+  },
+
+  zones: {
+    getAll: (params?: { warehouseId?: string }) =>
+      ipcRenderer.invoke('zones:getAll', params),
+  },
+
+  sectors: {
+    getAll: (params?: { warehouseId?: string }) =>
+      ipcRenderer.invoke('sectors:getAll', params),
+  },
+}
+
+contextBridge.exposeInMainMainWorld('typedElectronAPI', typedElectronAPI)
+
+// ============================================================================
 // TYPE DEFINITIONS FOR TYPESCRIPT
 // ============================================================================
 
 declare global {
   interface Window {
     electronAPI: typeof electronAPI
+    typedElectronAPI: typeof typedElectronAPI
   }
 }
