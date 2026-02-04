@@ -4,7 +4,7 @@
  * Handles dynamic column mapping from Excel files to expected schema
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAvailableSchemas = exports.loadMappingPreset = exports.saveMappingPreset = exports.applyMappings = exports.validateMappings = exports.suggestMappings = exports.SCHEMAS = void 0;
+exports.getAvailableSchemas = exports.applyMappings = exports.validateMappings = exports.suggestMappings = exports.SCHEMAS = void 0;
 // ============================================================================
 // SCHEMA DEFINITIONS
 // ============================================================================
@@ -211,25 +211,6 @@ const applyMappings = (data, mappings) => {
     });
 };
 exports.applyMappings = applyMappings;
-/**
- * Save mapping preset for reuse
- * @param preset - Mapping preset to save
- */
-const saveMappingPreset = (preset) => {
-    // TODO: Implement persistence to database
-    console.log('Saving mapping preset:', preset.id);
-};
-exports.saveMappingPreset = saveMappingPreset;
-/**
- * Load mapping preset
- * @param presetId - Preset ID to load
- * @returns Mapping preset or null
- */
-const loadMappingPreset = (_presetId) => {
-    // TODO: Implement loading from database
-    return null;
-};
-exports.loadMappingPreset = loadMappingPreset;
 /**
  * Get available schemas for mapping
  * @returns List of available schemas

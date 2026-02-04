@@ -1,4 +1,6 @@
 import * as XLSX from 'xlsx'
+import * as fs from 'fs'
+import * as path from 'path'
 import type { WMSInputData, WMSSheet } from './types'
 
 /**
@@ -47,13 +49,12 @@ export const parseExcelFile = async (
   })
 
   // Get file stats
-  const fs = require('fs')
   const stats = fs.statSync(filePath)
 
   return {
     sheets,
     metadata: {
-      filename: require('path').basename(filePath),
+      filename: path.basename(filePath),
       fileSize: stats.size,
       uploadedAt: new Date(),
     },
@@ -66,7 +67,6 @@ export const parseExcelFile = async (
  * @returns Array of sheet names
  */
 export const getSheetNames = (filePath: string): readonly string[] => {
-  const fs = require('fs')
   const arrayBuffer = fs.readFileSync(filePath)
 
   const workbook = XLSX.read(arrayBuffer, { type: 'buffer' })

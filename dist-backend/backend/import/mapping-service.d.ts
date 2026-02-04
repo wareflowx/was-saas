@@ -243,17 +243,6 @@ export declare const validateMappings: (mappings: readonly ColumnMapping[], sche
  */
 export declare const applyMappings: (data: readonly Record<string, unknown>[], mappings: readonly ColumnMapping[]) => Record<string, unknown>[];
 /**
- * Save mapping preset for reuse
- * @param preset - Mapping preset to save
- */
-export declare const saveMappingPreset: (preset: MappingPreset) => void;
-/**
- * Load mapping preset
- * @param presetId - Preset ID to load
- * @returns Mapping preset or null
- */
-export declare const loadMappingPreset: (_presetId: string) => MappingPreset | null;
-/**
  * Get available schemas for mapping
  * @returns List of available schemas
  */

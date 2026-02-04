@@ -266,6 +266,75 @@ ipcMain.handle('app:get-version', () => {
 })
 
 // ==========================================================================
+// HELPER FOR TYPED API HANDLERS
+// Wraps responses in Result<T, AppError> format
+// ==========================================================================
+
+const wrapResult = (data) => ({ success: true, data })
+const wrapError = (message) => ({ success: false, error: { message, domain: 'DATABASE', code: 'QUERY_FAILED', timestamp: new Date(), recoverable: true } })
+
+const handleAsync = async (fn) => {
+  try {
+    initializeDatabase()
+    const result = await fn()
+    if (result?.success !== undefined) {
+      return result
+    }
+    return result ? wrapResult(result) : wrapError('No data returned')
+  } catch (error) {
+    return wrapError(error.message)
+  }
+}
+
+// ==========================================================================
+// ALIAS FOR NEW TYPED API
+// These alias the old db:* handlers to the new names used by typedElectronAPI
+// ==========================================================================
+
+// Warehouses
+ipcMain.handle('warehouses:getAll', () => handleAsync(() => getAllWarehouses()))
+
+ipcMain.handle('warehouses:getWithKPIs', () => handleAsync(() => queries.getWarehousesWithKPIs()))
+
+// Locations
+ipcMain.handle('locations:getAll', (event, params) => handleAsync(() => queries.getLocationsByWarehouse(params?.warehouseId)))
+
+// Zones
+ipcMain.handle('zones:getAll', (event, params) => handleAsync(() => queries.getZonesByWarehouse(params?.warehouseId)))
+
+// Sectors
+ipcMain.handle('sectors:getAll', (event, params) => handleAsync(() => queries.getSectorsByWarehouse(params?.warehouseId)))
+
+// Products
+ipcMain.handle('products:getAll', (event, params) => handleAsync(() => queries.getProductsByWarehouse(params.warehouseId)))
+
+// Dashboard
+ipcMain.handle('dashboard:getKPIs', (event, params) => handleAsync(() => queries.getDashboardKPIs(params?.warehouseId)))
+
+// Import History
+ipcMain.handle('importHistory:getAll', (event, params) => handleAsync(() => queries.getImportHistory(params?.warehouseId)))
+
+// Receptions
+ipcMain.handle('receptions:getAll', (event, params) => handleAsync(() => queries.getReceptionsByWarehouse(params.warehouseId)))
+
+// Pickings
+ipcMain.handle('pickings:getAll', (event, params) => handleAsync(() => queries.getPickingsByWarehouse(params.warehouseId)))
+
+// Returns
+ipcMain.handle('returns:getAll', (event, params) => handleAsync(() => queries.getReturnsByWarehouse(params.warehouseId)))
+
+// Restockings
+ipcMain.handle('restockings:getAll', (event, params) => handleAsync(() => queries.getRestockingsByWarehouse(params.warehouseId)))
+
+// Orders
+ipcMain.handle('orders:getWithLines', (event, params) => handleAsync(() => queries.getOrdersByWarehouseWithLines(params.warehouseId)))
+
+// Analysis
+ipcMain.handle('analysis:abc', (event, params) => handleAsync(() => analysis.runABCAnalysis(params)))
+
+ipcMain.handle('analysis:deadStock', (event, params) => handleAsync(() => analysis.runDeadStockAnalysis(params.warehouseId, params.thresholdDays)))
+
+// ==========================================================================
 // CLEANUP
 // ==========================================================================
 
@@ -301,8 +370,8 @@ function createWindow() {
 
   // En dev : charge le serveur Vite
   if (process.env.NODE_ENV === 'development') {
-    console.log('Loading dev server at http://127.0.0.1:3000')
-    win.loadURL('http://127.0.0.1:3000')
+    console.log('Loading dev server at http://127.0.0.1:3001')
+    win.loadURL('http://127.0.0.1:3001')
     win.webContents.openDevTools()
   } else {
     // En prod : charge les fichiers build

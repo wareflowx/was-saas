@@ -153,3 +153,57 @@ const electronAPI = {
 // EXPOSE API TO RENDERER PROCESS
 // ============================================================================
 electron_1.contextBridge.exposeInMainWorld('electronAPI', electronAPI);
+// ============================================================================
+// TYPED IPC (NEW - MIGRATE TO THIS)
+// ============================================================================
+/**
+ * Typed IPC - Type-safe communication with Result<T, AppError>
+ * This is the new pattern that should be used for all new IPC calls
+ */
+const typedElectronAPI = {
+    warehouses: {
+        getAll: () => electron_1.ipcRenderer.invoke('warehouses:getAll'),
+        getWithKPIs: () => electron_1.ipcRenderer.invoke('warehouses:getWithKPIs'),
+    },
+    locations: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('locations:getAll', params),
+    },
+    zones: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('zones:getAll', params),
+    },
+    sectors: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('sectors:getAll', params),
+    },
+    products: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('products:getAll', params),
+    },
+    dashboard: {
+        getKPIs: (params) => electron_1.ipcRenderer.invoke('dashboard:getKPIs', params),
+    },
+    importHistory: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('importHistory:getAll', params),
+    },
+    import: {
+        generateMockData: (warehouseId) => electron_1.ipcRenderer.invoke('import:generate-mock-data', warehouseId),
+    },
+    receptions: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('receptions:getAll', params),
+    },
+    pickings: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('pickings:getAll', params),
+    },
+    returns: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('returns:getAll', params),
+    },
+    restockings: {
+        getAll: (params) => electron_1.ipcRenderer.invoke('restockings:getAll', params),
+    },
+    orders: {
+        getWithLines: (params) => electron_1.ipcRenderer.invoke('orders:getWithLines', params),
+    },
+    analysis: {
+        abc: (params) => electron_1.ipcRenderer.invoke('analysis:abc', params),
+        deadStock: (params) => electron_1.ipcRenderer.invoke('analysis:deadStock', params),
+    },
+};
+electron_1.contextBridge.exposeInMainWorld('typedElectronAPI', typedElectronAPI);

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runDeadStockAnalysis = void 0;
+const queries_1 = require("../database/queries");
 // ============================================================================
 // DEAD STOCK ANALYSIS FUNCTIONS
 // ============================================================================
@@ -13,9 +14,8 @@ exports.runDeadStockAnalysis = void 0;
  * @returns Dead stock analysis result
  */
 const runDeadStockAnalysis = (warehouseId, thresholdDays = 90, criticalThreshold = 180, warningThreshold = 90) => {
-    const { getDeadStock } = require('../database/queries');
     // Get dead stock data
-    const deadStockData = getDeadStock(warehouseId);
+    const deadStockData = (0, queries_1.getDeadStock)(warehouseId);
     if (deadStockData.length === 0) {
         return {
             products: [],

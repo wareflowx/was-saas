@@ -2,6 +2,8 @@
 // All tables use warehouse_id as explicit filter (NOT automatic)
 // Tables are named in English for consistency
 
+import * as path from 'path'
+
 export const SCHEMA_VERSION = '1.0.0'
 
 export const DATABASE_SCHEMA = `
@@ -656,7 +658,6 @@ CREATE INDEX IF NOT EXISTS idx_import_history_date ON import_history(imported_at
 
 // Database file location configuration
 export const getDatabasePath = (userDataPath: string): string => {
-  const path = require('path')
   return path.join(userDataPath, 'wareflow.db')
 }
 

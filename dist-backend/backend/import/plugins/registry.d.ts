@@ -1,38 +1,58 @@
-import type { ImportPlugin, PluginRegistry } from '../types';
 /**
- * Plugin Registry - All available import plugins
- * Plugins are registered here and accessed by ID
+ * Plugin Registry - Pure functional approach
+ *
+ * All available import plugins with pure functions (no global mutable state)
  */
-export declare const registry: PluginRegistry;
+import type { ImportPlugin } from '../types';
 /**
- * Get a plugin by ID from global registry
+ * Default plugins - readonly collection
+ */
+export declare const defaultPlugins: Readonly<Record<string, ImportPlugin>>;
+/**
+ * Get a plugin by ID
  * @param pluginId - Plugin ID
+ * @param plugins - Plugin registry (defaults to defaultPlugins)
  * @returns Plugin or undefined if not found
  */
-export declare const getPlugin: (pluginId: string) => ImportPlugin | undefined;
+export declare const getPlugin: (pluginId: string, plugins?: Readonly<Record<string, ImportPlugin>>) => ImportPlugin | undefined;
 /**
- * List all available plugins from global registry
+ * List all available plugins
+ * @param plugins - Plugin registry (defaults to defaultPlugins)
  * @returns Array of all plugins
  */
-export declare const listPlugins: () => readonly ImportPlugin[];
+export declare const listPlugins: (plugins?: Readonly<Record<string, ImportPlugin>>) => readonly ImportPlugin[];
 /**
- * Register a plugin in the global registry
- * @param plugin - Plugin to register
- */
-export declare const registerPlugin: (plugin: ImportPlugin) => void;
-/**
- * Unregister a plugin from the global registry
- * @param pluginId - Plugin ID to remove
- */
-export declare const unregisterPlugin: (pluginId: string) => void;
-/**
- * Check if plugin exists in global registry
+ * Check if plugin exists
  * @param pluginId - Plugin ID to check
+ * @param plugins - Plugin registry (defaults to defaultPlugins)
  * @returns True if plugin exists
  */
-export declare const pluginExists: (pluginId: string) => boolean;
+export declare const pluginExists: (pluginId: string, plugins?: Readonly<Record<string, ImportPlugin>>) => boolean;
 /**
- * Initialize default plugins
- * Registers all built-in plugins
+ * Add a custom plugin to the registry (pure function)
+ * @param plugins - Base plugin registry
+ * @param plugin - Plugin to add
+ * @returns New registry with plugin added
  */
-export declare const initializeDefaultPlugins: () => void;
+export declare const withPlugin: (plugins: Readonly<Record<string, ImportPlugin>>, plugin: ImportPlugin) => Readonly<Record<string, ImportPlugin>>;
+/**
+ * Remove a plugin from the registry (pure function)
+ * @param plugins - Base plugin registry
+ * @param pluginId - Plugin ID to remove
+ * @returns New registry without the plugin
+ */
+export declare const withoutPlugin: (plugins: Readonly<Record<string, ImportPlugin>>, pluginId: string) => Readonly<Record<string, ImportPlugin>>;
+/**
+ * Get plugin info for display
+ * @param plugin - Plugin
+ * @returns Plugin info
+ */
+export declare const getPluginInfo: (plugin: ImportPlugin) => {
+    id: string;
+    name: string;
+    version: string;
+    description: string;
+    author: string;
+    wmsSystem: string;
+    supportedFormats: readonly import("../types").FileFormat[];
+};

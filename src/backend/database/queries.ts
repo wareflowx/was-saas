@@ -3,7 +3,7 @@
  * Type-safe database queries using Drizzle ORM query builder
  */
 
-import { getDatabase } from './index'
+import { getDatabase, getDbRaw } from './index'
 import { eq, and, gte, lte, sql, desc, count, sum } from 'drizzle-orm'
 import {
   warehouses,
@@ -341,7 +341,7 @@ export const getProductMovementTotals = async (
  * @returns Array of products with last movement date and tied capital
  */
 export const getDeadStock = async (warehouseId: string, thresholdDays: number = 90) => {
-  const dbRaw = require('./index').getDbRaw()
+  const dbRaw = getDbRaw()
 
   // SQLite-specific query with julianday
   const result = dbRaw.prepare(`
@@ -1243,7 +1243,3 @@ export const getDashboardKPIs = async (warehouseId?: string) => {
   }
 }
 
-// Helper function to get raw DB for complex queries
-function getDbRaw() {
-  return require('./index').getDbRaw()
-}

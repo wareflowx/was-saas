@@ -12,48 +12,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPlugin: (pluginId) => ipcRenderer.invoke('plugins:get', pluginId),
 
   // ==========================================================================
-  // WAREHOUSE MANAGEMENT
-  // ==========================================================================
-
-  getWarehouses: () => ipcRenderer.invoke('warehouse:getAll'),
-
-  getWarehousesWithKPIs: () => ipcRenderer.invoke('warehouse:getAllWithKPIs'),
-
-  warehouseExists: (warehouseId) => ipcRenderer.invoke('warehouse:exists', warehouseId),
-
-  createWarehouse: (warehouse) => ipcRenderer.invoke('warehouse:create', warehouse),
-
-  // ==========================================================================
   // IMPORT WORKFLOW
   // ==========================================================================
 
   validateFile: (filePath, pluginId) => ipcRenderer.invoke('import:validate', filePath, pluginId),
 
-  executeImport: (filePath, warehouseId, pluginId, onProgress) => {
-    return ipcRenderer.invoke('import:execute', filePath, warehouseId, pluginId)
-  },
+  executeImport: (filePath, warehouseId, pluginId) => ipcRenderer.invoke('import:execute', filePath, warehouseId, pluginId),
 
   // ==========================================================================
   // MOCK DATA GENERATION
   // ==========================================================================
 
-  generateMockData: (warehouseId, onProgress) => {
-    // Note: onProgress callback is not passed through IPC as functions cannot be serialized
-    // Progress updates would need to be implemented via IPC messaging if needed
-    return ipcRenderer.invoke('import:generate-mock-data', warehouseId)
-  },
+  generateMockData: (warehouseId) => ipcRenderer.invoke('import:generate-mock-data', warehouseId),
 
   // ==========================================================================
-  // DATABASE QUERIES
+  // DATABASE QUERIES (all require explicit filters)
   // ==========================================================================
 
-  getLocations: (filters) => ipcRenderer.invoke('db:get-locations', filters),
-
-  getZones: (filters) => ipcRenderer.invoke('db:get-zones', filters),
-
-  getSectors: (filters) => ipcRenderer.invoke('db:get-sectors', filters),
-
-  getProducts: (filters) => ipcRenderer.invoke('db:get-products', filters),
+  getProducts: (filters) => ipcRenderer.invoke('products:getAll', filters),
 
   getInventory: (filters) => ipcRenderer.invoke('db:get-inventory', filters),
 
@@ -61,41 +37,125 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getOrders: (filters) => ipcRenderer.invoke('db:get-orders', filters),
 
-  getReceptions: (filters) => ipcRenderer.invoke('db:get-receptions', filters),
+  getLocations: (filters) => ipcRenderer.invoke('locations:getAll', filters),
+
+  getZones: (filters) => ipcRenderer.invoke('zones:getAll', filters),
+
+  getSectors: (filters) => ipcRenderer.invoke('sectors:getAll', filters),
+
+  getReceptions: (filters) => ipcRenderer.invoke('receptions:getAll', filters),
 
   getReceptionLines: (receptionId) => ipcRenderer.invoke('db:get-reception-lines', receptionId),
 
-  getPickings: (filters) => ipcRenderer.invoke('db:get-pickings', filters),
+  getPickings: (filters) => ipcRenderer.invoke('pickings:getAll', filters),
 
   getPickingLines: (pickingId) => ipcRenderer.invoke('db:get-picking-lines', pickingId),
 
-  getReturns: (filters) => ipcRenderer.invoke('db:get-returns', filters),
+  getReturns: (filters) => ipcRenderer.invoke('returns:getAll', filters),
 
   getReturnLines: (returnId) => ipcRenderer.invoke('db:get-return-lines', returnId),
 
-  getRestockings: (filters) => ipcRenderer.invoke('db:get-restockings', filters),
+  getRestockings: (filters) => ipcRenderer.invoke('restockings:getAll', filters),
 
   getRestockingLines: (restockingId) => ipcRenderer.invoke('db:get-restocking-lines', restockingId),
 
-  getOrdersWithLines: (filters) => ipcRenderer.invoke('db:get-orders-with-lines', filters),
+  getOrdersWithLines: (filters) => ipcRenderer.invoke('orders:getWithLines', filters),
 
-  getDatabaseStats: () => ipcRenderer.invoke('db:get-stats'),
+  getImportHistory: (filters) => ipcRenderer.invoke('importHistory:getAll', filters),
 
-  getImportHistory: (warehouseId) => ipcRenderer.invoke('db:get-import-history', warehouseId),
+  getDashboardKPIs: (filters) => ipcRenderer.invoke('dashboard:getKPIs', filters),
 
-  getDashboardKPIs: (warehouseId) => ipcRenderer.invoke('db:get-dashboard-kpis', warehouseId),
+  getWarehousesWithKPIs: () => ipcRenderer.invoke('warehouses:getWithKPIs'),
+
+  // ==========================================================================
+  // WAREHOUSE MANAGEMENT
+  // ==========================================================================
+
+  getWarehouses: () => ipcRenderer.invoke('warehouses:getAll'),
+
+  warehouseExists: (warehouseId) => ipcRenderer.invoke('warehouse:exists', warehouseId),
+
+  createWarehouse: (warehouse) => ipcRenderer.invoke('warehouse:create', warehouse),
 
   // ==========================================================================
   // ANALYTICS
   // ==========================================================================
 
-  runABCAnalysis: (params) => ipcRenderer.invoke('analysis:run-abc', params),
+  runABCAnalysis: (params) => ipcRenderer.invoke('analysis:abc', params),
 
-  runDeadStockAnalysis: (params) => ipcRenderer.invoke('analysis:run-dead-stock', params),
+  runDeadStockAnalysis: (params) => ipcRenderer.invoke('analysis:deadStock', params),
 
   // ==========================================================================
   // UTILITIES
   // ==========================================================================
 
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+
+  getDatabaseStats: () => ipcRenderer.invoke('db:get-stats'),
 })
+
+// ============================================================================
+// TYPED IPC (NEW - MIGRATE TO THIS)
+// ============================================================================
+
+const typedElectronAPI = {
+  warehouses: {
+    getAll: () => ipcRenderer.invoke('warehouses:getAll'),
+    getWithKPIs: () => ipcRenderer.invoke('warehouses:getWithKPIs'),
+  },
+
+  locations: {
+    getAll: (params) => ipcRenderer.invoke('locations:getAll', params),
+  },
+
+  zones: {
+    getAll: (params) => ipcRenderer.invoke('zones:getAll', params),
+  },
+
+  sectors: {
+    getAll: (params) => ipcRenderer.invoke('sectors:getAll', params),
+  },
+
+  products: {
+    getAll: (params) => ipcRenderer.invoke('products:getAll', params),
+  },
+
+  dashboard: {
+    getKPIs: (params) => ipcRenderer.invoke('dashboard:getKPIs', params),
+  },
+
+  importHistory: {
+    getAll: (params) => ipcRenderer.invoke('importHistory:getAll', params),
+  },
+
+  import: {
+    generateMockData: (warehouseId) => ipcRenderer.invoke('import:generate-mock-data', warehouseId),
+  },
+
+  receptions: {
+    getAll: (params) => ipcRenderer.invoke('receptions:getAll', params),
+  },
+
+  pickings: {
+    getAll: (params) => ipcRenderer.invoke('pickings:getAll', params),
+  },
+
+  returns: {
+    getAll: (params) => ipcRenderer.invoke('returns:getAll', params),
+  },
+
+  restockings: {
+    getAll: (params) => ipcRenderer.invoke('restockings:getAll', params),
+  },
+
+  orders: {
+    getWithLines: (params) => ipcRenderer.invoke('orders:getWithLines', params),
+  },
+
+  analysis: {
+    abc: (params) => ipcRenderer.invoke('analysis:abc', params),
+    deadStock: (params) => ipcRenderer.invoke('analysis:deadStock', params),
+  },
+}
+
+contextBridge.exposeInMainWorld('typedElectronAPI', typedElectronAPI)

@@ -48,21 +48,25 @@ const better_sqlite3_2 = __importDefault(require("better-sqlite3"));
 const electron_1 = require("electron");
 const schema = __importStar(require("./drizzle-schema"));
 const schema_1 = require("./schema");
+const types_1 = require("../../shared/types");
+const logger_1 = require("../../shared/utils/logger");
 // ============================================================================
-// SINGLETON DATABASE INSTANCE
+// SINGLETON DATABASE INSTANCES
 // ============================================================================
 let sqliteDb = null;
+let drizzleDb = null;
 /**
- * Get or create database instance
- * @returns Drizzle database instance
+ * Get or create raw SQLite database instance
+ * @returns Raw SQLite database instance
  */
-const getDatabase = () => {
+const getOrCreateSqliteDb = () => {
     if (sqliteDb) {
-        return (0, better_sqlite3_1.drizzle)(sqliteDb, { schema });
+        return sqliteDb;
     }
     // Get user data path from Electron
     const userDataPath = electron_1.app.getPath('userData');
     const dbPath = (0, schema_1.getDatabasePath)(userDataPath);
+    logger_1.logger.info('Creating database connection', { dbPath });
     // Create SQLite database connection
     sqliteDb = new better_sqlite3_2.default(dbPath);
     // Enable foreign keys
@@ -71,8 +75,20 @@ const getDatabase = () => {
     sqliteDb.pragma('journal_mode = WAL');
     // Initialize schema if needed
     initializeSchema(sqliteDb);
-    // Create Drizzle ORM instance
-    return (0, better_sqlite3_1.drizzle)(sqliteDb, { schema });
+    logger_1.logger.info('Database connection established');
+    return sqliteDb;
+};
+/**
+ * Get or create Drizzle ORM instance
+ * @returns Drizzle database instance
+ */
+const getDatabase = () => {
+    if (drizzleDb) {
+        return drizzleDb;
+    }
+    const sqlite = getOrCreateSqliteDb();
+    drizzleDb = (0, better_sqlite3_1.drizzle)(sqlite, { schema });
+    return drizzleDb;
 };
 exports.getDatabase = getDatabase;
 /**
@@ -85,18 +101,26 @@ function initializeSchema(sqlite) {
         .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='warehouses'`)
         .get();
     if (!tableExists) {
-        console.log('🔧 Initializing database schema...');
+        logger_1.logger.info('Initializing database schema...');
         sqlite.exec(schema_1.DATABASE_SCHEMA);
-        console.log('✅ Database schema initialized');
+        logger_1.logger.info('Database schema initialized');
     }
 }
 /**
  * Close database connection
  */
 const closeDatabase = () => {
-    if (sqliteDb) {
-        sqliteDb.close();
-        sqliteDb = null;
+    try {
+        if (sqliteDb) {
+            sqliteDb.close();
+            sqliteDb = null;
+            drizzleDb = null;
+            logger_1.logger.info('Database connection closed');
+        }
+        return (0, types_1.success)(undefined);
+    }
+    catch (error) {
+        return (0, types_1.failure)((0, types_1.databaseError)('CLOSE', 'database', error));
     }
 };
 exports.closeDatabase = closeDatabase;
@@ -114,8 +138,15 @@ exports.getDatabaseFilePath = getDatabaseFilePath;
  * Should be called periodically (e.g., on app exit)
  */
 const vacuumDatabase = () => {
-    const sqlite = (0, exports.getDbRaw)();
-    sqlite.exec('VACUUM');
+    try {
+        const sqlite = (0, exports.getDbRaw)();
+        sqlite.exec('VACUUM');
+        logger_1.logger.info('Database vacuumed successfully');
+        return (0, types_1.success)(undefined);
+    }
+    catch (error) {
+        return (0, types_1.failure)((0, types_1.databaseError)('VACUUM', 'database', error));
+    }
 };
 exports.vacuumDatabase = vacuumDatabase;
 /**
@@ -123,18 +154,23 @@ exports.vacuumDatabase = vacuumDatabase;
  * @returns Object with database stats
  */
 const getDatabaseStats = () => {
-    const sqlite = (0, exports.getDbRaw)();
-    const tableCount = sqlite
-        .prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'")
-        .get();
-    const databaseSize = sqlite
-        .prepare('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()')
-        .get();
-    return {
-        tables: tableCount.count,
-        sizeBytes: databaseSize.size,
-        sizeMB: Math.round((databaseSize.size / 1024 / 1024) * 100) / 100,
-    };
+    try {
+        const sqlite = (0, exports.getDbRaw)();
+        const tableCount = sqlite
+            .prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'")
+            .get();
+        const databaseSize = sqlite
+            .prepare('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()')
+            .get();
+        return (0, types_1.success)({
+            tables: tableCount.count,
+            sizeBytes: databaseSize.size,
+            sizeMB: Math.round((databaseSize.size / 1024 / 1024) * 100) / 100,
+        });
+    }
+    catch (error) {
+        return (0, types_1.failure)((0, types_1.databaseError)('QUERY', 'database', error));
+    }
 };
 exports.getDatabaseStats = getDatabaseStats;
 /**
@@ -142,15 +178,7 @@ exports.getDatabaseStats = getDatabaseStats;
  * For direct SQL queries when needed
  */
 const getDbRaw = () => {
-    if (!sqliteDb) {
-        const userDataPath = electron_1.app.getPath('userData');
-        const dbPath = (0, schema_1.getDatabasePath)(userDataPath);
-        sqliteDb = new better_sqlite3_2.default(dbPath);
-        sqliteDb.pragma('foreign_keys = ON');
-        sqliteDb.pragma('journal_mode = WAL');
-        initializeSchema(sqliteDb);
-    }
-    return sqliteDb;
+    return getOrCreateSqliteDb();
 };
 exports.getDbRaw = getDbRaw;
 /**
@@ -158,65 +186,92 @@ exports.getDbRaw = getDbRaw;
  * Creates all tables and indexes if they don't exist
  */
 const initializeDatabase = () => {
-    const sqlite = (0, exports.getDbRaw)();
-    // Check if warehouses table exists
-    const tableExists = sqlite
-        .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='warehouses'`)
-        .get();
-    if (!tableExists) {
-        console.log('🔧 Initializing database schema...');
-        sqlite.exec(schema_1.DATABASE_SCHEMA);
-        console.log('✅ Database schema initialized');
+    try {
+        const sqlite = (0, exports.getDbRaw)();
+        // Check if warehouses table exists
+        const tableExists = sqlite
+            .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='warehouses'`)
+            .get();
+        if (!tableExists) {
+            logger_1.logger.info('Initializing database schema...');
+            sqlite.exec(schema_1.DATABASE_SCHEMA);
+            logger_1.logger.info('Database schema initialized');
+        }
+        // Log schema version
+        const schemaVersion = sqlite
+            .prepare('PRAGMA schema_version')
+            .get();
+        logger_1.logger.info('Database initialized', {
+            schemaVersion: schemaVersion.schema_version,
+            expectedVersion: schema_1.SCHEMA_VERSION,
+        });
+        return (0, types_1.success)(undefined);
     }
-    // Log schema version
-    const schemaVersion = sqlite
-        .prepare('PRAGMA schema_version')
-        .get();
-    console.log(`Database initialized. Schema version: ${schemaVersion.schema_version}, expected: ${schema_1.SCHEMA_VERSION}`);
+    catch (error) {
+        return (0, types_1.failure)((0, types_1.databaseError)('INITIALIZE', 'database', error));
+    }
 };
 exports.initializeDatabase = initializeDatabase;
 /**
  * Check if warehouse exists
  * @param warehouseId - Warehouse ID to check
- * @returns True if warehouse exists
+ * @returns Result with boolean
  */
 const warehouseExists = (warehouseId) => {
-    const db = (0, exports.getDbRaw)();
-    const result = db
-        .prepare('SELECT COUNT(*) as count FROM warehouses WHERE id = ?')
-        .get(warehouseId);
-    return result.count > 0;
+    try {
+        const db = (0, exports.getDbRaw)();
+        const result = db
+            .prepare('SELECT COUNT(*) as count FROM warehouses WHERE id = ?')
+            .get(warehouseId);
+        return (0, types_1.success)(result.count > 0);
+    }
+    catch (error) {
+        return (0, types_1.failure)((0, types_1.databaseError)('QUERY', 'warehouses', error));
+    }
 };
 exports.warehouseExists = warehouseExists;
 /**
  * Get all warehouses
- * @returns Array of all warehouses
+ * @returns Result with array of all warehouses
  */
 const getAllWarehouses = () => {
-    const db = (0, exports.getDbRaw)();
-    // Order by id to ensure consistent ordering (WH-FR-01 first)
-    return db
-        .prepare('SELECT * FROM warehouses ORDER BY id')
-        .all();
+    try {
+        const db = (0, exports.getDbRaw)();
+        // Order by id to ensure consistent ordering (WH-FR-01 first)
+        const warehouses = db
+            .prepare('SELECT * FROM warehouses ORDER BY id')
+            .all();
+        return (0, types_1.success)(warehouses);
+    }
+    catch (error) {
+        return (0, types_1.failure)((0, types_1.databaseError)('QUERY', 'warehouses', error));
+    }
 };
 exports.getAllWarehouses = getAllWarehouses;
 /**
  * Create a new warehouse
  * @param warehouse - Warehouse data
- * @returns Created warehouse
+ * @returns Result with created warehouse
  */
 const createWarehouse = (warehouse) => {
-    const db = (0, exports.getDbRaw)();
-    const stmt = db.prepare(`
-    INSERT INTO warehouses (
-      id, code, name, city, country, surface, capacity,
-      manager, email, phone, status, opening_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-  `);
-    stmt.run(warehouse.id, warehouse.code, warehouse.name, warehouse.city, warehouse.country, warehouse.surface || null, warehouse.capacity || null, warehouse.manager || null, warehouse.email || null, warehouse.phone || null, 'active');
-    return db
-        .prepare('SELECT * FROM warehouses WHERE id = ?')
-        .get(warehouse.id);
+    try {
+        const db = (0, exports.getDbRaw)();
+        const stmt = db.prepare(`
+      INSERT INTO warehouses (
+        id, code, name, city, country, surface, capacity,
+        manager, email, phone, status, opening_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `);
+        stmt.run(warehouse.id, warehouse.code, warehouse.name, warehouse.city, warehouse.country, warehouse.surface || null, warehouse.capacity || null, warehouse.manager || null, warehouse.email || null, warehouse.phone || null, 'active');
+        const created = db
+            .prepare('SELECT * FROM warehouses WHERE id = ?')
+            .get(warehouse.id);
+        logger_1.logger.info('Warehouse created', { warehouseId: warehouse.id });
+        return (0, types_1.success)(created);
+    }
+    catch (error) {
+        return (0, types_1.failure)((0, types_1.databaseError)('INSERT', 'warehouses', error));
+    }
 };
 exports.createWarehouse = createWarehouse;
 // ============================================================================

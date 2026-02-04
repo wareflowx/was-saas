@@ -8,8 +8,8 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "pnpm copy-preload && concurrently \"pnpm dev:vite\" \"pnpm dev:electron\" --names \"VITE,ELECTRON\" --prefix-colors \"blue,green\"",
-    "dev:vite": "vite --host 127.0.0.1 --port 3000",
-    "dev:electron": "wait-on http://127.0.0.1:3000 && cross-env NODE_ENV=development electron .",
+    "dev:vite": "vite --host 127.0.0.1 --port 3001",
+    "dev:electron": "wait-on http://127.0.0.1:3001 && cross-env NODE_ENV=development electron .",
     "build": "vite build && tsc && electron-builder && pnpm run rename-to-cjs && pnpm run copy-preload",
     "build:dir": "vite build && tsc && electron-builder --dir && pnpm run rename-to-cjs && pnpm run copy-preload",
     "preview": "vite preview",

@@ -48539,6 +48539,35 @@ function requireMain() {
   ipcMain.handle("app:get-version", () => {
     return { version: app.getVersion() };
   });
+  const wrapResult = (data) => ({ success: true, data });
+  const wrapError = (message) => ({ success: false, error: { message, domain: "DATABASE", code: "QUERY_FAILED", timestamp: /* @__PURE__ */ new Date(), recoverable: true } });
+  const handleAsync = async (fn) => {
+    try {
+      initializeDatabase();
+      const result = await fn();
+      if (result?.success !== void 0) {
+        return result;
+      }
+      return result ? wrapResult(result) : wrapError("No data returned");
+    } catch (error) {
+      return wrapError(error.message);
+    }
+  };
+  ipcMain.handle("warehouses:getAll", () => handleAsync(() => getAllWarehouses()));
+  ipcMain.handle("warehouses:getWithKPIs", () => handleAsync(() => queries2.getWarehousesWithKPIs()));
+  ipcMain.handle("locations:getAll", (event, params) => handleAsync(() => queries2.getLocationsByWarehouse(params?.warehouseId)));
+  ipcMain.handle("zones:getAll", (event, params) => handleAsync(() => queries2.getZonesByWarehouse(params?.warehouseId)));
+  ipcMain.handle("sectors:getAll", (event, params) => handleAsync(() => queries2.getSectorsByWarehouse(params?.warehouseId)));
+  ipcMain.handle("products:getAll", (event, params) => handleAsync(() => queries2.getProductsByWarehouse(params.warehouseId)));
+  ipcMain.handle("dashboard:getKPIs", (event, params) => handleAsync(() => queries2.getDashboardKPIs(params?.warehouseId)));
+  ipcMain.handle("importHistory:getAll", (event, params) => handleAsync(() => queries2.getImportHistory(params?.warehouseId)));
+  ipcMain.handle("receptions:getAll", (event, params) => handleAsync(() => queries2.getReceptionsByWarehouse(params.warehouseId)));
+  ipcMain.handle("pickings:getAll", (event, params) => handleAsync(() => queries2.getPickingsByWarehouse(params.warehouseId)));
+  ipcMain.handle("returns:getAll", (event, params) => handleAsync(() => queries2.getReturnsByWarehouse(params.warehouseId)));
+  ipcMain.handle("restockings:getAll", (event, params) => handleAsync(() => queries2.getRestockingsByWarehouse(params.warehouseId)));
+  ipcMain.handle("orders:getWithLines", (event, params) => handleAsync(() => queries2.getOrdersByWarehouseWithLines(params.warehouseId)));
+  ipcMain.handle("analysis:abc", (event, params) => handleAsync(() => analysis2.runABCAnalysis(params)));
+  ipcMain.handle("analysis:deadStock", (event, params) => handleAsync(() => analysis2.runDeadStockAnalysis(params.warehouseId, params.thresholdDays)));
   app.on("before-quit", () => {
     console.log("App quitting, closing database...");
     closeDatabase();
@@ -48563,8 +48592,8 @@ function requireMain() {
       dialog.showErrorBox("Renderer process crashed", `Reason: ${details.reason}`);
     });
     if (process.env.NODE_ENV === "development") {
-      console.log("Loading dev server at http://127.0.0.1:3000");
-      win.loadURL("http://127.0.0.1:3000");
+      console.log("Loading dev server at http://127.0.0.1:3001");
+      win.loadURL("http://127.0.0.1:3001");
       win.webContents.openDevTools();
     } else {
       const indexPath = path.join(__dirname, "../dist/index.html");

@@ -230,9 +230,91 @@ declare const electronAPI: {
         sizeMB: number;
     }>;
 };
+/**
+ * Typed IPC - Type-safe communication with Result<T, AppError>
+ * This is the new pattern that should be used for all new IPC calls
+ */
+declare const typedElectronAPI: {
+    warehouses: {
+        getAll: () => Promise<any>;
+        getWithKPIs: () => Promise<any>;
+    };
+    locations: {
+        getAll: (params?: {
+            warehouseId?: string;
+        }) => Promise<any>;
+    };
+    zones: {
+        getAll: (params?: {
+            warehouseId?: string;
+        }) => Promise<any>;
+    };
+    sectors: {
+        getAll: (params?: {
+            warehouseId?: string;
+        }) => Promise<any>;
+    };
+    products: {
+        getAll: (params: {
+            warehouseId: string;
+        }) => Promise<any>;
+    };
+    dashboard: {
+        getKPIs: (params: {
+            warehouseId?: string;
+        }) => Promise<any>;
+    };
+    importHistory: {
+        getAll: (params?: {
+            warehouseId?: string;
+        }) => Promise<any>;
+    };
+    import: {
+        generateMockData: (warehouseId: string) => Promise<any>;
+    };
+    receptions: {
+        getAll: (params: {
+            warehouseId: string;
+        }) => Promise<any>;
+    };
+    pickings: {
+        getAll: (params: {
+            warehouseId: string;
+        }) => Promise<any>;
+    };
+    returns: {
+        getAll: (params: {
+            warehouseId: string;
+        }) => Promise<any>;
+    };
+    restockings: {
+        getAll: (params: {
+            warehouseId: string;
+        }) => Promise<any>;
+    };
+    orders: {
+        getWithLines: (params: {
+            warehouseId: string;
+        }) => Promise<any>;
+    };
+    analysis: {
+        abc: (params: {
+            warehouseId: string;
+            dateFrom?: string;
+            dateTo?: string;
+        }) => Promise<any>;
+        deadStock: (params: {
+            warehouseId: string;
+            thresholdDays?: number;
+            criticalThreshold?: number;
+            warningThreshold?: number;
+        }) => Promise<any>;
+    };
+};
 declare global {
     interface Window {
         electronAPI: typeof electronAPI;
+        readonly typedElectronAPI: typeof typedElectronAPI;
     }
 }
-export {};
+export type { TypedElectronAPI } from '../types/typed-electron-api';

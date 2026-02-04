@@ -244,7 +244,7 @@ export declare const getLocationsByWarehouse: (warehouseId?: string) => Promise<
         position: string | null;
         barcode: string | null;
         status: string;
-        lastUpdated: string;
+        updatedAt: string;
         zoneId: string | null;
         zoneName: string | null;
         zoneCode: string | null;
@@ -285,7 +285,7 @@ export declare const getZonesByWarehouse: (warehouseId?: string) => Promise<{
         temperatureMin: number | null;
         temperatureMax: number | null;
         status: string;
-        lastUpdated: string;
+        updatedAt: string;
         warehouseId: string | null;
         warehouseName: string | null;
         warehouseCode: string | null;
@@ -318,7 +318,7 @@ export declare const getSectorsByWarehouse: (warehouseId?: string) => Promise<{
         level: number | null;
         position: string | null;
         status: string;
-        lastUpdated: string;
+        updatedAt: string;
         zoneId: string | null;
         zoneName: string | null;
         zoneCode: string | null;
@@ -415,7 +415,7 @@ export declare const getReceptionsByWarehouse: (warehouseId: string) => Promise<
         receiver: string | null;
         notes: string | null;
         createdAt: string;
-        lastUpdated: string;
+        updatedAt: string;
         warehouseName: string | null;
         warehouseCode: string | null;
     }[];
@@ -480,7 +480,7 @@ export declare const getPickingsByWarehouse: (warehouseId: string) => Promise<{
         pickerId: string | null;
         notes: string | null;
         createdAt: string;
-        lastUpdated: string;
+        updatedAt: string;
         warehouseName: string | null;
         warehouseCode: string | null;
     }[];
@@ -547,7 +547,7 @@ export declare const getReturnsByWarehouse: (warehouseId: string) => Promise<{
         processor: string | null;
         completedDate: string | null;
         createdAt: string;
-        lastUpdated: string;
+        updatedAt: string;
         warehouseName: string | null;
         warehouseCode: string | null;
     }[];
@@ -605,7 +605,7 @@ export declare const getRestockingsByWarehouse: (warehouseId: string) => Promise
         startedDate: string | null;
         completedDate: string | null;
         createdAt: string;
-        lastUpdated: string;
+        updatedAt: string;
         warehouseName: string | null;
         warehouseCode: string | null;
     }[];
@@ -691,7 +691,7 @@ export declare const getOrdersByWarehouseWithLines: (warehouseId: string) => Pro
         picker: string | null;
         packer: string | null;
         createdAt: string;
-        lastUpdated: string;
+        updatedAt: string;
         warehouseName: string | null;
         warehouseCode: string | null;
     }[];

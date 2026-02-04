@@ -1,76 +1,83 @@
 "use strict";
+/**
+ * Plugin Registry - Pure functional approach
+ *
+ * All available import plugins with pure functions (no global mutable state)
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeDefaultPlugins = exports.pluginExists = exports.unregisterPlugin = exports.registerPlugin = exports.listPlugins = exports.getPlugin = exports.registry = void 0;
+exports.getPluginInfo = exports.withoutPlugin = exports.withPlugin = exports.pluginExists = exports.listPlugins = exports.getPlugin = exports.defaultPlugins = void 0;
 const index_1 = require("./generic-excel/index");
 const index_2 = require("./mock-data-generator/index");
 // ============================================================================
-// PLUGIN REGISTRY
-// Record type containing all available plugins
+// DEFAULT PLUGINS (READONLY)
 // ============================================================================
 /**
- * Plugin Registry - All available import plugins
- * Plugins are registered here and accessed by ID
+ * Default plugins - readonly collection
  */
-exports.registry = {};
+exports.defaultPlugins = {
+    [index_1.genericExcelPlugin.id]: index_1.genericExcelPlugin,
+    [index_2.mockDataGeneratorPlugin.id]: index_2.mockDataGeneratorPlugin,
+};
 // ============================================================================
-// REGISTRY FUNCTIONS
+// PURE FUNCTIONS (NO MUTATION)
 // ============================================================================
 /**
- * Get a plugin by ID from global registry
+ * Get a plugin by ID
  * @param pluginId - Plugin ID
+ * @param plugins - Plugin registry (defaults to defaultPlugins)
  * @returns Plugin or undefined if not found
  */
-const getPlugin = (pluginId) => {
-    return exports.registry[pluginId];
-};
+const getPlugin = (pluginId, plugins = exports.defaultPlugins) => plugins[pluginId];
 exports.getPlugin = getPlugin;
 /**
- * List all available plugins from global registry
+ * List all available plugins
+ * @param plugins - Plugin registry (defaults to defaultPlugins)
  * @returns Array of all plugins
  */
-const listPlugins = () => {
-    return Object.values(exports.registry);
-};
+const listPlugins = (plugins = exports.defaultPlugins) => Object.values(plugins);
 exports.listPlugins = listPlugins;
 /**
- * Register a plugin in the global registry
- * @param plugin - Plugin to register
- */
-const registerPlugin = (plugin) => {
-    exports.registry[plugin.id] = plugin;
-};
-exports.registerPlugin = registerPlugin;
-/**
- * Unregister a plugin from the global registry
- * @param pluginId - Plugin ID to remove
- */
-const unregisterPlugin = (pluginId) => {
-    delete exports.registry[pluginId];
-};
-exports.unregisterPlugin = unregisterPlugin;
-/**
- * Check if plugin exists in global registry
+ * Check if plugin exists
  * @param pluginId - Plugin ID to check
+ * @param plugins - Plugin registry (defaults to defaultPlugins)
  * @returns True if plugin exists
  */
-const pluginExists = (pluginId) => {
-    return pluginId in exports.registry;
-};
+const pluginExists = (pluginId, plugins = exports.defaultPlugins) => pluginId in plugins;
 exports.pluginExists = pluginExists;
-// ============================================================================
-// DEFAULT PLUGINS INITIALIZATION
-// ============================================================================
 /**
- * Initialize default plugins
- * Registers all built-in plugins
+ * Add a custom plugin to the registry (pure function)
+ * @param plugins - Base plugin registry
+ * @param plugin - Plugin to add
+ * @returns New registry with plugin added
  */
-const initializeDefaultPlugins = () => {
-    // Register Generic Excel plugin
-    (0, exports.registerPlugin)(index_1.genericExcelPlugin);
-    // Register Mock Data Generator plugin (for testing)
-    (0, exports.registerPlugin)(index_2.mockDataGeneratorPlugin);
-    // More plugins will be registered here as we implement them
-    // - Solochain plugin
-    // - other WMS plugins
+const withPlugin = (plugins, plugin) => ({
+    ...plugins,
+    [plugin.id]: plugin,
+});
+exports.withPlugin = withPlugin;
+/**
+ * Remove a plugin from the registry (pure function)
+ * @param plugins - Base plugin registry
+ * @param pluginId - Plugin ID to remove
+ * @returns New registry without the plugin
+ */
+const withoutPlugin = (plugins, pluginId) => {
+    const { [pluginId]: removed, ...rest } = plugins;
+    return rest;
 };
-exports.initializeDefaultPlugins = initializeDefaultPlugins;
+exports.withoutPlugin = withoutPlugin;
+/**
+ * Get plugin info for display
+ * @param plugin - Plugin
+ * @returns Plugin info
+ */
+const getPluginInfo = (plugin) => ({
+    id: plugin.id,
+    name: plugin.name,
+    version: plugin.version,
+    description: plugin.description,
+    author: plugin.author,
+    wmsSystem: plugin.wmsSystem,
+    supportedFormats: plugin.supportedFormats,
+});
+exports.getPluginInfo = getPluginInfo;
