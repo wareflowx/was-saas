@@ -66,6 +66,176 @@ useEffect(() => {
 
 ---
 
+### Backend Issues (src/backend/)
+
+#### 6. **Fake Service Layer Anti-Pattern**
+- **Location:** `src/backend/services/*.ts`
+- **Problems:**
+  - `*-service.ts` files exist but are just thin wrappers
+  - No actual business logic, just pass-through functions
+  - Adds unnecessary indirection
+  - Violates YAGNI principle
+- **Example:**
+```typescript
+// services/analysis-service.ts
+export const performABCAnalysis = (...args) => {
+  return runABCAnalysis(...args)  // Useless wrapper!
+}
+```
+- **Impact:** Code bloat, false sense of architecture, harder to navigate
+
+#### 7. **Global Mutable State - Plugin Registry**
+- **Location:** `src/backend/import/plugins/registry.ts`
+- **Problems:**
+  - `export const registry: PluginRegistry = {}` is global and mutable
+  - `registerPlugin()` mutates global state at runtime
+  - No way to know which plugins are registered without side effects
+  - Testing nightmare (shared state between tests)
+- **Impact:** Race conditions, unpredictable behavior, impossible to test in isolation
+
+#### 8. **Runtime `require()` Instead of Static Imports**
+- **Location:** `src/backend/analysis/abc-analysis.ts:33`, `dead-stock-analysis.ts:21`
+- **Problems:**
+  - `const { getProductMovementTotals } = require('../database/queries')`
+  - Hides dependencies from compiler
+  - No type checking at import time
+  - Impossible to tree-shake
+  - Errors only appear at runtime
+- **Impact:** Lost type safety, hidden dependencies, production crashes
+
+#### 9. **Dynamic Imports in Electron Main Process**
+- **Location:** `src/backend/services/import-service.ts:109, 225`
+- **Problems:**
+  - `const { loadToDatabase } = await import('../import/loader')`
+  - No code splitting benefit in Electron main process
+  - Hides dependencies
+  - Makes code tracing difficult
+- **Impact:** No performance gain, added complexity
+
+#### 10. **No Data Validation**
+- **Location:** `src/backend/import/loader.ts`
+- **Problems:**
+  - All `insert*` functions accept `readonly any[]`
+  - No Zod validation or schema checking
+  - Malformed data silently fails or crashes
+- **Example:**
+```typescript
+export const insertWarehouses = (warehouses: readonly any[]): number => {
+  return bulkInsert(warehousesTable, warehouses, (w) => ({
+    // No validation that w has correct fields!
+  }), 'Warehouses')
+}
+```
+- **Impact:** Data corruption, cryptic errors, impossible to debug
+
+#### 11. **Massive Code Duplication**
+- **Location:** `src/backend/import/loader.ts`
+- **Problems:**
+  - Same pattern repeated 20+ times for each entity
+  - 750+ lines doing essentially the same thing
+  - Every entity has identical `insert*` function
+- **Example:**
+```typescript
+export const insertWarehouses = (warehouses: readonly any[]): number => {
+  return bulkInsert(warehousesTable, warehouses, (w) => ({...}), 'Warehouses')
+}
+export const insertUsers = (users: readonly any[]): number => {
+  return bulkInsert(usersTable, users, (u) => ({...}), 'Users')
+}
+// ... 18 more times
+```
+- **Impact:** Maintenance nightmare, error-prone, violates DRY
+
+#### 12. **God Function - loadToDatabase**
+- **Location:** `src/backend/import/loader.ts:621-752`
+- **Problems:**
+  - 131 lines in a single function
+  - 20+ `if` blocks checking each array
+  - No abstraction, just procedural code
+- **Impact:** Untestable, unreadable, unmaintainable
+
+#### 13. **TODOs in Production Code**
+- **Location:** `src/backend/import/mapping-service.ts:282, 292`
+- **Problems:**
+  - `saveMappingPreset()` and `loadMappingPreset()` are stubs
+  - Functions do nothing but log
+  - No implementation of persistence
+- **Impact:** Features appear to work but don't actually persist data
+
+#### 14. **Type Safety Lost with SQL Queries**
+- **Location:** `src/backend/database/index.ts:177-183`
+- **Problems:**
+  - Raw SQL queries return `any[]`
+  - All type information lost at database boundary
+  - `prepare('SELECT * FROM warehouses ORDER BY id').all()` returns `any`
+- **Example:**
+```typescript
+export const getAllWarehouses = () => {
+  const db = getDbRaw()
+  return db
+    .prepare('SELECT * FROM warehouses ORDER BY id')
+    .all()  // Returns any[], no typing!
+}
+```
+- **Impact:** Complete loss of type safety, runtime type errors
+
+#### 15. **Global Singleton with Mutable State**
+- **Location:** `src/backend/database/index.ts:15`
+- **Problems:**
+  - `let sqliteDb: any | null = null` (global mutable, plus `any`!)
+  - Singleton pattern makes testing impossible
+  - No way to reset or mock database in tests
+  - `any` type removes all type safety
+- **Impact:** Untestable code, shared state, lost type safety
+
+#### 16. **Silent Error Handling**
+- **Location:** `src/backend/import/loader.ts:44`
+- **Problems:**
+  - Try/catch logs errors but continues execution
+  - No way to know if insertions failed
+  - No Result types, just console.error
+- **Example:**
+```typescript
+try {
+  db.insert(table).values(transform(item)).run()
+  inserted++
+} catch (error) {
+  console.error(`Error inserting ${entityName}:`, error)
+  // Continues anyway, no way to track failures!
+}
+```
+- **Impact:** Silent data loss, impossible to debug
+
+#### 17. **Hard-coded String Literals**
+- **Location:** Throughout backend
+- **Problems:**
+  - Status types as strings: `'success' | 'failed'`
+  - Movement types: `'inbound' | 'outbound' | 'transfer'`
+  - No type safety, typos possible
+  - Refactor impossible
+- **Impact:** Runtime errors from typos, impossible to refactor safely
+
+#### 18. **Production Logging with console.log**
+- **Location:** Throughout backend
+- **Problems:**
+  - `console.log('🎲 [MOCK DATA] Starting generation...')`
+  - `console.log('✅ [DB INSERT] Warehouses:', ...)`
+  - No structured logging
+  - Impossible to disable in production
+  - Performance impact
+  - No observability
+- **Impact:** Performance degradation, no monitoring, cluttered code
+
+#### 19. **Inconsistent Naming Conventions**
+- **Location:** Throughout backend
+- **Problems:**
+  - `SCHEMAS` vs `ipcContract` vs `registry`
+  - `performABCAnalysis` vs `runDeadStockAnalysis`
+  - `warehouseId` vs `plugin_id` (camelCase vs snake_case)
+- **Impact:** Confusion, cognitive load, errors
+
+---
+
 ## Proposed Solution
 
 ### Functional Programming Approach
@@ -334,17 +504,143 @@ ipcHandler.handle(ipcContract.locations.getAll, async (input) => {
 })
 ```
 
+#### 8. **Functional Backend Architecture (No Services)**
+Backend should use pure functions and composition, no service layer:
+
+```typescript
+// ❌ BAD: Service layer (delete this)
+// services/analysis-service.ts
+export const performABCAnalysis = (...args) => {
+  return runABCAnalysis(...args)  // Useless wrapper!
+}
+
+// ✅ GOOD: Direct function calls
+// backend/analysis/abc.ts
+import { getProductMovementTotals } from '../database/queries'
+import type { Result } from '../types/result'
+
+export const analyzeABC = (
+  warehouseId: string,
+  dateFrom?: string,
+  dateTo?: string
+): Result<ABCAnalysisResult, DatabaseError> => {
+  // Pure function, no side effects
+  const movements = getProductMovementTotals(warehouseId, 'outbound', dateFrom, dateTo)
+
+  if (movements.length === 0) {
+    return failure(databaseError('QUERY_FAILED', 'abc_analysis', 'No movements found'))
+  }
+
+  const analysis = computeABCClassification(movements)
+  return success(analysis)
+}
+
+// Usage: Direct import, no service layer
+import { analyzeABC } from './backend/analysis/abc'
+const result = analyzeABC(warehouseId)
+```
+
+**Plugin Registry - Pure Functions:**
+```typescript
+// ❌ BAD: Global mutable state
+export const registry: PluginRegistry = {}
+export const registerPlugin = (plugin: ImportPlugin): void => {
+  registry[plugin.id] = plugin  // Mutation!
+}
+
+// ✅ GOOD: Pure functions with readonly data
+// backend/import/plugins/config.ts
+import { genericExcelPlugin } from './generic-excel'
+import { mockDataGeneratorPlugin } from './mock-data-generator'
+
+const defaultPlugins: Readonly<Record<string, ImportPlugin>> = {
+  [genericExcelPlugin.id]: genericExcelPlugin,
+  [mockDataGeneratorPlugin.id]: mockDataGeneratorPlugin,
+} as const
+
+export const getPlugin = (id: string): ImportPlugin | undefined =>
+  defaultPlugins[id]
+
+export const listPlugins = (): readonly ImportPlugin[] =>
+  Object.values(defaultPlugins)
+
+export const withCustomPlugin = (
+  plugin: ImportPlugin
+): Readonly<Record<string, ImportPlugin>> => ({
+  ...defaultPlugins,
+  [plugin.id]: plugin,
+})
+```
+
+**Generic Database Operations:**
+```typescript
+// ❌ BAD: 20 identical functions
+export const insertWarehouses = (warehouses: readonly any[]): number => {
+  return bulkInsert(warehousesTable, warehouses, (w) => ({...}), 'Warehouses')
+}
+export const insertUsers = (users: readonly any[]): number => {
+  return bulkInsert(usersTable, users, (u) => ({...}), 'Users')
+}
+// ... 18 more
+
+// ✅ GOOD: Single generic function with Zod validation
+import type { Result } from '../types/result'
+import { warehouseSchema } from '../schemas/warehouse'
+
+export const bulkInsertValidated = <T>(
+  table: Table,
+  schema: z.ZodSchema<T>,
+  data: readonly T[]
+): Result<number, ValidationError> => {
+  // Validate all data first
+  const validation = schema.array().safeParse(data)
+  if (!validation.success) {
+    return failure(validationError('BULK_INSERT_FAILED', validation.error))
+  }
+
+  // Use Drizzle transaction
+  const inserted = db.transaction((items: readonly T[]) => {
+    return items.reduce((count, item) => {
+      try {
+        db.insert(table).values(item).run()
+        return count + 1
+      } catch (error) {
+        // Log and return count (don't throw)
+        logError('INSERT_FAILED', { table: table[Symbol.for('name')], error })
+        return count
+      }
+    }, 0)
+  })(validation.data)
+
+  return success(inserted)
+}
+
+// Usage - type-safe and validated
+const result = bulkInsertValidated(warehousesTable, warehouseSchema, warehouses)
+```
+
 ---
 
 ## Affected Areas
 
+### Frontend
 - [ ] All route components (`locations.tsx`, `zones.tsx`, `sectors.tsx`, etc.)
 - [ ] `useBackend()` hook
 - [ ] `use-locations.ts` (all data fetching hooks)
-- [ ] `src/backend/import/` (IPC communication)
 - [ ] All `(window as any).electronAPI` accesses
-- [ ] Error handling throughout the application
+- [ ] Error handling throughout frontend
 - [ ] Navigation/redirects
+
+### Backend
+- [ ] Remove all `src/backend/services/*.ts` (fake service layer)
+- [ ] `src/backend/import/plugins/registry.ts` (global mutable state)
+- [ ] `src/backend/import/loader.ts` (code duplication, validation)
+- [ ] `src/backend/import/mapping-service.ts` (TODO stubs)
+- [ ] `src/backend/database/index.ts` (singleton, type safety)
+- [ ] `src/backend/analysis/*.ts` (runtime requires)
+- [ ] All `console.log` statements (replace with structured logging)
+- [ ] All error handling (add Result types)
+
 
 ---
 
@@ -367,16 +663,39 @@ ipcHandler.handle(ipcContract.locations.getAll, async (input) => {
    - Add structured logging
    - Replace all `(window as any).electronAPI` accesses with `ipc` proxy
 
-### Phase 2: Backend API (Direct Functions)
-1. **Create backend API layer**
-   - Define API as readonly object with functions
-   - All functions return `Result<T, AppError>`
-   - No classes, no services, just functions
+### Phase 2: Backend Refactoring (Functional Approach)
+1. **Remove fake service layer**
+   - Delete all `src/backend/services/*.ts` files
+   - Move functions directly where they're needed
+   - No intermediate "service" layer
 
-2. **Update database layer**
-   - Return typed results
-   - Add validation at boundaries with Zod schemas
-   - Direct mapping to API functions
+2. **Replace global mutable state**
+   - Convert plugin registry to pure functions
+   - Pass plugins as parameters instead of global mutation
+   - Create `getPlugins()` function that returns readonly list
+
+3. **Add data validation**
+   - Create Zod schemas for all entities
+   - Validate at boundaries (IPC, database, file parsing)
+   - Return `Result<T, AppError>` from all operations
+
+4. **Eliminate code duplication**
+   - Create generic `bulkInsert` with entity schemas
+   - Use generic types instead of repeating for each entity
+   - Reduce `loader.ts` from 750+ lines to <200 lines
+
+5. **Fix database singleton**
+   - Replace global singleton with dependency injection
+   - Pass database connection as parameter
+   - Remove `any` types, use proper Drizzle types
+
+6. **Replace runtime requires**
+   - Convert `require()` to static ES6 imports
+   - Make dependencies explicit and type-checked
+
+7. **Remove TODO stubs**
+   - Either implement or remove `saveMappingPreset`/`loadMappingPreset`
+   - No half-implemented features in production
 
 ### Phase 3: Frontend Hooks
 1. **Simplify hooks**
