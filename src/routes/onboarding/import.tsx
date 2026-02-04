@@ -34,7 +34,9 @@ function DataImport() {
     if (!isLoading) return
 
     const runSetup = async () => {
-      const warehouseId = 'WH-001'
+      // Note: Don't create a warehouse here - the mock data generator will create all warehouses
+      // The warehouseId parameter is now ignored by the generator
+      const warehouseId = 'WH-FR-01' // This will be the first warehouse created by the generator
 
       for (let index = 0; index < steps.length; index++) {
         setLoadingSteps((prev) => {
@@ -42,7 +44,6 @@ function DataImport() {
           newSteps[index].status = "loading"
           return newSteps
         })
-        setCurrentStep(index)
 
         // Simulate processing time
         await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700))
@@ -50,16 +51,7 @@ function DataImport() {
         // Actual data generation for mock data option
         if (index === 1 && useMockData) {
           try {
-            // Create warehouse first
-            await backend.createWarehouse({
-              id: warehouseId,
-              code: 'WH-001',
-              name: 'Demo Warehouse',
-              city: 'Paris',
-              country: 'France',
-            })
-
-            // Generate mock data
+            // The mock data generator will create all warehouses with their zones, sectors, locations, etc.
             await backend.generateMockData(warehouseId)
           } catch (error) {
             console.error('Error generating mock data:', error)
