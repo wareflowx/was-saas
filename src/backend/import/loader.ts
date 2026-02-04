@@ -53,6 +53,25 @@ function bulkInsert<T>(
   return inserted
 }
 
+/**
+ * Insert parent and child records together
+ * Used for entities with line items (orders, pickings, receptions, etc.)
+ */
+function bulkInsertParentChild<TParent, TChild>(
+  parentTable: any,
+  parentData: readonly TParent[],
+  parentTransform: (item: TParent) => any,
+  parentName: string,
+  childTable: any,
+  childData: readonly TChild[],
+  childTransform: (item: TChild) => any,
+  childName: string
+): { parent: number, child: number } {
+  const parentInserted = bulkInsert(parentTable, parentData, parentTransform, parentName)
+  const childInserted = bulkInsert(childTable, childData, childTransform, childName)
+  return { parent: parentInserted, child: childInserted }
+}
+
 // ============================================================================
 // WAREHOUSE STRUCTURE
 // ============================================================================
@@ -330,7 +349,7 @@ export const insertMovements = (movements: readonly any[]): number => {
 // ============================================================================
 
 export const insertOrders = (orders: readonly any[], orderLines: readonly any[]): { orders: number, lines: number } => {
-  const ordersInserted = bulkInsert(
+  const result = bulkInsertParentChild(
     ordersTable,
     orders,
     (o) => ({
@@ -351,10 +370,7 @@ export const insertOrders = (orders: readonly any[], orderLines: readonly any[])
       shippingCity: o.shippingCity,
       shippingCountry: o.shippingCountry,
     }),
-    'Orders'
-  )
-
-  const linesInserted = bulkInsert(
+    'Orders',
     orderLinesTable,
     orderLines,
     (l) => ({
@@ -371,8 +387,7 @@ export const insertOrders = (orders: readonly any[], orderLines: readonly any[])
     }),
     'OrderLines'
   )
-
-  return { orders: ordersInserted, lines: linesInserted }
+  return { orders: result.parent, lines: result.child }
 }
 
 // ============================================================================
@@ -380,7 +395,7 @@ export const insertOrders = (orders: readonly any[], orderLines: readonly any[])
 // ============================================================================
 
 export const insertPickings = (pickings: readonly any[], pickingLines: readonly any[]): { pickings: number, lines: number } => {
-  const pickingsInserted = bulkInsert(
+  const result = bulkInsertParentChild(
     pickingsTable,
     pickings,
     (p) => ({
@@ -399,10 +414,7 @@ export const insertPickings = (pickings: readonly any[], pickingLines: readonly 
       remainingQuantity: p.totalQuantity - p.pickedQuantity,
       picker: p.picker,
     }),
-    'Pickings'
-  )
-
-  const linesInserted = bulkInsert(
+    'Pickings',
     pickingLinesTable,
     pickingLines,
     (l) => ({
@@ -421,8 +433,7 @@ export const insertPickings = (pickings: readonly any[], pickingLines: readonly 
     }),
     'PickingLines'
   )
-
-  return { pickings: pickingsInserted, lines: linesInserted }
+  return { pickings: result.parent, lines: result.child }
 }
 
 // ============================================================================
@@ -430,7 +441,7 @@ export const insertPickings = (pickings: readonly any[], pickingLines: readonly 
 // ============================================================================
 
 export const insertReceptions = (receptions: readonly any[], receptionLines: readonly any[]): { receptions: number, lines: number } => {
-  const receptionsInserted = bulkInsert(
+  const result = bulkInsertParentChild(
     receptionsTable,
     receptions,
     (r) => ({
@@ -448,10 +459,7 @@ export const insertReceptions = (receptions: readonly any[], receptionLines: rea
       rejectedQuantity: r.rejectedQuantity || 0,
       totalAmount: r.totalAmount || 0,
     }),
-    'Receptions'
-  )
-
-  const linesInserted = bulkInsert(
+    'Receptions',
     receptionLinesTable,
     receptionLines,
     (l) => ({
@@ -469,8 +477,7 @@ export const insertReceptions = (receptions: readonly any[], receptionLines: rea
     }),
     'ReceptionLines'
   )
-
-  return { receptions: receptionsInserted, lines: linesInserted }
+  return { receptions: result.parent, lines: result.child }
 }
 
 // ============================================================================
@@ -478,7 +485,7 @@ export const insertReceptions = (receptions: readonly any[], receptionLines: rea
 // ============================================================================
 
 export const insertRestockings = (restockings: readonly any[], restockingLines: readonly any[]): { restockings: number, lines: number } => {
-  const restockingsInserted = bulkInsert(
+  const result = bulkInsertParentChild(
     restockingsTable,
     restockings,
     (r) => ({
@@ -490,10 +497,7 @@ export const insertRestockings = (restockings: readonly any[], restockingLines: 
       requester: r.requester,
       requestedDate: formatDate(r.requestedDate),
     }),
-    'Restockings'
-  )
-
-  const linesInserted = bulkInsert(
+    'Restockings',
     restockingLinesTable,
     restockingLines,
     (l) => ({
@@ -513,8 +517,7 @@ export const insertRestockings = (restockings: readonly any[], restockingLines: 
     }),
     'RestockingLines'
   )
-
-  return { restockings: restockingsInserted, lines: linesInserted }
+  return { restockings: result.parent, lines: result.child }
 }
 
 // ============================================================================
@@ -522,7 +525,7 @@ export const insertRestockings = (restockings: readonly any[], restockingLines: 
 // ============================================================================
 
 export const insertReturns = (returns: readonly any[], returnLines: readonly any[]): { returns: number, lines: number } => {
-  const returnsInserted = bulkInsert(
+  const result = bulkInsertParentChild(
     returnsTable,
     returns,
     (r) => ({
@@ -545,10 +548,7 @@ export const insertReturns = (returns: readonly any[], returnLines: readonly any
       processor: r.processor,
       completedDate: r.completedDate ? formatDate(r.completedDate) : null,
     }),
-    'Returns'
-  )
-
-  const linesInserted = bulkInsert(
+    'Returns',
     returnLinesTable,
     returnLines,
     (l) => ({
@@ -566,8 +566,7 @@ export const insertReturns = (returns: readonly any[], returnLines: readonly any
     }),
     'ReturnLines'
   )
-
-  return { returns: returnsInserted, lines: linesInserted }
+  return { returns: result.parent, lines: result.child }
 }
 
 // ============================================================================
@@ -575,7 +574,7 @@ export const insertReturns = (returns: readonly any[], returnLines: readonly any
 // ============================================================================
 
 export const insertShipments = (shipments: readonly any[], shipmentLines: readonly any[]): { shipments: number, lines: number } => {
-  const shipmentsInserted = bulkInsert(
+  const result = bulkInsertParentChild(
     shipmentsTable,
     shipments,
     (s) => ({
@@ -591,10 +590,7 @@ export const insertShipments = (shipments: readonly any[], shipmentLines: readon
       shippingCity: s.shippingCity,
       shippingCountry: s.shippingCountry,
     }),
-    'Shipments'
-  )
-
-  const linesInserted = bulkInsert(
+    'Shipments',
     shipmentLinesTable,
     shipmentLines,
     (l) => ({
@@ -605,13 +601,41 @@ export const insertShipments = (shipments: readonly any[], shipmentLines: readon
     }),
     'ShipmentLines'
   )
-
-  return { shipments: shipmentsInserted, lines: linesInserted }
+  return { shipments: result.parent, lines: result.child }
 }
 
 // ============================================================================
 // MAIN LOADER FUNCTION
 // ============================================================================
+
+/**
+ * Helper to conditionally insert simple entities
+ */
+function insertIfPresent<T>(
+  dataArray: readonly T[] | undefined,
+  inserter: (data: readonly T[]) => number,
+  logPrefix?: string
+): number {
+  if (!dataArray?.length) return 0
+  if (logPrefix) console.log(logPrefix)
+  return inserter(dataArray)
+}
+
+/**
+ * Helper to conditionally insert parent-child entities
+ */
+function insertParentChildIfPresent<TParent, TChild>(
+  parentData: readonly TParent[] | undefined,
+  childData: readonly TChild[] | undefined,
+  inserter: (parents: readonly TParent[], children: readonly TChild[]) => { parent: number, child: number },
+  resultKey: 'parent' | string,
+  logPrefix?: string
+): number {
+  if (!parentData?.length) return 0
+  if (logPrefix) console.log(logPrefix)
+  const result = inserter(parentData, childData || [])
+  return result[resultKey] as number
+}
 
 /**
  * Load normalized data into database
@@ -659,94 +683,31 @@ export const loadToDatabase = (data: NormalizedData): {
 
   // Insert in correct order (respecting foreign keys)
 
-  if (data.warehouses?.length) {
-    stats.warehousesImported = insertWarehouses(data.warehouses)
-  }
+  stats.warehousesImported = insertIfPresent(data.warehouses, insertWarehouses)
+  stats.usersImported = insertIfPresent(data.users, insertUsers)
+  stats.suppliersImported = insertIfPresent(data.suppliers, insertSuppliers)
+  stats.customersImported = insertIfPresent(data.customers, insertCustomers)
+  stats.purchaseOrdersImported = insertIfPresent(data.purchaseOrders, insertPurchaseOrders)
 
-  if (data.users?.length) {
-    stats.usersImported = insertUsers(data.users)
-  }
-
-  if (data.suppliers?.length) {
-    stats.suppliersImported = insertSuppliers(data.suppliers)
-  }
-
-  if (data.customers?.length) {
-    stats.customersImported = insertCustomers(data.customers)
-  }
-
-  if (data.purchaseOrders?.length) {
-    stats.purchaseOrdersImported = insertPurchaseOrders(data.purchaseOrders)
-  }
-
+  // purchaseOrderLines doesn't track stats
   if (data.purchaseOrderLines?.length) {
     insertPurchaseOrderLines(data.purchaseOrderLines)
   }
 
-  if (data.zones?.length) {
-    console.log('📍 [DB] Inserting zones...')
-    stats.zonesImported = insertZones(data.zones)
-  }
+  stats.zonesImported = insertIfPresent(data.zones, insertZones, '📍 [DB] Inserting zones...')
+  stats.sectorsImported = insertIfPresent(data.sectors, insertSectors, '📍 [DB] Inserting sectors...')
+  stats.locationsImported = insertIfPresent(data.locations, insertLocations, '📍 [DB] Inserting locations...')
+  stats.productsImported = insertIfPresent(data.products, insertProducts, '📦 [DB] Inserting products...')
+  stats.inventoryImported = insertIfPresent(data.inventory, (inv) => insertInventory(data.metadata.warehouseId, inv), '📊 [DB] Inserting inventory...')
+  stats.movementsImported = insertIfPresent(data.movements, insertMovements, '🚚 [DB] Inserting movements...')
 
-  if (data.sectors?.length) {
-    console.log('📍 [DB] Inserting sectors...')
-    stats.sectorsImported = insertSectors(data.sectors)
-  }
-
-  if (data.locations?.length) {
-    console.log('📍 [DB] Inserting locations...')
-    stats.locationsImported = insertLocations(data.locations)
-  }
-
-  if (data.products.length) {
-    console.log('📦 [DB] Inserting products...')
-    stats.productsImported = insertProducts(data.products)
-  }
-
-  if (data.inventory.length) {
-    console.log('📊 [DB] Inserting inventory...')
-    stats.inventoryImported = insertInventory(data.metadata.warehouseId, data.inventory)
-  }
-
-  if (data.movements.length) {
-    console.log('🚚 [DB] Inserting movements...')
-    stats.movementsImported = insertMovements(data.movements)
-  }
-
-  if (data.orders?.length) {
-    console.log('📋 [DB] Inserting orders...')
-    const results = insertOrders(data.orders, data.orderLines || [])
-    stats.ordersImported = results.orders
-  }
-
-  if (data.pickings?.length) {
-    console.log('📦 [DB] Inserting pickings...')
-    const results = insertPickings(data.pickings, data.pickingLines || [])
-    stats.pickingsImported = results.pickings
-  }
-
-  if (data.receptions?.length) {
-    console.log('📥 [DB] Inserting receptions...')
-    const results = insertReceptions(data.receptions, data.receptionLines || [])
-    stats.receptionsImported = results.receptions
-  }
-
-  if (data.restockings?.length) {
-    console.log('🔄 [DB] Inserting restockings...')
-    const results = insertRestockings(data.restockings, data.restockingLines || [])
-    stats.restockingsImported = results.restockings
-  }
-
-  if (data.returns?.length) {
-    console.log('↩️ [DB] Inserting returns...')
-    const results = insertReturns(data.returns, data.returnLines || [])
-    stats.returnsImported = results.returns
-  }
-
-  if (data.shipments?.length) {
-    const results = insertShipments(data.shipments, data.shipmentLines || [])
-    stats.shipmentsImported = results.shipments
-  }
+  // Parent-child entities
+  stats.ordersImported = insertParentChildIfPresent(data.orders, data.orderLines, insertOrders, 'parent', '📋 [DB] Inserting orders...')
+  stats.pickingsImported = insertParentChildIfPresent(data.pickings, data.pickingLines, insertPickings, 'parent', '📦 [DB] Inserting pickings...')
+  stats.receptionsImported = insertParentChildIfPresent(data.receptions, data.receptionLines, insertReceptions, 'parent', '📥 [DB] Inserting receptions...')
+  stats.restockingsImported = insertParentChildIfPresent(data.restockings, data.restockingLines, insertRestockings, 'parent', '🔄 [DB] Inserting restockings...')
+  stats.returnsImported = insertParentChildIfPresent(data.returns, data.returnLines, insertReturns, 'parent', '↩️ [DB] Inserting returns...')
+  stats.shipmentsImported = insertParentChildIfPresent(data.shipments, data.shipmentLines, insertShipments, 'parent')
 
   return stats
 }
