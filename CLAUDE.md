@@ -1,200 +1,105 @@
 # Development Guidelines - WAS SaaS
 
-This document contains all architectural rules, patterns, and conventions for developing the WAS SaaS application with Electron, TypeScript, and SQLite.
+Architectural rules and conventions for the WAS SaaS application (Electron + TypeScript + SQLite).
 
 ## Core Principles
 
 ### 1. Functional Programming Only
 
 **DO:**
-- Use pure functions without side effects
-- Use readonly types for immutability
-- Use discriminated unions for error handling
-- Compose functions instead of chaining methods
-- Pass data as parameters, never use global mutable state
+- Pure functions without side effects
+- Readonly types for immutability
+- Discriminated unions for error handling
+- Function composition
+- Pass data as parameters
 
 **DON'T:**
-- Use classes or service layers
-- Use object-oriented patterns
-- Use mutable global state
-- Use methods on objects
-- Use dependency injection containers
+- Classes or service layers
+- Object-oriented patterns
+- Mutable global state
+- Methods on objects
+- Dependency injection containers
 
 ### 2. Type Safety Is Mandatory
 
 **DO:**
-- Use `readonly` on all type properties
-- Use `Readonly<T>` wrapper for objects
+- Use `readonly` on all type properties or `Readonly<T>` wrapper
 - Use `as const` on literals
-- Use Zod schemas for runtime validation
-- Never use `any` type
+- Zod schemas for runtime validation
 
 **DON'T:**
-- Use `any` type
-- Use type assertions `as any`
-- Use mutable properties without `readonly`
-- Bypass TypeScript's type checking
+- Use `any` type (EVER)
+- Type assertions `as any`
+- Mutable properties without `readonly`
 
 ### 3. Explicit Error Handling
 
-**DO:**
+All functions that can fail MUST return `Result<T, E>` discriminated union:
+
 ```typescript
-// Use Result type for all operations that can fail
 type Result<T, E = AppError> =
   | { readonly success: true; readonly data: T }
   | { readonly success: false; readonly error: E }
+```
 
-// Helper functions
+## TypeScript Rules
+
+### Types vs Interfaces vs Enums
+
+**ALWAYS use `type` with union types, NEVER `interface` or `enum`:**
+
+```typescript
+// ✅ GOOD
+type User = Readonly<{ id: string; name: string }>
+type Status = 'active' | 'inactive' | 'pending'
+
+// ❌ BAD
+interface User { id: string }
+enum Status { Active = 'active' }
+```
+
+### Readonly Immutability
+
+All objects must be immutable:
+
+```typescript
+// ✅ GOOD
+type Location = Readonly<{
+  readonly id: string
+  readonly code: string
+}>
+
+// ✅ GOOD (shorthand)
+type Location = Readonly<{
+  id: string
+  code: string
+}>
+
+// ❌ BAD
+type Location = { id: string; code: string }
+```
+
+## Error Handling
+
+### Result Type Pattern
+
+Every operation that can fail returns `Result<T, E>`:
+
+```typescript
 const success = <T>(data: T): Result<T> => ({ success: true, data })
 const failure = <E>(error: E): Result<never, E> => ({ success: false, error })
 
 // Usage
 const getUser = (id: string): Result<User, AppError> => {
   const user = db.query.users.findFirst({ where: eq(users.id, id) })
-  if (!user) return failure(userNotFound(id))
-  return success(user)
+  return user ? success(user) : failure(userNotFound(id))
 }
 ```
 
-**DON'T:**
-```typescript
-// ❌ Don't throw exceptions
-throw new Error('User not found')
-
-// ❌ Don't return null/undefined without explicit type
-return null
-
-// ❌ Don't use try/catch for control flow
-try {
-  return fetchUser()
-} catch (error) {
-  return null  // Error is swallowed!
-}
-```
-
----
-
-## TypeScript Rules
-
-### Types vs Interfaces
-
-**ALWAYS use `type`, never `interface`:**
+### Error Type
 
 ```typescript
-// ✅ GOOD
-type User = Readonly<{
-  readonly id: string
-  readonly name: string
-  readonly email: string
-}>
-
-// ❌ BAD
-interface User {
-  id: string
-  name: string
-  email: string
-}
-```
-
-### Union Types vs Enums
-
-**ALWAYS use union types, never enums:**
-
-```typescript
-// ✅ GOOD
-type Status = 'active' | 'inactive' | 'pending'
-type MovementType = 'inbound' | 'outbound' | 'transfer' | 'adjustment'
-
-// ❌ BAD
-enum Status {
-  Active = 'active',
-  Inactive = 'inactive',
-  Pending = 'pending'
-}
-```
-
-### Readonly Immutability
-
-**ALWAYS use readonly for immutability:**
-
-```typescript
-// ✅ GOOD - individual properties
-type Location = Readonly<{
-  readonly id: string
-  readonly code: string
-  readonly zoneId: string
-}>
-
-// ✅ GOOD - wrapper
-type Location = Readonly<{
-  id: string
-  code: string
-  zoneId: string
-}>
-
-// ❌ BAD - mutable
-type Location = {
-  id: string
-  code: string
-  zoneId: string
-}
-```
-
----
-
-## Error Handling
-
-### Result Type Pattern
-
-All functions that can fail MUST return `Result<T, E>`:
-
-```typescript
-// src/shared/types/result.ts
-type Result<T, E = AppError> =
-  | { readonly success: true; readonly data: T }
-  | { readonly success: false; readonly error: E }
-
-// Composable helpers
-const map = <T, U, E>(
-  result: Result<T, E>,
-  fn: (data: T) => U
-): Result<U, E> =>
-  result.success ? success(fn(result.data)) : result
-
-const chain = <T, U, E>(
-  result: Result<T, E>,
-  fn: (data: T) => Result<U, E>
-): Result<U, E> =>
-  result.success ? fn(result.data) : result
-
-// Usage example
-const getLocation = (id: string): Result<Location, AppError> => {
-  const location = db.query.locations.findFirst({
-    where: eq(locations.id, id)
-  })
-
-  if (!location) {
-    return failure(notFoundError('Location', id))
-  }
-
-  return success(location)
-}
-
-// Compose with map
-const result = getLocation('loc-1')
-const code = map(result, loc => loc.code)
-```
-
-### Error Type Definition
-
-```typescript
-// src/shared/types/error.ts
-type ErrorDomain =
-  | 'DATABASE'
-  | 'IPC'
-  | 'VALIDATION'
-  | 'NETWORK'
-  | 'BUSINESS'
+type ErrorDomain = 'DATABASE' | 'IPC' | 'VALIDATION' | 'NETWORK' | 'BUSINESS'
 
 type AppError = Readonly<{
   readonly domain: ErrorDomain
@@ -205,384 +110,155 @@ type AppError = Readonly<{
   readonly timestamp: Date
   readonly recoverable: boolean
 }>
-
-// Error constructors (pure functions)
-const createError = (
-  domain: ErrorDomain,
-  code: string,
-  message: string,
-  options?: {
-    cause?: unknown
-    context?: Record<string, unknown>
-    recoverable?: boolean
-  }
-): AppError => ({
-  domain,
-  code,
-  message,
-  cause: options?.cause,
-  context: options?.context,
-  timestamp: new Date(),
-  recoverable: options?.recoverable ?? false
-})
-
-// Specific error creators
-const databaseError = (
-  operation: string,
-  table: string,
-  cause: unknown
-): AppError =>
-  createError('DATABASE', `DB_${operation.toUpperCase()}_FAILED`,
-    `Failed to ${operation} on ${table}`,
-    { cause, context: { table, operation } }
-  )
-
-const validationError = (
-  field: string,
-  value: unknown,
-  message: string
-): AppError =>
-  createError('VALIDATION', 'VALIDATION_FAILED',
-    message,
-    { context: { field, value } }
-  )
 ```
-
----
 
 ## Electron IPC Architecture
 
 ### Type-Safe IPC with Zod Contract
 
-**DO:**
+Single source of truth using Zod schemas:
 
 ```typescript
 // shared/ipc/contract.ts
-import { z } from 'zod'
-
-// Define schemas
-const locationSchema = z.object({
-  id: z.string(),
-  code: z.string(),
-  type: z.string(),
-  capacity: z.number().nullable(),
-  status: z.string(),
-})
-
-const locationsDataSchema = z.object({
-  locations: z.array(locationSchema),
-  kpis: z.object({
-    totalLocations: z.number(),
-    availableLocations: z.number(),
-  }),
-})
-
-// IPC contract - single source of truth
 const ipcContract = {
   locations: {
     getAll: {
-      input: z.object({
-        warehouseId: z.string().optional()
-      }).optional(),
+      input: z.object({ warehouseId: z.string().optional() }).optional(),
       output: locationsDataSchema,
-    },
-    getById: {
-      input: z.object({ id: z.string() }),
-      output: locationSchema,
     },
   },
 } as const
 
-// Type inference
-type IpcContract = typeof ipcContract
-type IpcInput<T extends keyof IpcContract, M extends keyof IpcContract[T]> =
-  z.infer<IpcContract[T][M]['input']>
-type IpcOutput<T extends keyof IpcContract, M extends keyof IpcContract[T]> =
-  z.output<IpcContract[T][M]['output']>
-
-// Type-safe proxy
-type IpcProxy<T extends IpcContract> = {
-  readonly [K in keyof T]: {
-    readonly [M in keyof T[K]]: (
-      input: IpcInput<K, M>
-    ) => Promise<Result<IpcOutput<K, M>, AppError>>
-  }
-}
-
-const createIpcProxy = <T extends IpcContract>(
-  channels: unknown
-): IpcProxy<T> => {
-  // Create recursive proxy with Zod validation
-  return createProxy(channels, ipcContract)
-}
-
-// Usage in renderer
+// Type-safe proxy with validation
 const ipc = createIpcProxy<IpcContract>(window.electronAPI)
 const result = await ipc.locations.getAll({ warehouseId: 'WH-001' })
-// Returns Result<LocationsData, AppError>
 ```
 
-**DON'T:**
+### NEVER Break Type Chain
 
 ```typescript
-// ❌ NEVER break type chain with (window as any)
+// ❌ FORBIDDEN
 const api = (window as any).electronAPI
 const data = await api.locations.getAll(warehouseId)
-// No type safety, no validation, nightmare
-
-// ❌ NEVER use untyped IPC
-window.electronAPI.send('get-locations', { warehouseId })
 ```
 
-### IPC Handlers (Main Process)
-
-```typescript
-// backend/ipc/handlers/locations.ts
-import type { Result } from '$shared/types/result'
-import { success, failure } from '$shared/types/result'
-import { databaseError } from '$shared/types/error'
-import { getLocationsByWarehouse } from '../database/queries'
-
-export const registerLocationHandlers = (
-  ipcMain: Electron.IpcMain
-): void => {
-  ipcMain.handle('locations:getAll', async (event, input) => {
-    try {
-      // Input already validated by Zod in proxy
-      const data = await getLocationsByWarehouse(input?.warehouseId)
-
-      if (!data) {
-        return failure(databaseError('QUERY', 'locations', 'No data found'))
-      }
-
-      return success(data)
-    } catch (error) {
-      return failure(databaseError('QUERY', 'locations', error))
-    }
-  })
-}
-```
-
----
-
-## Backend Rules (Electron Main Process)
+## Backend Rules (Main Process)
 
 ### No Service Layer
 
-**DO: Direct function calls**
+**Direct function calls only:**
 
 ```typescript
-// ✅ GOOD: Direct import and call
+// ✅ GOOD
 // backend/analysis/abc.ts
-import { getProductMovementTotals } from '../database/queries'
-
-export const analyzeABC = (
-  warehouseId: string,
-  dateFrom?: string,
-  dateTo?: string
-): Result<ABCAnalysisResult, DatabaseError> => {
-  const movements = getProductMovementTotals(
-    warehouseId,
-    'outbound',
-    dateFrom,
-    dateTo
-  )
-
-  if (movements.length === 0) {
-    return failure(databaseError('QUERY_FAILED', 'abc_analysis', 'No movements'))
-  }
-
-  const analysis = computeABCClassification(movements)
-  return success(analysis)
+export const analyzeABC = (warehouseId: string): Result<ABCAnalysis, Error> => {
+  const movements = getProductMovementTotals(warehouseId, 'outbound')
+  return computeABCClassification(movements)
 }
 
-// Usage
-import { analyzeABC } from './backend/analysis/abc'
-const result = analyzeABC(warehouseId)
-```
-
-**DON'T: Service wrapper**
-
-```typescript
-// ❌ BAD: Useless service layer
+// ❌ BAD - DELETE ALL services/*.ts FILES
 // services/analysis-service.ts
-export const performABCAnalysis = (...args) => {
-  return runABCAnalysis(...args)  // Just a wrapper!
-}
-
-// DELETE ALL -services/*.ts FILES
+export const performABCAnalysis = (...args) => runABCAnalysis(...args)
 ```
 
 ### Pure Functions, No Global State
 
-**DO:**
-
 ```typescript
-// ✅ GOOD: Pure plugin registry
-// backend/import/plugins/config.ts
-import { genericExcelPlugin } from './generic-excel'
-import { mockDataGeneratorPlugin } from './mock-data-generator'
-
+// ✅ GOOD
 const defaultPlugins: Readonly<Record<string, ImportPlugin>> = {
   [genericExcelPlugin.id]: genericExcelPlugin,
-  [mockDataGeneratorPlugin.id]: mockDataGeneratorPlugin,
 } as const
 
-export const getPlugin = (id: string): ImportPlugin | undefined =>
-  defaultPlugins[id]
+export const getPlugin = (id: string): ImportPlugin | undefined => defaultPlugins[id]
 
-export const listPlugins = (): readonly ImportPlugin[] =>
-  Object.values(defaultPlugins)
-
-export const withCustomPlugin = (
-  plugin: ImportPlugin
-): Readonly<Record<string, ImportPlugin>> => ({
-  ...defaultPlugins,
-  [plugin.id]: plugin,
-})
-```
-
-**DON'T:**
-
-```typescript
-// ❌ BAD: Global mutable registry
+// ❌ BAD
 export const registry: PluginRegistry = {}
 export const registerPlugin = (plugin: ImportPlugin): void => {
   registry[plugin.id] = plugin  // Mutation!
 }
 ```
 
-### Static Imports, Not require()
-
-**DO:**
+### Static Imports Only
 
 ```typescript
-// ✅ GOOD: Static import
+// ✅ GOOD
 import { getProductMovementTotals } from '../database/queries'
-import type { Result } from '$shared/types/result'
 
-export const analyzeABC = (...): Result<ABCAnalysis, Error> => {
-  const movements = getProductMovementTotals(...)
-}
-```
-
-**DON'T:**
-
-```typescript
-// ❌ BAD: Runtime require
+// ❌ BAD
 const { getProductMovementTotals } = require('../database/queries')
-// Hides dependencies, no type checking
 ```
 
-### Generic Operations, Not Code Duplication
+### Generic Operations
 
-**DO:**
+**Eliminate code duplication with generic functions:**
 
 ```typescript
-// ✅ GOOD: Generic validated insert
-import type { Result } from '$shared/types/result'
-import { warehouseSchema } from '$shared/schemas/warehouse'
-
+// ✅ GOOD - Single generic function
 export const bulkInsertValidated = <T>(
   table: Table,
   schema: z.ZodSchema<T>,
   data: readonly T[]
 ): Result<number, ValidationError> => {
-  // Validate with Zod first
   const validation = schema.array().safeParse(data)
-  if (!validation.success) {
-    return failure(validationError('BULK_INSERT_FAILED', validation.error))
-  }
+  if (!validation.success) return failure(validationError(...))
 
-  // Use Drizzle transaction
-  const inserted = db.transaction((items: readonly T[]) => {
-    return items.reduce((count, item) => {
+  const inserted = db.transaction((items) =>
+    items.reduce((count, item) => {
       try {
         db.insert(table).values(item).run()
         return count + 1
       } catch (error) {
         logError('INSERT_FAILED', { table, error })
-        return count  // Don't throw, just count
+        return count
       }
     }, 0)
-  })(validation.data)
+  )(validation.data)
 
   return success(inserted)
 }
 
-// Usage - single function for all entities
-const warehouses = bulkInsertValidated(warehousesTable, warehouseSchema, data)
-const zones = bulkInsertValidated(zonesTable, zoneSchema, data)
-const products = bulkInsertValidated(productsTable, productSchema, data)
+// Usage - no duplication
+bulkInsertValidated(warehousesTable, warehouseSchema, data)
+bulkInsertValidated(zonesTable, zoneSchema, data)
 ```
 
-**DON'T:**
-
 ```typescript
-// ❌ BAD: 20 identical functions
+// ❌ BAD - 20 identical functions
 export const insertWarehouses = (warehouses: readonly any[]): number => {
   return bulkInsert(warehousesTable, warehouses, (w) => ({...}), 'Warehouses')
 }
 export const insertUsers = (users: readonly any[]): number => {
   return bulkInsert(usersTable, users, (u) => ({...}), 'Users')
 }
-export const insertZones = (zones: readonly any[]): number => {
-  return bulkInsert(zonesTable, zones, (z) => ({...}), 'Zones')
-}
-// ... 17 more times
+// ... 18 more times
 ```
 
 ### Database Access
 
-**DO:**
-
 ```typescript
-// ✅ GOOD: Use Drizzle ORM with types
+// ✅ GOOD - Use Drizzle with types
 import { drizzle } from 'drizzle-orm/better-sqlite3'
-import * as schema from './schema'
 
 export const getLocationById = (id: string): Result<Location, DatabaseError> => {
-  try {
-    const location = db.query.locations.findFirst({
-      where: eq(schema.locations.id, id)
-    })
-
-    if (!location) {
-      return failure(databaseError('NOT_FOUND', 'locations', id))
-    }
-
-    return success(location)
-  } catch (error) {
-    return failure(databaseError('QUERY_FAILED', 'locations', error))
-  }
+  const location = db.query.locations.findFirst({ where: eq(schema.locations.id, id) })
+  return location ? success(location) : failure(databaseError('NOT_FOUND', 'locations', id))
 }
-```
 
-**DON'T:**
-
-```typescript
-// ❌ BAD: Raw SQL returns any[]
+// ❌ BAD - Raw SQL returns any[]
 export const getAllWarehouses = () => {
-  const db = getDbRaw()
-  return db
-    .prepare('SELECT * FROM warehouses ORDER BY id')
-    .all()  // Returns any[], no type safety!
+  return db.prepare('SELECT * FROM warehouses').all()  // any[]!
 }
 
-// ❌ BAD: Global singleton with any
-let sqliteDb: any | null = null  // ❌ any type
+// ❌ BAD - Global singleton with any
+let sqliteDb: any | null = null
 ```
-
----
 
 ## Frontend Rules (Renderer Process)
 
 ### React Hooks
 
-**DO:**
-
 ```typescript
-// ✅ GOOD: Direct IPC calls through typed proxy
+// ✅ GOOD - Direct IPC through typed proxy
 import { ipc } from './ipc/proxy'
 
 export function useLocations(warehouseId?: string) {
@@ -591,12 +267,8 @@ export function useLocations(warehouseId?: string) {
     queryFn: () => ipc.locations.getAll({ warehouseId }),
   })
 }
-```
 
-**DON'T:**
-
-```typescript
-// ❌ BAD: God hook
+// ❌ BAD - God hook
 export function useBackend() {
   return {
     getLocations: () => ipcRenderer.invoke('get-locations'),
@@ -608,315 +280,152 @@ export function useBackend() {
 
 ### Navigation
 
-**DO:**
-
 ```typescript
-// ✅ GOOD: Router loader or conditional render
-import { createFileRoute, redirect } from '@tanstack/react-router'
-
+// ✅ GOOD - Router loader
 export const Route = createFileRoute('/locations')({
   beforeLoad: async ({ context }) => {
     const warehouses = await context.ipc.warehouses.getAll()
-
     if (warehouses.length === 0) {
       throw redirect({ to: '/onboarding/welcome' })
     }
   },
-  component: Locations,
 })
-```
 
-**DON'T:**
-
-```typescript
-// ❌ BAD: useEffect for navigation
+// ❌ BAD - useEffect for navigation
 useEffect(() => {
   if (warehouses?.length === 0) {
     navigate({ to: "/onboarding/welcome" })
   }
-}, [warehouses, navigate])  // navigate changes on every render!
+}, [warehouses, navigate])
 ```
 
-### Data Fetching
-
-**DO:**
+### Data Fetching Clarity
 
 ```typescript
-// ✅ GOOD: Clear intent
-const { data: zonesData } = useZones(undefined)  // All zones from all warehouses
+// ✅ GOOD - Clear intent
+useZones(undefined)  // All zones from all warehouses
+useZones(warehouseId)  // Zones from specific warehouse
 
-// ✅ GOOD: Specific warehouse
-const { data: zonesData } = useZones(warehouseId)  // Zones from specific warehouse
+// ❌ BAD - Confusing
+const warehouses = useWarehouses()  // Result ignored
+const data = useLocations(undefined)  // Why undefined?
 ```
-
-**DON'T:**
-
-```typescript
-// ❌ BAD: Confusing intent
-const warehouses = useWarehouses()  // Called but result ignored
-const data = useLocations(undefined)  // Why undefined? Get all? Get first?
-const defaultWarehouseId = warehouses?.[0]?.id
-const data = useLocations(defaultWarehouseId || undefined)  // ???
-```
-
----
 
 ## Code Quality Rules
 
 ### Function Length
 
-**Maximum 50 lines per function.**
-
-If longer, extract smaller functions:
-
-```typescript
-// ❌ BAD: 131-line god function
-export const loadToDatabase = (data: NormalizedData) => {
-  if (data.warehouses?.length) {
-    stats.warehousesImported = insertWarehouses(data.warehouses)
-  }
-  if (data.users?.length) {
-    stats.usersImported = insertUsers(data.users)
-  }
-  // ... 20 more if blocks
-}
-
-// ✅ GOOD: Extract to array of operations
-const entityLoaders = ReadonlyArray<{
-  readonly key: keyof NormalizedData
-  readonly loader: (data: readonly any[]) => number
-}>([
-  { key: 'warehouses', loader: insertWarehouses },
-  { key: 'users', loader: insertUsers },
-  // ...
-])
-
-export const loadToDatabase = (data: NormalizedData): ImportStats => {
-  return entityLoaders.reduce((stats, { key, loader }) => {
-    const items = data[key]
-    if (items?.length) {
-      stats[`${key}Imported`] = loader(items)
-    }
-    return stats
-  }, {} as ImportStats)
-}
-```
+**Maximum 50 lines.** Extract smaller functions if longer.
 
 ### No TODOs in Production
 
-**Never commit TODO stubs:**
-
-```typescript
-// ❌ BAD
-export const saveMappingPreset = (preset: MappingPreset): void => {
-  // TODO: Implement persistence to database
-  console.log('Saving mapping preset:', preset.id)
-}
-
-// ✅ GOOD: Either implement or remove
-// If not implemented, don't export the function
-// Make it clear in planning, not in code
-```
+Either implement or remove. Don't commit stub functions.
 
 ### No console.log in Production
 
-**DO:**
+Use structured logging instead:
 
 ```typescript
-// ✅ GOOD: Structured logging
-import { logger } from './utils/logger'
+// ✅ GOOD
+logger.info('Data imported', { warehouseId, rowsProcessed, duration })
+logger.error('Import failed', { error, warehouseId })
 
-logger.info('Data imported', {
-  warehouseId,
-  rowsProcessed: stats.rowsProcessed,
-  duration: stats.duration,
-})
-
-logger.error('Import failed', {
-  error,
-  warehouseId,
-  pluginId,
-})
-```
-
-**DON'T:**
-
-```typescript
-// ❌ BAD: console.log everywhere
-console.log('🎲 [MOCK DATA] Starting generation...')
-console.log('✅ [DB INSERT] Warehouses:', { inserted, total })
+// ❌ BAD
+console.log('🎲 [MOCK DATA] Starting...')
 console.error('❌ [ERROR] Import failed:', error)
 ```
 
----
-
 ## Naming Conventions
 
-### Be Consistent
+**Be consistent:**
 
-**DO:**
-- Use `camelCase` for all TypeScript variables and properties
-- Use `PascalCase` for types and interfaces
-- Use `UPPER_SNAKE_CASE` for constants
-- Be consistent with verb prefixes: `get`, `find`, `create`, `update`, `delete`
+- `camelCase` for variables and properties
+- `PascalCase` for types
+- `UPPER_SNAKE_CASE` for constants
+- Consistent verb prefixes: `get`, `find`, `create`, `update`, `delete`
+- Consistent boolean prefixes: `is`, `has`, `should`
 
 ```typescript
-// ✅ GOOD: Consistent
+// ✅ GOOD
 getLocationsByWarehouse(warehouseId)
 findProductById(productId)
-createWarehouse(data)
-updateLocationStatus(id, status)
-deleteUser(id)
-
-// ✅ GOOD: Clear prefixes
 const isLoading = true
 const hasError = false
-const shouldRetry = true
-```
 
-**DON'T:**
-
-```typescript
-// ❌ BAD: Inconsistent verbs
+// ❌ BAD
 performABCAnalysis(warehouseId)
 runDeadStockAnalysis(warehouseId)
-executeImport(filePath)  // perform, run, execute - pick one!
-
-// ❌ BAD: Mixed conventions
-warehouseId vs plugin_id  // camelCase vs snake_case
-SCHEMAS vs ipcContract  // UPPER vs camelCase
+warehouseId vs plugin_id  // Mixed conventions
 ```
-
----
 
 ## File Organization
 
-### Folder Structure
+**No services folder:**
 
 ```
 src/
-├── frontend/           # Renderer process code
-│   ├── hooks/         # React hooks (no services!)
-│   ├── routes/        # TanStack Router routes
-│   └── components/    # React components
-├── backend/           # Main process code
-│   ├── database/      # Database queries
-│   ├── analysis/      # Analysis functions (no services!)
-│   ├── import/        # Import functions (no services!)
+├── frontend/           # Renderer (hooks, routes, components)
+├── backend/           # Main process
+│   ├── database/      # Queries
+│   ├── analysis/      # Analysis functions
+│   ├── import/        # Import functions
 │   └── ipc/           # IPC handlers
-├── shared/            # Shared types and utilities
-│   ├── types/         # Type definitions
-│   ├── schemas/       # Zod schemas
-│   └── utils/         # Pure utility functions
-└── main/              # Electron main entry point
+├── shared/            # Types, schemas, utils
+└── main/              # Electron entry point
+
+❌ DELETE: src/backend/services/*.ts
 ```
-
-### No Services Folder
-
-**DELETE ALL services Folders:**
-
-```
-❌ src/backend/services/
-   ├── plugin-service.ts      # DELETE
-   ├── analysis-service.ts    # DELETE
-   └── import-service.ts      # DELETE
-```
-
-Move functions directly where they're needed.
-
----
 
 ## Testing Strategy
 
-### Pure Functions Are Easy to Test
+### Pure Functions Are Testable
 
 ```typescript
-// ✅ GOOD: Pure function
-export const analyzeABC = (
-  warehouseId: string,
-  dateFrom?: string,
-  dateTo?: string
-): Result<ABCAnalysisResult, DatabaseError> => {
-  const movements = getProductMovementTotals(warehouseId, 'outbound', dateFrom, dateTo)
-  // ...
+// Pure function = easy test
+export const analyzeABC = (warehouseId: string): Result<ABCAnalysis, Error> => {
+  const movements = getProductMovementTotals(warehouseId, 'outbound')
+  return computeABCClassification(movements)
 }
 
-// Easy to test
-describe('analyzeABC', () => {
-  it('should return ABC classification', () => {
-    const result = analyzeABC('WH-001')
-    expect(result.success).toBe(true)
-    expect(result.data.products).toHaveLength(100)
-  })
-})
+// Test
+expect(analyzeABC('WH-001').success).toBe(true)
 ```
 
-### No Global State = Easy Tests
+### No Global State = Mockable
 
 ```typescript
-// ✅ GOOD: Pass dependencies
+// Pass dependencies for testability
 export const loadPlugins = (
   customPlugins?: Readonly<Record<string, ImportPlugin>>
 ): readonly ImportPlugin[] => {
   const allPlugins = customPlugins
     ? { ...defaultPlugins, ...customPlugins }
     : defaultPlugins
-
   return Object.values(allPlugins)
 }
-
-// Easy to test with mock plugins
-test('loadPlugins with custom plugin', () => {
-  const custom = { 'my-plugin': mockPlugin }
-  const plugins = loadPlugins(custom)
-  expect(plugins).toContain(mockPlugin)
-})
 ```
 
----
+## Pre-Commit Checklist
 
-## Migration Strategy
-
-When migrating existing code:
-
-1. **Start with types** - Add Result<T, E> return types
-2. **Add Zod schemas** - Validate at boundaries
-3. **Remove services** - Delete service wrappers
-4. **Remove globals** - Pass as parameters
-5. **Add validation** - Replace `any[]` with typed data
-6. **Fix requires** - Convert to static imports
-7. **Remove console.log** - Add structured logging
-8. **Delete TODOs** - Implement or remove
-
----
-
-## Summary Checklist
-
-Before committing code, verify:
-
-- [ ] No `any` types used
+- [ ] No `any` types
 - [ ] No `interface` (use `type`)
 - [ ] No `enum` (use union types)
-- [ ] All properties are `readonly`
-- [ ] All functions return `Result<T, E>` if they can fail
+- [ ] All properties `readonly`
+- [ ] Functions return `Result<T, E>` if they can fail
 - [ ] No global mutable state
-- [ ] No service layer (direct function calls)
-- [ ] No classes (use functions and types)
-- [ ] No runtime `require()` (use static imports)
-- [ ] All data validated with Zod at boundaries
-- [ ] No console.log (use structured logging)
+- [ ] No service layer
+- [ ] No classes
+- [ ] No runtime `require()` (static imports only)
+- [ ] Data validated with Zod at boundaries
+- [ ] No console.log (structured logging)
 - [ ] No TODO stubs
 - [ ] Functions < 50 lines
 - [ ] No code duplication
-- [ ] Consistent naming conventions
+- [ ] Consistent naming
 - [ ] No `(window as any)` (use typed IPC proxy)
-
----
 
 ## References
 
 - [Railway-Oriented Programming](https://blog.ploeh.dk/amateurs-and-error-handling/)
-- [Result Type Pattern](https://vicluck.medium.com/using-result-types-in-javascript-typescript-771be0f55b55)
-- [Functional Programming Patterns](https://github.com/fpontencier/expression-oriented-api-examples)
 - [Zod Validation](https://zod.dev/)
 - [Drizzle ORM](https://orm.drizzle.team/)
