@@ -423,9 +423,3 @@ export const loadPlugins = (
 - [ ] No code duplication
 - [ ] Consistent naming
 - [ ] No `(window as any)` (use typed IPC proxy)
-
-## References
-
-- [Railway-Oriented Programming](https://blog.ploeh.dk/amateurs-and-error-handling/)
-- [Zod Validation](https://zod.dev/)
-- [Drizzle ORM](https://orm.drizzle.team/)
