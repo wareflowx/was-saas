@@ -108,15 +108,15 @@ type ErrorDomain =
   | 'BUSINESS'
 
 // Error type as a product type (readonly for immutability)
-type AppError = {
-  readonly domain: ErrorDomain
-  readonly code: string
-  readonly message: string
-  readonly cause?: unknown
-  readonly context?: Readonly<Record<string, unknown>>
-  readonly timestamp: Date
-  readonly recoverable: boolean
-}
+type AppError = Readonly<{
+  domain: ErrorDomain
+  code: string
+  message: string
+  cause?: unknown
+  context?: Readonly<Record<string, unknown>>
+  timestamp: Date
+  recoverable: boolean
+}>
 
 // Constructor functions (pure)
 const createError = (
@@ -184,15 +184,42 @@ const safeIpcCall = async <T>(
 ): Promise<Result<T, AppError>>
 ```
 
-#### 4. **Service Layer Pattern**
-Separate business logic from IPC/Database concerns:
+#### 4. **tRPC Pattern with Direct API Calls**
+No service layer - direct function calls through tRPC:
 
 ```typescript
-const LocationService = {
-  getAll: (): Promise<Result<LocationsData, AppError>>,
-  getByWarehouse: (id: string): Promise<Result<Location[], AppError>>,
-  // Clear interface, explicit about what can fail
+// Backend API - just functions, no classes, no services
+type BackendApi = {
+  readonly locations: {
+    readonly getAll: (warehouseId?: string) => Promise<Result<LocationsData, AppError>>
+    readonly getById: (id: string) => Promise<Result<Location, AppError>>
+    readonly create: (data: CreateLocationDto) => Promise<Result<Location, AppError>>
+  }
+  readonly zones: {
+    readonly getAll: (warehouseId?: string) => Promise<Result<ZonesData, AppError>>
+    readonly getById: (id: string) => Promise<Result<Zone, AppError>>
+  }
+  // ... for all entities
 }
+
+// Usage through tRPC - direct calls, no intermediate services
+const { data } = await api.locations.getAll()
+// Returns Result<LocationsData, AppError>
+
+// In React Query / tRPC hooks
+const useAllLocations = (warehouseId?: string) => {
+  return useQuery({
+    queryKey: ['locations', warehouseId],
+    queryFn: () => api.locations.getAll(warehouseId),
+    // Result<T, E> automatically converted to throw on error
+  })
+}
+
+// Benefits:
+// - No service layer overhead
+// - Direct function calls (composable, testable)
+// - tRPC provides type safety end-to-end
+// - Clear contract: functions take X and return Y
 ```
 
 #### 5. **React Query Integration**
@@ -232,21 +259,23 @@ Replace `useEffect` navigation with:
    - Implement `safeIpcCall()` with retry logic
    - Add structured logging
 
-### Phase 2: Backend Services
-1. **Create service layer**
-   - `LocationService`, `WarehouseService`, etc.
-   - Each service has clear interface
-   - All methods return `Result<T, AppError>`
+### Phase 2: Backend API (tRPC Pattern)
+1. **Create tRPC router**
+   - Define API as readonly object with functions
+   - All functions return `Result<T, AppError>`
+   - No classes, no services, just functions
 
 2. **Update database layer**
    - Return typed results
    - Add validation at boundaries
+   - Direct mapping to tRPC procedures
 
 ### Phase 3: Frontend Hooks
 1. **Simplify hooks**
    - Remove "god hook" anti-pattern
-   - Each hook uses appropriate service
-   - Clear contract for what data is fetched
+   - Use tRPC procedures directly
+   - Each hook calls api.entities.xxx() directly
+   - Clear contract: `api.locations.getAll(warehouseId?)`
 
 2. **Fix navigation**
    - Remove `useEffect` navigation
