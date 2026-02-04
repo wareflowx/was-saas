@@ -5,6 +5,7 @@
 
 import type { NormalizedData } from './types'
 import { getDatabase, getDbRaw, warehouses as warehousesTable, users as usersTable, suppliers as suppliersTable, customers as customersTable, purchaseOrders as purchaseOrdersTable, purchaseOrderLines as purchaseOrderLinesTable, zones as zonesTable, sectors as sectorsTable, locations as locationsTable, products as productsTable, inventory as inventoryTable, movements as movementsTable, orders as ordersTable, orderLines as orderLinesTable, pickings as pickingsTable, pickingLines as pickingLinesTable, receptions as receptionsTable, receptionLines as receptionLinesTable, restockings as restockingsTable, restockingLines as restockingLinesTable, returns as returnsTable, returnLines as returnLinesTable, shipments as shipmentsTable, shipmentLines as shipmentLinesTable } from '../database/index'
+import { logger } from '../../../shared/utils/logger'
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -18,7 +19,7 @@ function formatDate(date: Date): string {
 }
 
 /**
- * Bulk insert with transaction support
+ * Bulk insert with transaction support and error tracking
  */
 function bulkInsert<T>(
   table: any,
@@ -31,6 +32,8 @@ function bulkInsert<T>(
   const db = getDatabase()
   const sqlite = getDbRaw()
   let inserted = 0
+  let failed = 0
+  const errors: Array<{ item: unknown; error: string }> = []
 
   // Use SQLite transaction for better performance
   const insertMany = sqlite.transaction((items: readonly T[]) => {
@@ -42,13 +45,32 @@ function bulkInsert<T>(
           .run()
         inserted++
       } catch (error) {
-        console.error(`Error inserting ${entityName}:`, error)
+        failed++
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        errors.push({ item, error: errorMessage })
       }
     }
   })
 
   insertMany(data)
-  console.log(`✅ [DB INSERT] ${entityName}:`, { inserted, total: data.length })
+
+  // Log results
+  logger.info(`${entityName} insertion complete`, {
+    entity: entityName,
+    inserted,
+    failed,
+    total: data.length,
+    successRate: data.length > 0 ? ((inserted / data.length) * 100).toFixed(1) + '%' : 'N/A',
+  })
+
+  // Log individual errors (at warn level)
+  if (errors.length > 0) {
+    logger.warn(`Failed to insert ${failed} ${entityName}`, {
+      entity: entityName,
+      failedCount: failed,
+      errors: errors.slice(0, 5), // Log first 5 errors only
+    })
+  }
 
   return inserted
 }
@@ -617,7 +639,7 @@ function insertIfPresent<T>(
   logPrefix?: string
 ): number {
   if (!dataArray?.length) return 0
-  if (logPrefix) console.log(logPrefix)
+  if (logPrefix) logger.info(logPrefix.replace(/[📍📦📊🚚📋📥🔄↩️]/g, '').trim())
   return inserter(dataArray)
 }
 
@@ -632,7 +654,7 @@ function insertParentChildIfPresent<TParent, TChild>(
   logPrefix?: string
 ): number {
   if (!parentData?.length) return 0
-  if (logPrefix) console.log(logPrefix)
+  if (logPrefix) logger.info(logPrefix.replace(/[📍📦📊🚚📋📥🔄↩️]/g, '').trim())
   const result = inserter(parentData, childData || [])
   return result[resultKey] as number
 }
