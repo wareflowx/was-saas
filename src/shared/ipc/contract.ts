@@ -12,10 +12,30 @@ import {
   zonesDataSchema,
   sectorsDataSchema,
   warehousesDataSchema,
+  productsDataSchema,
+  dashboardDataSchema,
+  importHistoryEntrySchema,
+  receptionsDataSchema,
+  pickingsDataSchema,
+  returnsDataSchema,
+  restockingsDataSchema,
+  ordersDataSchema,
+  abcAnalysisResultSchema,
+  deadStockAnalysisResultSchema,
   type LocationsData,
   type ZonesData,
   type SectorsData,
   type WarehousesData,
+  type ProductsData,
+  type DashboardData,
+  type ImportHistoryEntry,
+  type ReceptionsData,
+  type PickingsData,
+  type ReturnsData,
+  type RestockingsData,
+  type OrdersData,
+  type ABCAnalysisResult,
+  type DeadStockAnalysisResult,
 } from '../schemas/entities'
 
 // ============================================================================
@@ -65,6 +85,107 @@ export const ipcContract = {
         warehouseId: z.string().optional(),
       }).optional(),
       output: sectorsDataSchema,
+    },
+  },
+
+  // Products
+  products: {
+    getAll: {
+      input: z.object({
+        warehouseId: z.string(),
+      }),
+      output: productsDataSchema,
+    },
+  },
+
+  // Dashboard
+  dashboard: {
+    getKPIs: {
+      input: z.object({
+        warehouseId: z.string().optional(),
+      }),
+      output: dashboardDataSchema,
+    },
+  },
+
+  // Import
+  importHistory: {
+    getAll: {
+      input: z.object({
+        warehouseId: z.string().optional(),
+      }),
+      output: z.array(importHistoryEntrySchema),
+    },
+  },
+
+  // Operations - Receptions
+  receptions: {
+    getAll: {
+      input: z.object({
+        warehouseId: z.string(),
+      }),
+      output: receptionsDataSchema,
+    },
+  },
+
+  // Operations - Pickings
+  pickings: {
+    getAll: {
+      input: z.object({
+        warehouseId: z.string(),
+      }),
+      output: pickingsDataSchema,
+    },
+  },
+
+  // Operations - Returns
+  returns: {
+    getAll: {
+      input: z.object({
+        warehouseId: z.string(),
+      }),
+      output: returnsDataSchema,
+    },
+  },
+
+  // Operations - Restockings
+  restockings: {
+    getAll: {
+      input: z.object({
+        warehouseId: z.string(),
+      }),
+      output: restockingsDataSchema,
+    },
+  },
+
+  // Operations - Orders
+  orders: {
+    getWithLines: {
+      input: z.object({
+        warehouseId: z.string(),
+      }),
+      output: ordersDataSchema,
+    },
+  },
+
+  // Analysis
+  analysis: {
+    abc: {
+      input: z.object({
+        warehouseId: z.string(),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+      }),
+      output: abcAnalysisResultSchema,
+    },
+    deadStock: {
+      input: z.object({
+        warehouseId: z.string(),
+        thresholdDays: z.number().optional(),
+        criticalThreshold: z.number().optional(),
+        warningThreshold: z.number().optional(),
+      }),
+      output: deadStockAnalysisResultSchema,
     },
   },
 } as const
@@ -117,19 +238,64 @@ export type IpcProxy<T extends IpcContract> = {
 /**
  * Warehouses channels
  */
-export type WarehousesIpc = IpcProxy<'warehouses'>
+export type WarehousesIpc = IpcProxy<Pick<IpcContract, 'warehouses'>>
 
 /**
  * Locations channels
  */
-export type LocationsIpc = IpcProxy<'locations'>
+export type LocationsIpc = IpcProxy<Pick<IpcContract, 'locations'>>
 
 /**
  * Zones channels
  */
-export type ZonesIpc = IpcProxy<'zones'>
+export type ZonesIpc = IpcProxy<Pick<IpcContract, 'zones'>>
 
 /**
  * Sectors channels
  */
-export type SectorsIpc = IpcProxy<'sectors'>
+export type SectorsIpc = IpcProxy<Pick<IpcContract, 'sectors'>>
+
+/**
+ * Products channels
+ */
+export type ProductsIpc = IpcProxy<Pick<IpcContract, 'products'>>
+
+/**
+ * Dashboard channels
+ */
+export type DashboardIpc = IpcProxy<Pick<IpcContract, 'dashboard'>>
+
+/**
+ * Import channels
+ */
+export type ImportIpc = IpcProxy<Pick<IpcContract, 'importHistory'>>
+
+/**
+ * Receptions channels
+ */
+export type ReceptionsIpc = IpcProxy<Pick<IpcContract, 'receptions'>>
+
+/**
+ * Pickings channels
+ */
+export type PickingsIpc = IpcProxy<Pick<IpcContract, 'pickings'>>
+
+/**
+ * Returns channels
+ */
+export type ReturnsIpc = IpcProxy<Pick<IpcContract, 'returns'>>
+
+/**
+ * Restockings channels
+ */
+export type RestockingsIpc = IpcProxy<Pick<IpcContract, 'restockings'>>
+
+/**
+ * Orders channels
+ */
+export type OrdersIpc = IpcProxy<Pick<IpcContract, 'orders'>>
+
+/**
+ * Analysis channels
+ */
+export type AnalysisIpc = IpcProxy<Pick<IpcContract, 'analysis'>>
