@@ -89,86 +89,130 @@ export const mockDataGeneratorPlugin: ImportPlugin = {
     _input: unknown,
     _context: TransformContext
   ): NormalizedData => {
-    // Note: warehouseId from context is intentionally ignored
-    // We always use the first warehouse to ensure consistency with frontend hooks
-
     // Generate warehouses first (generates 2-3 warehouses)
     const warehouses = generateMockWarehouses()
 
-    // Always use the first warehouse for zones, sectors, locations
-    // This ensures that the default warehouse used by hooks has data
-    const primaryWarehouseId = warehouses[0].id
-    const effectiveWarehouseId = primaryWarehouseId
+    // Generate data for ALL warehouses to ensure all have data
+    const allZones: any[] = []
+    const allSectors: any[] = []
+    const allLocations: any[] = []
+    const allProducts: any[] = []
+    const allInventory: any[] = []
+    const allMovements: any[] = []
+    const allUsers: any[] = []
+    const allPurchaseOrders: any[] = []
+    const allPurchaseOrderLines: any[] = []
+    const allReceptions: any[] = []
+    const allReceptionLines: any[] = []
+    const allOrders: any[] = []
+    const allOrderLines: any[] = []
+    const allPickings: any[] = []
+    const allPickingLines: any[] = []
+    const allShipments: any[] = []
+    const allShipmentLines: any[] = []
+    const allReturns: any[] = []
+    const allReturnLines: any[] = []
+    const allRestockings: any[] = []
+    const allRestockingLines: any[] = []
 
-    // Generate mock data (zones, sectors, locations first, then products, inventory, movements)
-    const zones = generateMockZones(effectiveWarehouseId)
-    const sectors = generateMockSectors(effectiveWarehouseId, zones)
-    const locations = generateMockLocations(effectiveWarehouseId, zones, sectors)
-    const products = generateMockProducts(50)
-    const inventory = generateMockInventory(effectiveWarehouseId, products, locations)
-    const movements = generateMockMovements(effectiveWarehouseId, products, locations, 200)
-    const users = generateMockUsers(effectiveWarehouseId)
     const suppliers = generateMockSuppliers()
     const customers = generateMockCustomers()
 
-    // Generate purchase orders and their lines
-    const purchaseOrdersResult = generateMockPurchaseOrdersAndLines(effectiveWarehouseId, suppliers, products)
+    // Generate data for each warehouse
+    warehouses.forEach((warehouse) => {
+      const warehouseId = warehouse.id
 
-    // Generate receptions and their lines (for received purchase orders)
-    const receptionsResult = generateMockReceptionsAndLines(
-      effectiveWarehouseId,
-      suppliers,
-      purchaseOrdersResult.orders,
-      purchaseOrdersResult.lines
-    )
+      // Generate mock data for this warehouse
+      const zones = generateMockZones(warehouseId)
+      const sectors = generateMockSectors(warehouseId, zones)
+      const locations = generateMockLocations(warehouseId, zones, sectors)
+      const products = generateMockProducts(50)
+      const inventory = generateMockInventory(warehouseId, products, locations)
+      const movements = generateMockMovements(warehouseId, products, locations, 200)
+      const users = generateMockUsers(warehouseId)
 
-    // Generate orders and their lines
-    const ordersResult = generateMockOrdersAndLines(effectiveWarehouseId, customers, products)
+      // Generate purchase orders and their lines
+      const purchaseOrdersResult = generateMockPurchaseOrdersAndLines(warehouseId, suppliers, products)
 
-    // Generate pickings and their lines (for orders in PICKING/SHIPPED status)
-    const pickingsResult = generateMockPickingsAndLines(effectiveWarehouseId, users, ordersResult.orders, ordersResult.lines)
+      // Generate receptions and their lines
+      const receptionsResult = generateMockReceptionsAndLines(
+        warehouseId,
+        suppliers,
+        purchaseOrdersResult.orders,
+        purchaseOrdersResult.lines
+      )
 
-    // Generate shipments and their lines (for shipped orders)
-    const shipmentsResult = generateMockShipmentsAndLines(effectiveWarehouseId, ordersResult.orders, ordersResult.lines)
+      // Generate orders and their lines
+      const ordersResult = generateMockOrdersAndLines(warehouseId, customers, products)
 
-    // Generate returns and their lines
-    const returnsResult = generateMockReturnsAndLines(effectiveWarehouseId, customers, ordersResult.orders, products)
+      // Generate pickings and their lines
+      const pickingsResult = generateMockPickingsAndLines(warehouseId, users, ordersResult.orders, ordersResult.lines)
 
-    // Generate restockings and their lines
-    const restockingsResult = generateMockRestockingsAndLines(effectiveWarehouseId, users, products, locations)
+      // Generate shipments and their lines
+      const shipmentsResult = generateMockShipmentsAndLines(warehouseId, ordersResult.orders, ordersResult.lines)
+
+      // Generate returns and their lines
+      const returnsResult = generateMockReturnsAndLines(warehouseId, customers, ordersResult.orders, products)
+
+      // Generate restockings and their lines
+      const restockingsResult = generateMockRestockingsAndLines(warehouseId, users, products, locations)
+
+      // Accumulate data from all warehouses
+      allZones.push(...zones)
+      allSectors.push(...sectors)
+      allLocations.push(...locations)
+      allProducts.push(...products)
+      allInventory.push(...inventory)
+      allMovements.push(...movements)
+      allUsers.push(...users)
+      allPurchaseOrders.push(...purchaseOrdersResult.orders)
+      allPurchaseOrderLines.push(...purchaseOrdersResult.lines)
+      allReceptions.push(...receptionsResult.receptions)
+      allReceptionLines.push(...receptionsResult.lines)
+      allOrders.push(...ordersResult.orders)
+      allOrderLines.push(...ordersResult.lines)
+      allPickings.push(...pickingsResult.pickings)
+      allPickingLines.push(...pickingsResult.lines)
+      allShipments.push(...shipmentsResult.shipments)
+      allShipmentLines.push(...shipmentsResult.lines)
+      allReturns.push(...returnsResult.returns)
+      allReturnLines.push(...returnsResult.lines)
+      allRestockings.push(...restockingsResult.restockings)
+      allRestockingLines.push(...restockingsResult.lines)
+    })
 
     return {
       metadata: {
-        warehouseId: effectiveWarehouseId,
+        warehouseId: warehouses[0].id,
         importDate: new Date(),
         pluginId: 'mock-data-generator',
         pluginVersion: '1.0.0',
         wmsSystem: 'Mock',
       },
-      products,
-      inventory,
-      movements,
-      locations,
-      zones,
-      sectors,
+      products: allProducts,
+      inventory: allInventory,
+      movements: allMovements,
+      locations: allLocations,
+      zones: allZones,
+      sectors: allSectors,
       warehouses,
-      users,
+      users: allUsers,
       suppliers,
       customers,
-      purchaseOrders: purchaseOrdersResult.orders,
-      purchaseOrderLines: purchaseOrdersResult.lines,
-      receptions: receptionsResult.receptions,
-      receptionLines: receptionsResult.lines,
-      orders: ordersResult.orders,
-      orderLines: ordersResult.lines,
-      pickings: pickingsResult.pickings,
-      pickingLines: pickingsResult.lines,
-      shipments: shipmentsResult.shipments,
-      shipmentLines: shipmentsResult.lines,
-      returns: returnsResult.returns,
-      returnLines: returnsResult.lines,
-      restockings: restockingsResult.restockings,
-      restockingLines: restockingsResult.lines,
+      purchaseOrders: allPurchaseOrders,
+      purchaseOrderLines: allPurchaseOrderLines,
+      receptions: allReceptions,
+      receptionLines: allReceptionLines,
+      orders: allOrders,
+      orderLines: allOrderLines,
+      pickings: allPickings,
+      pickingLines: allPickingLines,
+      shipments: allShipments,
+      shipmentLines: allShipmentLines,
+      returns: allReturns,
+      returnLines: allReturnLines,
+      restockings: allRestockings,
+      restockingLines: allRestockingLines,
     }
   },
 }
