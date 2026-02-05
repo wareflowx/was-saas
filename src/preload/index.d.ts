@@ -47,6 +47,11 @@ type ImportResult = {
         readonly suggestion?: string;
     }[];
 };
+/**
+ * @deprecated Use typedElectronAPI instead for type-safe IPC communication
+ * This legacy API uses unknown types and will be removed in a future version.
+ * @see typedElectronAPI for properly typed methods with Result<T, AppError>
+ */
 declare const electronAPI: {
     /**
      * List all available import plugins
@@ -152,7 +157,10 @@ declare const electronAPI: {
 };
 declare global {
     interface Window {
-        electronAPI: typeof electronAPI;
+        /**
+         * @deprecated Use typedElectronAPI instead for type-safe IPC communication
+         */
+        readonly electronAPI: typeof electronAPI;
     }
 }
 export {};
