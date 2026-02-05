@@ -24,6 +24,7 @@ import {
   returns,
   returnLines,
   importHistory,
+  users,
 } from './drizzle-schema'
 
 // ============================================================================
@@ -1240,6 +1241,62 @@ export const getDashboardKPIs = async (warehouseId?: string) => {
     topProducts,
     lowStockAlerts,
     recentMovements,
+  }
+}
+
+// ============================================================================
+// USERS
+// ============================================================================
+
+/**
+ * Get all users for a warehouse with KPIs
+ * @param warehouseId - Warehouse ID (optional, undefined = all warehouses)
+ * @returns Users data with KPIs
+ */
+export const getUsersByWarehouse = async (warehouseId?: string) => {
+  const db = getDatabase()
+
+  const rows = await db
+    .select({
+      id: users.id,
+      warehouseId: users.warehouseId,
+      username: users.username,
+      fullName: users.fullName,
+      email: users.email,
+      role: users.role,
+      status: users.status,
+      lastLoginAt: users.lastLoginAt,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+      warehouseName: warehouses.name,
+      warehouseCode: warehouses.code,
+    })
+    .from(users)
+    .leftJoin(warehouses, eq(users.warehouseId, warehouses.id))
+    .where(warehouseId ? eq(users.warehouseId, warehouseId) : undefined)
+    .orderBy(users.fullName)
+
+  // Calculate KPIs
+  const totalUsers = rows.length
+  const activeUsers = rows.filter(r => r.status === 'active').length
+  const inactiveUsers = rows.filter(r => r.status === 'inactive').length
+  const pendingUsers = rows.filter(r => r.status === 'pending').length
+
+  const operatorsCount = rows.filter(r => r.role === 'operator').length
+  const managersCount = rows.filter(r => r.role === 'manager').length
+  const adminsCount = rows.filter(r => r.role === 'admin').length
+
+  return {
+    kpis: {
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
+      pendingUsers,
+      operatorsCount,
+      managersCount,
+      adminsCount,
+    },
+    users: rows,
   }
 }
 

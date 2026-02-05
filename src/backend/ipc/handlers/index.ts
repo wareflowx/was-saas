@@ -23,6 +23,7 @@ import type {
   OrdersData,
   ABCAnalysisResult,
   DeadStockAnalysisResult,
+  UsersData,
 } from '../../../shared/schemas/entities'
 import {
   warehousesDataSchema,
@@ -39,6 +40,7 @@ import {
   ordersDataSchema,
   abcAnalysisResultSchema,
   deadStockAnalysisResultSchema,
+  usersDataSchema,
 } from '../../../shared/schemas/entities'
 import {
   getLocationsByWarehouse,
@@ -53,6 +55,7 @@ import {
   getRestockingsByWarehouse,
   getOrdersByWarehouseWithLines,
   getDashboardKPIs,
+  getUsersByWarehouse,
 } from '../../database/queries'
 import { runABCAnalysis } from '../../analysis/abc-analysis'
 import { runDeadStockAnalysis } from '../../analysis/dead-stock-analysis'
@@ -101,6 +104,9 @@ export const registerIpcHandlers = (): void => {
   // Analysis
   ipcMain.handle('analysis:abc', handleAnalysisABC)
   ipcMain.handle('analysis:deadStock', handleAnalysisDeadStock)
+
+  // Users
+  ipcMain.handle('users:getAll', handleUsersGetAll)
 }
 
 /**
@@ -708,5 +714,38 @@ const handleAnalysisDeadStock = async (
     return success(validation.data)
   } catch (error) {
     return failure(ipcError('analysis:deadStock', error))
+  }
+}
+
+/**
+ * Users handler
+ */
+const handleUsersGetAll = async (
+  _event: Electron.IpcMainInvokeEvent,
+  input: unknown
+): Promise<Result<UsersData, AppError>> => {
+  try {
+    const warehouseId = (input as { warehouseId?: string })?.warehouseId
+    const data = await getUsersByWarehouse(warehouseId)
+
+    if (!data) {
+      return failure({
+        domain: 'DATABASE',
+        code: 'QUERY_FAILED',
+        message: 'Failed to fetch users',
+        timestamp: new Date(),
+        recoverable: true,
+      })
+    }
+
+    // Validate with Zod schema
+    const validation = usersDataSchema.safeParse(data)
+    if (!validation.success) {
+      return failure(validationError('UsersData', data, validation.error.errors.map(e => e.message).join(', ')))
+    }
+
+    return success(validation.data)
+  } catch (error) {
+    return failure(ipcError('users:getAll', error))
   }
 }
