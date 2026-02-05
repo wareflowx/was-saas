@@ -40,6 +40,7 @@ import {
   Grid3x3,
   Upload,
   Database,
+  Users,
 } from "lucide-react"
 
 export function AppSidebar() {
@@ -166,6 +167,14 @@ export function AppSidebar() {
           <SidebarGroupLabel>Operations</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="text-muted-foreground">
+                  <Link to="/operators">
+                    <Users />
+                    <span>Operators</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="text-muted-foreground">
                   <Link to="/receptions">
