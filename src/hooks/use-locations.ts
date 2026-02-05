@@ -6,6 +6,22 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+import type {
+  WarehousesData,
+  LocationsData,
+  ZonesData,
+  SectorsData,
+  ProductsData,
+  DashboardData,
+  ImportHistoryEntry,
+  ReceptionsData,
+  PickingsData,
+  ReturnsData,
+  RestockingsData,
+  OrdersData,
+  ABCAnalysisResult,
+  DeadStockAnalysisResult,
+} from '../shared/schemas/entities'
 
 /**
  * Fetch locations for a warehouse
@@ -13,10 +29,10 @@ import { useQuery } from '@tanstack/react-query'
  * @returns Query result with data, isLoading, error, refetch
  */
 export function useLocations(warehouseId?: string) {
-  return useQuery({
+  return useQuery<LocationsData>({
     queryKey: ['locations', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<LocationsData> => {
       const result = await window.typedElectronAPI.locations
         .getAll({ warehouseId })
 
@@ -56,10 +72,10 @@ export function useWarehouses() {
  * @returns Query result with warehouses data and calculated KPIs
  */
 export function useWarehousesWithKPIs() {
-  return useQuery({
+  return useQuery<WarehousesData>({
     queryKey: ['warehouses', 'kpis'],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<WarehousesData> => {
       const result = await window.typedElectronAPI.warehouses.getWithKPIs()
 
       if (result.success) {
@@ -84,10 +100,10 @@ export function useABCAnalysis(
     dateTo?: string
   }
 ) {
-  return useQuery({
+  return useQuery<ABCAnalysisResult>({
     queryKey: ['analysis', 'abc', warehouseId, params],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<ABCAnalysisResult> => {
       const result = await window.typedElectronAPI.analysis.abc({
         warehouseId,
         ...params,
@@ -118,10 +134,10 @@ export function useDeadStockAnalysis(
     warningThreshold?: number
   }
 ) {
-  return useQuery({
+  return useQuery<DeadStockAnalysisResult>({
     queryKey: ['analysis', 'dead-stock', warehouseId, params],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<DeadStockAnalysisResult> => {
       const result = await window.typedElectronAPI.analysis.deadStock({
         warehouseId,
         ...params,
@@ -144,10 +160,10 @@ export function useDeadStockAnalysis(
  * @returns Query result with zones data
  */
 export function useZones(warehouseId?: string) {
-  return useQuery({
+  return useQuery<ZonesData>({
     queryKey: ['zones', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<ZonesData> => {
       const result = await window.typedElectronAPI.zones
         .getAll({ warehouseId })
 
@@ -167,10 +183,10 @@ export function useZones(warehouseId?: string) {
  * @returns Query result with sectors data
  */
 export function useSectors(warehouseId?: string) {
-  return useQuery({
+  return useQuery<SectorsData>({
     queryKey: ['sectors', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<SectorsData> => {
       const result = await window.typedElectronAPI.sectors
         .getAll({ warehouseId })
 
@@ -190,10 +206,10 @@ export function useSectors(warehouseId?: string) {
  * @returns Query result with import history data
  */
 export function useImportHistory(warehouseId?: string) {
-  return useQuery({
+  return useQuery<readonly ImportHistoryEntry[]>({
     queryKey: ['import-history', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<readonly ImportHistoryEntry[]> => {
       const result = await window.typedElectronAPI.importHistory.getAll({
         warehouseId,
       })
@@ -213,10 +229,10 @@ export function useImportHistory(warehouseId?: string) {
  * @returns Query result with dashboard KPIs and summary data
  */
 export function useDashboardKPIs(warehouseId?: string) {
-  return useQuery({
+  return useQuery<DashboardData>({
     queryKey: ['dashboard', 'kpis', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<DashboardData> => {
       const result = await window.typedElectronAPI.dashboard.getKPIs({
         warehouseId,
       })
@@ -236,10 +252,10 @@ export function useDashboardKPIs(warehouseId?: string) {
  * @returns Query result with receptions data
  */
 export function useReceptions(warehouseId?: string) {
-  return useQuery({
+  return useQuery<ReceptionsData>({
     queryKey: ['receptions', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<ReceptionsData> => {
       if (!warehouseId) {
         throw new Error('warehouseId is required')
       }
@@ -265,10 +281,10 @@ export function useReceptions(warehouseId?: string) {
  * @returns Query result with pickings data
  */
 export function usePickings(warehouseId?: string) {
-  return useQuery({
+  return useQuery<PickingsData>({
     queryKey: ['pickings', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<PickingsData> => {
       if (!warehouseId) {
         throw new Error('warehouseId is required')
       }
@@ -294,10 +310,10 @@ export function usePickings(warehouseId?: string) {
  * @returns Query result with returns data
  */
 export function useReturns(warehouseId?: string) {
-  return useQuery({
+  return useQuery<ReturnsData>({
     queryKey: ['returns', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<ReturnsData> => {
       if (!warehouseId) {
         throw new Error('warehouseId is required')
       }
@@ -323,10 +339,10 @@ export function useReturns(warehouseId?: string) {
  * @returns Query result with restockings data
  */
 export function useRestockings(warehouseId?: string) {
-  return useQuery({
+  return useQuery<RestockingsData>({
     queryKey: ['restockings', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<RestockingsData> => {
       if (!warehouseId) {
         throw new Error('warehouseId is required')
       }
@@ -352,10 +368,10 @@ export function useRestockings(warehouseId?: string) {
  * @returns Query result with orders data including lines
  */
 export function useOrdersWithLines(warehouseId?: string) {
-  return useQuery({
+  return useQuery<OrdersData>({
     queryKey: ['orders', 'with-lines', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<OrdersData> => {
       if (!warehouseId) {
         throw new Error('warehouseId is required')
       }
@@ -381,10 +397,10 @@ export function useOrdersWithLines(warehouseId?: string) {
  * @returns Query result with products data
  */
 export function useProducts(warehouseId?: string) {
-  return useQuery({
+  return useQuery<ProductsData>({
     queryKey: ['products', warehouseId],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<ProductsData> => {
       if (!warehouseId) {
         throw new Error('warehouseId is required')
       }
