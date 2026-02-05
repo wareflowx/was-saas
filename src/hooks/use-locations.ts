@@ -35,10 +35,10 @@ export function useLocations(warehouseId?: string) {
  * @returns Query result with warehouses array
  */
 export function useWarehouses() {
-  return useQuery({
+  return useQuery<WarehousesData>({
     queryKey: ['warehouses'],
 
-    queryFn: async () => {
+    queryFn: async (): Promise<WarehousesData> => {
       const result = await window.typedElectronAPI.warehouses.getAll()
 
       // Handle Result<T, E> - throw error for React Query to catch
