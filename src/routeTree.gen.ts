@@ -9,108 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ZonesRouteImport } from './routes/zones'
-import { Route as WarehousesRouteImport } from './routes/warehouses'
-import { Route as TestRouteImport } from './routes/test'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SectorsRouteImport } from './routes/sectors'
-import { Route as ReturnsRouteImport } from './routes/returns'
-import { Route as RestockingsRouteImport } from './routes/restockings'
-import { Route as ReceptionsRouteImport } from './routes/receptions'
-import { Route as ProductsRouteImport } from './routes/products'
-import { Route as PickingRouteImport } from './routes/picking'
-import { Route as OrdersRouteImport } from './routes/orders'
-import { Route as MisplacedItemsRouteImport } from './routes/misplaced-items'
-import { Route as LocationsRouteImport } from './routes/locations'
-import { Route as DeadStockRouteImport } from './routes/dead-stock'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AbcAnalysisRouteImport } from './routes/abc-analysis'
+import { Route as OperatorsRouteImport } from './routes/operators'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as OrdersIndexRouteImport } from './routes/orders/index'
-import { Route as OrdersOrderIdRouteImport } from './routes/orders/$orderId'
-import { Route as OnboardingWelcomeRouteImport } from './routes/onboarding/welcome'
-import { Route as OnboardingWarehouseRouteImport } from './routes/onboarding/warehouse'
-import { Route as OnboardingImportRouteImport } from './routes/onboarding/import'
-import { Route as DataImportRouteImport } from './routes/data/import'
+import { Route as HomeIndexRouteImport } from './routes/home/index'
 
-const ZonesRoute = ZonesRouteImport.update({
-  id: '/zones',
-  path: '/zones',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WarehousesRoute = WarehousesRouteImport.update({
-  id: '/warehouses',
-  path: '/warehouses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestRoute = TestRouteImport.update({
-  id: '/test',
-  path: '/test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SectorsRoute = SectorsRouteImport.update({
-  id: '/sectors',
-  path: '/sectors',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReturnsRoute = ReturnsRouteImport.update({
-  id: '/returns',
-  path: '/returns',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RestockingsRoute = RestockingsRouteImport.update({
-  id: '/restockings',
-  path: '/restockings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReceptionsRoute = ReceptionsRouteImport.update({
-  id: '/receptions',
-  path: '/receptions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductsRoute = ProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PickingRoute = PickingRouteImport.update({
-  id: '/picking',
-  path: '/picking',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersRoute = OrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MisplacedItemsRoute = MisplacedItemsRouteImport.update({
-  id: '/misplaced-items',
-  path: '/misplaced-items',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LocationsRoute = LocationsRouteImport.update({
-  id: '/locations',
-  path: '/locations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DeadStockRoute = DeadStockRouteImport.update({
-  id: '/dead-stock',
-  path: '/dead-stock',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AbcAnalysisRoute = AbcAnalysisRouteImport.update({
-  id: '/abc-analysis',
-  path: '/abc-analysis',
+const OperatorsRoute = OperatorsRouteImport.update({
+  id: '/operators',
+  path: '/operators',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -118,325 +23,49 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrdersIndexRoute = OrdersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => OrdersRoute,
-} as any)
-const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
-  id: '/$orderId',
-  path: '/$orderId',
-  getParentRoute: () => OrdersRoute,
-} as any)
-const OnboardingWelcomeRoute = OnboardingWelcomeRouteImport.update({
-  id: '/onboarding/welcome',
-  path: '/onboarding/welcome',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingWarehouseRoute = OnboardingWarehouseRouteImport.update({
-  id: '/onboarding/warehouse',
-  path: '/onboarding/warehouse',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingImportRoute = OnboardingImportRouteImport.update({
-  id: '/onboarding/import',
-  path: '/onboarding/import',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DataImportRoute = DataImportRouteImport.update({
-  id: '/data/import',
-  path: '/data/import',
+const HomeIndexRoute = HomeIndexRouteImport.update({
+  id: '/home/',
+  path: '/home/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/abc-analysis': typeof AbcAnalysisRoute
-  '/dashboard': typeof DashboardRoute
-  '/dead-stock': typeof DeadStockRoute
-  '/locations': typeof LocationsRoute
-  '/misplaced-items': typeof MisplacedItemsRoute
-  '/orders': typeof OrdersRouteWithChildren
-  '/picking': typeof PickingRoute
-  '/products': typeof ProductsRoute
-  '/receptions': typeof ReceptionsRoute
-  '/restockings': typeof RestockingsRoute
-  '/returns': typeof ReturnsRoute
-  '/sectors': typeof SectorsRoute
-  '/settings': typeof SettingsRoute
-  '/test': typeof TestRoute
-  '/warehouses': typeof WarehousesRoute
-  '/zones': typeof ZonesRoute
-  '/data/import': typeof DataImportRoute
-  '/onboarding/import': typeof OnboardingImportRoute
-  '/onboarding/warehouse': typeof OnboardingWarehouseRoute
-  '/onboarding/welcome': typeof OnboardingWelcomeRoute
-  '/orders/$orderId': typeof OrdersOrderIdRoute
-  '/orders/': typeof OrdersIndexRoute
+  '/operators': typeof OperatorsRoute
+  '/home/': typeof HomeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/abc-analysis': typeof AbcAnalysisRoute
-  '/dashboard': typeof DashboardRoute
-  '/dead-stock': typeof DeadStockRoute
-  '/locations': typeof LocationsRoute
-  '/misplaced-items': typeof MisplacedItemsRoute
-  '/picking': typeof PickingRoute
-  '/products': typeof ProductsRoute
-  '/receptions': typeof ReceptionsRoute
-  '/restockings': typeof RestockingsRoute
-  '/returns': typeof ReturnsRoute
-  '/sectors': typeof SectorsRoute
-  '/settings': typeof SettingsRoute
-  '/test': typeof TestRoute
-  '/warehouses': typeof WarehousesRoute
-  '/zones': typeof ZonesRoute
-  '/data/import': typeof DataImportRoute
-  '/onboarding/import': typeof OnboardingImportRoute
-  '/onboarding/warehouse': typeof OnboardingWarehouseRoute
-  '/onboarding/welcome': typeof OnboardingWelcomeRoute
-  '/orders/$orderId': typeof OrdersOrderIdRoute
-  '/orders': typeof OrdersIndexRoute
+  '/operators': typeof OperatorsRoute
+  '/home': typeof HomeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/abc-analysis': typeof AbcAnalysisRoute
-  '/dashboard': typeof DashboardRoute
-  '/dead-stock': typeof DeadStockRoute
-  '/locations': typeof LocationsRoute
-  '/misplaced-items': typeof MisplacedItemsRoute
-  '/orders': typeof OrdersRouteWithChildren
-  '/picking': typeof PickingRoute
-  '/products': typeof ProductsRoute
-  '/receptions': typeof ReceptionsRoute
-  '/restockings': typeof RestockingsRoute
-  '/returns': typeof ReturnsRoute
-  '/sectors': typeof SectorsRoute
-  '/settings': typeof SettingsRoute
-  '/test': typeof TestRoute
-  '/warehouses': typeof WarehousesRoute
-  '/zones': typeof ZonesRoute
-  '/data/import': typeof DataImportRoute
-  '/onboarding/import': typeof OnboardingImportRoute
-  '/onboarding/warehouse': typeof OnboardingWarehouseRoute
-  '/onboarding/welcome': typeof OnboardingWelcomeRoute
-  '/orders/$orderId': typeof OrdersOrderIdRoute
-  '/orders/': typeof OrdersIndexRoute
+  '/operators': typeof OperatorsRoute
+  '/home/': typeof HomeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/abc-analysis'
-    | '/dashboard'
-    | '/dead-stock'
-    | '/locations'
-    | '/misplaced-items'
-    | '/orders'
-    | '/picking'
-    | '/products'
-    | '/receptions'
-    | '/restockings'
-    | '/returns'
-    | '/sectors'
-    | '/settings'
-    | '/test'
-    | '/warehouses'
-    | '/zones'
-    | '/data/import'
-    | '/onboarding/import'
-    | '/onboarding/warehouse'
-    | '/onboarding/welcome'
-    | '/orders/$orderId'
-    | '/orders/'
+  fullPaths: '/' | '/operators' | '/home/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/abc-analysis'
-    | '/dashboard'
-    | '/dead-stock'
-    | '/locations'
-    | '/misplaced-items'
-    | '/picking'
-    | '/products'
-    | '/receptions'
-    | '/restockings'
-    | '/returns'
-    | '/sectors'
-    | '/settings'
-    | '/test'
-    | '/warehouses'
-    | '/zones'
-    | '/data/import'
-    | '/onboarding/import'
-    | '/onboarding/warehouse'
-    | '/onboarding/welcome'
-    | '/orders/$orderId'
-    | '/orders'
-  id:
-    | '__root__'
-    | '/'
-    | '/abc-analysis'
-    | '/dashboard'
-    | '/dead-stock'
-    | '/locations'
-    | '/misplaced-items'
-    | '/orders'
-    | '/picking'
-    | '/products'
-    | '/receptions'
-    | '/restockings'
-    | '/returns'
-    | '/sectors'
-    | '/settings'
-    | '/test'
-    | '/warehouses'
-    | '/zones'
-    | '/data/import'
-    | '/onboarding/import'
-    | '/onboarding/warehouse'
-    | '/onboarding/welcome'
-    | '/orders/$orderId'
-    | '/orders/'
+  to: '/' | '/operators' | '/home'
+  id: '__root__' | '/' | '/operators' | '/home/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AbcAnalysisRoute: typeof AbcAnalysisRoute
-  DashboardRoute: typeof DashboardRoute
-  DeadStockRoute: typeof DeadStockRoute
-  LocationsRoute: typeof LocationsRoute
-  MisplacedItemsRoute: typeof MisplacedItemsRoute
-  OrdersRoute: typeof OrdersRouteWithChildren
-  PickingRoute: typeof PickingRoute
-  ProductsRoute: typeof ProductsRoute
-  ReceptionsRoute: typeof ReceptionsRoute
-  RestockingsRoute: typeof RestockingsRoute
-  ReturnsRoute: typeof ReturnsRoute
-  SectorsRoute: typeof SectorsRoute
-  SettingsRoute: typeof SettingsRoute
-  TestRoute: typeof TestRoute
-  WarehousesRoute: typeof WarehousesRoute
-  ZonesRoute: typeof ZonesRoute
-  DataImportRoute: typeof DataImportRoute
-  OnboardingImportRoute: typeof OnboardingImportRoute
-  OnboardingWarehouseRoute: typeof OnboardingWarehouseRoute
-  OnboardingWelcomeRoute: typeof OnboardingWelcomeRoute
+  OperatorsRoute: typeof OperatorsRoute
+  HomeIndexRoute: typeof HomeIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/zones': {
-      id: '/zones'
-      path: '/zones'
-      fullPath: '/zones'
-      preLoaderRoute: typeof ZonesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/warehouses': {
-      id: '/warehouses'
-      path: '/warehouses'
-      fullPath: '/warehouses'
-      preLoaderRoute: typeof WarehousesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test': {
-      id: '/test'
-      path: '/test'
-      fullPath: '/test'
-      preLoaderRoute: typeof TestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sectors': {
-      id: '/sectors'
-      path: '/sectors'
-      fullPath: '/sectors'
-      preLoaderRoute: typeof SectorsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/returns': {
-      id: '/returns'
-      path: '/returns'
-      fullPath: '/returns'
-      preLoaderRoute: typeof ReturnsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/restockings': {
-      id: '/restockings'
-      path: '/restockings'
-      fullPath: '/restockings'
-      preLoaderRoute: typeof RestockingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/receptions': {
-      id: '/receptions'
-      path: '/receptions'
-      fullPath: '/receptions'
-      preLoaderRoute: typeof ReceptionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/products': {
-      id: '/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/picking': {
-      id: '/picking'
-      path: '/picking'
-      fullPath: '/picking'
-      preLoaderRoute: typeof PickingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orders': {
-      id: '/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof OrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/misplaced-items': {
-      id: '/misplaced-items'
-      path: '/misplaced-items'
-      fullPath: '/misplaced-items'
-      preLoaderRoute: typeof MisplacedItemsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/locations': {
-      id: '/locations'
-      path: '/locations'
-      fullPath: '/locations'
-      preLoaderRoute: typeof LocationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dead-stock': {
-      id: '/dead-stock'
-      path: '/dead-stock'
-      fullPath: '/dead-stock'
-      preLoaderRoute: typeof DeadStockRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/abc-analysis': {
-      id: '/abc-analysis'
-      path: '/abc-analysis'
-      fullPath: '/abc-analysis'
-      preLoaderRoute: typeof AbcAnalysisRouteImport
+    '/operators': {
+      id: '/operators'
+      path: '/operators'
+      fullPath: '/operators'
+      preLoaderRoute: typeof OperatorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -446,87 +75,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/orders/': {
-      id: '/orders/'
-      path: '/'
-      fullPath: '/orders/'
-      preLoaderRoute: typeof OrdersIndexRouteImport
-      parentRoute: typeof OrdersRoute
-    }
-    '/orders/$orderId': {
-      id: '/orders/$orderId'
-      path: '/$orderId'
-      fullPath: '/orders/$orderId'
-      preLoaderRoute: typeof OrdersOrderIdRouteImport
-      parentRoute: typeof OrdersRoute
-    }
-    '/onboarding/welcome': {
-      id: '/onboarding/welcome'
-      path: '/onboarding/welcome'
-      fullPath: '/onboarding/welcome'
-      preLoaderRoute: typeof OnboardingWelcomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding/warehouse': {
-      id: '/onboarding/warehouse'
-      path: '/onboarding/warehouse'
-      fullPath: '/onboarding/warehouse'
-      preLoaderRoute: typeof OnboardingWarehouseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding/import': {
-      id: '/onboarding/import'
-      path: '/onboarding/import'
-      fullPath: '/onboarding/import'
-      preLoaderRoute: typeof OnboardingImportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/data/import': {
-      id: '/data/import'
-      path: '/data/import'
-      fullPath: '/data/import'
-      preLoaderRoute: typeof DataImportRouteImport
+    '/home/': {
+      id: '/home/'
+      path: '/home'
+      fullPath: '/home/'
+      preLoaderRoute: typeof HomeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface OrdersRouteChildren {
-  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
-  OrdersIndexRoute: typeof OrdersIndexRoute
-}
-
-const OrdersRouteChildren: OrdersRouteChildren = {
-  OrdersOrderIdRoute: OrdersOrderIdRoute,
-  OrdersIndexRoute: OrdersIndexRoute,
-}
-
-const OrdersRouteWithChildren =
-  OrdersRoute._addFileChildren(OrdersRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AbcAnalysisRoute: AbcAnalysisRoute,
-  DashboardRoute: DashboardRoute,
-  DeadStockRoute: DeadStockRoute,
-  LocationsRoute: LocationsRoute,
-  MisplacedItemsRoute: MisplacedItemsRoute,
-  OrdersRoute: OrdersRouteWithChildren,
-  PickingRoute: PickingRoute,
-  ProductsRoute: ProductsRoute,
-  ReceptionsRoute: ReceptionsRoute,
-  RestockingsRoute: RestockingsRoute,
-  ReturnsRoute: ReturnsRoute,
-  SectorsRoute: SectorsRoute,
-  SettingsRoute: SettingsRoute,
-  TestRoute: TestRoute,
-  WarehousesRoute: WarehousesRoute,
-  ZonesRoute: ZonesRoute,
-  DataImportRoute: DataImportRoute,
-  OnboardingImportRoute: OnboardingImportRoute,
-  OnboardingWarehouseRoute: OnboardingWarehouseRoute,
-  OnboardingWelcomeRoute: OnboardingWelcomeRoute,
+  OperatorsRoute: OperatorsRoute,
+  HomeIndexRoute: HomeIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

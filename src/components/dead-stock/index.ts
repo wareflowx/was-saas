@@ -1,6 +1,0 @@
-export { DeadStockPage } from "./DeadStockPage"
-export { DeadStockKPICards } from "./DeadStockKPICards"
-export { DeadStockTable } from "./DeadStockTable"
-export { DeadStockByCategoryChart } from "./DeadStockByCategoryChart"
-export { DeadStockBySeverityChart } from "./DeadStockBySeverityChart"
-export type { DeadStockItem, DeadStockData } from "./DeadStockPage"

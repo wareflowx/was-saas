@@ -1,6 +1,0 @@
-export { MisplacedItemsPage } from "./MisplacedItemsPage"
-export { MisplacedItemsKPICards } from "./MisplacedItemsKPICards"
-export { MisplacedItemsTable } from "./MisplacedItemsTable"
-export { MisplacedItemsByZoneChart } from "./MisplacedItemsByZoneChart"
-export { InefficiencyByPopularityChart } from "./InefficiencyByPopularityChart"
-export type { MisplacedItem, MisplacedItemsData } from "./MisplacedItemsPage"

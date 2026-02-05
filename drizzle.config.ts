@@ -1,10 +1,11 @@
-import type { Config } from 'drizzle-kit'
+import 'dotenv/config'
+import { defineConfig } from 'drizzle-kit'
 
-export default {
-  schema: './src/backend/database/drizzle-schema.ts',
+export default defineConfig({
   out: './drizzle',
-  driver: 'better-sqlite',
+  schema: './src/backend/database/schema/index.ts',
+  dialect: 'sqlite',
   dbCredentials: {
-    url: './wareflow.db',
+    url: './was.db',
   },
-} satisfies Config
+})
