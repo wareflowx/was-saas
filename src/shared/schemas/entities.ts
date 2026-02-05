@@ -558,6 +558,42 @@ export const ordersDataSchema = z.object({
 export type OrdersData = z.infer<typeof ordersDataSchema>
 
 // ============================================================================
+// USER SCHEMAS
+// ============================================================================
+
+export const userSchema = z.object({
+  id: z.string(),
+  warehouseId: z.string(),
+  username: z.string(),
+  fullName: z.string(),
+  email: z.string().nullable(),
+  role: z.string(),
+  status: statusSchema,
+  lastLoginAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  warehouseName: z.string().nullable(),
+  warehouseCode: z.string().nullable(),
+})
+
+export type User = z.infer<typeof userSchema>
+
+export const usersDataSchema = z.object({
+  kpis: z.object({
+    totalUsers: z.number(),
+    activeUsers: z.number(),
+    inactiveUsers: z.number(),
+    pendingUsers: z.number(),
+    operatorsCount: z.number(),
+    managersCount: z.number(),
+    adminsCount: z.number(),
+  }),
+  users: z.array(userSchema),
+})
+
+export type UsersData = z.infer<typeof usersDataSchema>
+
+// ============================================================================
 // ANALYSIS SCHEMAS
 // ============================================================================
 
