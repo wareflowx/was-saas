@@ -420,3 +420,26 @@ export function useProducts(warehouseId?: string) {
     enabled: !!warehouseId,
   })
 }
+
+/**
+ * Fetch users for a warehouse
+ * @param warehouseId - Warehouse ID (optional, undefined = all warehouses)
+ * @returns Query result with users data
+ */
+export function useUsers(warehouseId?: string) {
+  return useQuery<UsersData>({
+    queryKey: ['users', warehouseId],
+
+    queryFn: async (): Promise<UsersData> => {
+      const result = await window.typedElectronAPI.users
+        .getAll({ warehouseId })
+
+      // Handle Result<T, E> - throw error for React Query to catch
+      if (result.success) {
+        return result.data
+      }
+
+      throw new Error(result.error.message, { cause: result.error })
+    },
+  })
+}
