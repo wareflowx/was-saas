@@ -113,6 +113,3 @@ async function testResultHandling() {
 // ============================================================================
 
 export type TypedElectronAPI = typeof window.typedElectronAPI
-
-// This export ensures all types are accessible from other parts of the app
-export { typedElectronAPI } from './typed-api'

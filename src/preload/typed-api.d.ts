@@ -32,67 +32,67 @@ import type { ImportResult } from '../backend/import/types'
 // ============================================================================
 
 declare const typedElectronAPI: {
-  readonly warehouses: {
-    readonly getAll: () => Promise<Result<WarehousesData, AppError>>
-    readonly getWithKPIs: () => Promise<Result<WarehousesData, AppError>>
+  warehouses: {
+    getAll: () => Promise<Result<WarehousesData, AppError>>
+    getWithKPIs: () => Promise<Result<WarehousesData, AppError>>
   }
 
-  readonly locations: {
-    readonly getAll: (params?: { warehouseId?: string }) => Promise<Result<LocationsData, AppError>>
+  locations: {
+    getAll: (params?: { warehouseId?: string }) => Promise<Result<LocationsData, AppError>>
   }
 
-  readonly zones: {
-    readonly getAll: (params?: { warehouseId?: string }) => Promise<Result<ZonesData, AppError>>
+  zones: {
+    getAll: (params?: { warehouseId?: string }) => Promise<Result<ZonesData, AppError>>
   }
 
-  readonly sectors: {
-    readonly getAll: (params?: { warehouseId?: string }) => Promise<Result<SectorsData, AppError>>
+  sectors: {
+    getAll: (params?: { warehouseId?: string }) => Promise<Result<SectorsData, AppError>>
   }
 
-  readonly products: {
-    readonly getAll: (params: { warehouseId: string }) => Promise<Result<ProductsData, AppError>>
+  products: {
+    getAll: (params: { warehouseId: string }) => Promise<Result<ProductsData, AppError>>
   }
 
-  readonly dashboard: {
-    readonly getKPIs: (params?: { warehouseId?: string }) => Promise<Result<DashboardData, AppError>>
+  dashboard: {
+    getKPIs: (params?: { warehouseId?: string }) => Promise<Result<DashboardData, AppError>>
   }
 
-  readonly importHistory: {
-    readonly getAll: (params?: { warehouseId?: string }) => Promise<Result<readonly ImportHistoryEntry[], AppError>>
+  importHistory: {
+    getAll: (params?: { warehouseId?: string }) => Promise<Result<readonly ImportHistoryEntry[], AppError>>
   }
 
-  readonly import: {
-    readonly generateMockData: (warehouseId: string) => Promise<ImportResult>
+  import: {
+    generateMockData: (warehouseId: string) => Promise<ImportResult>
   }
 
-  readonly receptions: {
-    readonly getAll: (params: { warehouseId: string }) => Promise<Result<ReceptionsData, AppError>>
+  receptions: {
+    getAll: (params: { warehouseId: string }) => Promise<Result<ReceptionsData, AppError>>
   }
 
-  readonly pickings: {
-    readonly getAll: (params: { warehouseId: string }) => Promise<Result<PickingsData, AppError>>
+  pickings: {
+    getAll: (params: { warehouseId: string }) => Promise<Result<PickingsData, AppError>>
   }
 
-  readonly returns: {
-    readonly getAll: (params: { warehouseId: string }) => Promise<Result<ReturnsData, AppError>>
+  returns: {
+    getAll: (params: { warehouseId: string }) => Promise<Result<ReturnsData, AppError>>
   }
 
-  readonly restockings: {
-    readonly getAll: (params: { warehouseId: string }) => Promise<Result<RestockingsData, AppError>>
+  restockings: {
+    getAll: (params: { warehouseId: string }) => Promise<Result<RestockingsData, AppError>>
   }
 
-  readonly orders: {
-    readonly getWithLines: (params: { warehouseId: string }) => Promise<Result<OrdersData, AppError>>
+  orders: {
+    getWithLines: (params: { warehouseId: string }) => Promise<Result<OrdersData, AppError>>
   }
 
-  readonly analysis: {
-    readonly abc: (params: {
+  analysis: {
+    abc: (params: {
       warehouseId: string
       dateFrom?: string
       dateTo?: string
     }) => Promise<Result<ABCAnalysisResult, AppError>>
 
-    readonly deadStock: (params: {
+    deadStock: (params: {
       warehouseId: string
       thresholdDays?: number
       criticalThreshold?: number
@@ -103,7 +103,7 @@ declare const typedElectronAPI: {
 
 declare global {
   interface Window {
-    readonly typedElectronAPI: typeof typedElectronAPI
+    typedElectronAPI: typeof typedElectronAPI
   }
 }
 

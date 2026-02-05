@@ -431,16 +431,7 @@ const typedElectronAPI = {
 
 contextBridge.exposeInMainWorld('typedElectronAPI', typedElectronAPI)
 
-// ============================================================================
-// TYPE DEFINITIONS FOR TYPESCRIPT
-// ============================================================================
-
-declare global {
-  interface Window {
-    electronAPI: typeof electronAPI
-    readonly typedElectronAPI: typeof typedElectronAPI
-  }
-}
-
-// Import and re-export the proper typed API types
+// Type definitions are in separate .d.ts files:
+// - index.d.ts: Legacy electronAPI (deprecated)
+// - typed-api.d.ts: Modern typedElectronAPI with proper types
 export type { TypedElectronAPI } from '../types/typed-electron-api'
