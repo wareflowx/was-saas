@@ -24,6 +24,7 @@ import type {
   OrdersData,
   ABCAnalysisResult,
   DeadStockAnalysisResult,
+  UsersData,
 } from '../shared/schemas/entities'
 import type { ImportResult } from '../backend/import/types'
 
@@ -98,6 +99,10 @@ declare const typedElectronAPI: {
       criticalThreshold?: number
       warningThreshold?: number
     }) => Promise<Result<DeadStockAnalysisResult, AppError>>
+  }
+
+  users: {
+    getAll: (params?: { warehouseId?: string }) => Promise<Result<UsersData, AppError>>
   }
 }
 

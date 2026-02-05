@@ -21,6 +21,7 @@ import type {
   OrdersData,
   ABCAnalysisResult,
   DeadStockAnalysisResult,
+  UsersData,
 } from '../shared/schemas/entities'
 import type { ImportResult } from '../backend/import/types'
 
@@ -87,6 +88,10 @@ const deadStockResult: Promise<Result<DeadStockAnalysisResult, AppError>> = api.
   criticalThreshold: 365,
   warningThreshold: 180,
 })
+
+// Users
+const usersResult: Promise<Result<UsersData, AppError>> = api.users.getAll()
+const usersWithWarehouse: Promise<Result<UsersData, AppError>> = api.users.getAll({ warehouseId: 'WH-001' })
 
 // ============================================================================
 // RESULT TYPE TESTS
