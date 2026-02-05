@@ -334,6 +334,9 @@ ipcMain.handle('analysis:abc', (event, params) => handleAsync(() => analysis.run
 
 ipcMain.handle('analysis:deadStock', (event, params) => handleAsync(() => analysis.runDeadStockAnalysis(params.warehouseId, params.thresholdDays)))
 
+// Users
+ipcMain.handle('users:getAll', (event, params) => handleAsync(() => queries.getUsersByWarehouse(params?.warehouseId)))
+
 // ==========================================================================
 // CLEANUP
 // ==========================================================================
