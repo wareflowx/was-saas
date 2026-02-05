@@ -17,7 +17,7 @@ function OperatorsRoute() {
 
   // Redirect to onboarding if no warehouses exist (after loading completes)
   useEffect(() => {
-    if (!isLoadingWarehouses && warehouses && warehouses.warehouses.length === 0) {
+    if (!isLoadingWarehouses && warehouses && warehouses.warehouses && warehouses.warehouses.length === 0) {
       navigate({ to: "/onboarding/welcome" })
     }
   }, [isLoadingWarehouses, warehouses, navigate])
