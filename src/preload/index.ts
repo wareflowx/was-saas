@@ -427,6 +427,11 @@ const typedElectronAPI = {
     }) =>
       ipcRenderer.invoke('analysis:deadStock', params),
   },
+
+  users: {
+    getAll: (params?: { warehouseId?: string }) =>
+      ipcRenderer.invoke('users:getAll', params),
+  },
 }
 
 contextBridge.exposeInMainWorld('typedElectronAPI', typedElectronAPI)
