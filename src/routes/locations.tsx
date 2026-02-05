@@ -9,7 +9,7 @@ export const Route = createFileRoute("/locations")({
     // Check if warehouses exist, redirect to onboarding if not
     const warehouses = await context.ipc.warehouses.getAll()
     // Handler returns failure if no warehouses, success with data otherwise
-    if (!warehouses.success || warehouses.data.warehouses.length === 0) {
+    if (!warehouses.success || !warehouses.data || warehouses.data.warehouses.length === 0) {
       throw redirect({ to: "/onboarding/welcome" })
     }
   },
