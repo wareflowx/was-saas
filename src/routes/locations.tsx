@@ -1,18 +1,11 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { LocationsPage } from "@/components/locations/LocationsPage"
 import { useLocations, useWarehouses } from "@/hooks/use-locations"
+import { useEffect } from "react"
 
 export const Route = createFileRoute("/locations")({
-  beforeLoad: async ({ context }) => {
-    // Check if warehouses exist, redirect to onboarding if not
-    const warehouses = await context.ipc.warehouses.getAll()
-    // Handler returns failure if no warehouses, success with data otherwise
-    if (!warehouses.success || !warehouses.data || warehouses.data.warehouses.length === 0) {
-      throw redirect({ to: "/onboarding/welcome" })
-    }
-  },
   component: LocationsRoute,
 })
 
@@ -21,6 +14,13 @@ function LocationsRoute() {
 
   // Fetch warehouses to get default warehouse ID
   const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
+
+  // Redirect to onboarding if no warehouses exist (after loading completes)
+  useEffect(() => {
+    if (!isLoadingWarehouses && warehouses && warehouses.warehouses.length === 0) {
+      navigate({ to: "/onboarding/welcome" })
+    }
+  }, [isLoadingWarehouses, warehouses, navigate])
 
   // Fetch locations data from backend (all locations from all warehouses)
   const {
