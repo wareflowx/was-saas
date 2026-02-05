@@ -21,6 +21,7 @@ import type {
   OrdersData,
   ABCAnalysisResult,
   DeadStockAnalysisResult,
+  UsersData,
 } from '../shared/schemas/entities'
 
 /**
