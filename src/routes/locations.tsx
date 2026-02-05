@@ -57,8 +57,9 @@ function LocationsRoute() {
     )
   }
 
-  // No data state
-  if (!locationsData || !warehouses?.warehouses.length) {
+  // No data state - only show this after loading is complete
+  // Don't show during initial loading (isLoadingWarehouses handles that)
+  if (!isLoadingWarehouses && (!locationsData || !warehouses || warehouses.warehouses.length === 0)) {
     return (
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
