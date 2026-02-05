@@ -160,7 +160,7 @@ declare global {
         /**
          * @deprecated Use typedElectronAPI instead for type-safe IPC communication
          */
-        readonly electronAPI: typeof electronAPI;
+        electronAPI: typeof electronAPI;
     }
 }
 export {};
