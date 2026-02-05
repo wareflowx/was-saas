@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { LocationsPage } from "@/components/locations/LocationsPage"
@@ -17,6 +17,8 @@ export const Route = createFileRoute("/locations")({
 })
 
 function LocationsRoute() {
+  const navigate = useNavigate()
+
   // Fetch warehouses to get default warehouse ID
   const { data: warehouses, isLoading: isLoadingWarehouses } = useWarehouses()
 
@@ -56,7 +58,7 @@ function LocationsRoute() {
   }
 
   // No data state
-  if (!locationsData || !warehouses?.length) {
+  if (!locationsData || !warehouses?.warehouses.length) {
     return (
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
@@ -89,7 +91,7 @@ function LocationsRoute() {
             <div className="flex-1" />
           </header>
           <div className="p-8">
-            <LocationsPage data={locationsData} />
+            <LocationsPage data={locationsData.locations} />
           </div>
         </main>
       </div>
